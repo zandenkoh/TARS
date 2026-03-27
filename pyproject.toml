@@ -1,12 +1,12 @@
 [project]
-name = "nanobot-ai"
+name = "TARS-ai"
 version = "0.1.4.post5"
 description = "A lightweight personal AI assistant framework"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "nanobot contributors"}
+    {name = "TARS contributors"}
 ]
 keywords = ["ai", "agent", "chatbot"]
 classifiers = [
@@ -48,6 +48,7 @@ dependencies = [
     "chardet>=3.0.2,<6.0.0",
     "openai>=2.8.0",
     "tiktoken>=0.12.0,<1.0.0",
+    "edge-tts>=6.1.12",
 ]
 
 [project.optional-dependencies]
@@ -75,7 +76,7 @@ dev = [
 ]
 
 [project.scripts]
-nanobot = "nanobot.cli.commands:app"
+TARS = "TARS.cli.commands:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -86,24 +87,24 @@ allow-direct-references = true
 
 [tool.hatch.build]
 include = [
-    "nanobot/**/*.py",
-    "nanobot/templates/**/*.md",
-    "nanobot/skills/**/*.md",
-    "nanobot/skills/**/*.sh",
+    "TARS/**/*.py",
+    "TARS/templates/**/*.md",
+    "TARS/skills/**/*.md",
+    "TARS/skills/**/*.sh",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["nanobot"]
+packages = ["TARS"]
 
 [tool.hatch.build.targets.wheel.sources]
-"nanobot" = "nanobot"
+"TARS" = "TARS"
 
 [tool.hatch.build.targets.wheel.force-include]
-"bridge" = "nanobot/bridge"
+"bridge" = "TARS/bridge"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "nanobot/",
+    "TARS/",
     "bridge/",
     "README.md",
     "LICENSE",

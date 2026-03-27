@@ -13,8 +13,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from nanobot.providers.openai_compat_provider import OpenAICompatProvider
-from nanobot.providers.registry import find_by_name
+from TARS.providers.openai_compat_provider import OpenAICompatProvider
+from TARS.providers.registry import find_by_name
 
 
 def _fake_chat_response(content: str = "ok") -> SimpleNamespace:
@@ -66,7 +66,7 @@ async def test_openrouter_keeps_model_name_intact() -> None:
     mock_create = AsyncMock(return_value=_fake_chat_response())
     spec = find_by_name("openrouter")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("TARS.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -91,7 +91,7 @@ async def test_aihubmix_strips_model_prefix() -> None:
     mock_create = AsyncMock(return_value=_fake_chat_response())
     spec = find_by_name("aihubmix")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("TARS.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -116,7 +116,7 @@ async def test_standard_provider_passes_model_through() -> None:
     mock_create = AsyncMock(return_value=_fake_chat_response())
     spec = find_by_name("deepseek")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("TARS.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -140,7 +140,7 @@ async def test_openai_compat_preserves_extra_content_on_tool_calls() -> None:
     mock_create = AsyncMock(return_value=_fake_tool_call_response())
     spec = find_by_name("gemini")
 
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
+    with patch("TARS.providers.openai_compat_provider.AsyncOpenAI") as MockClient:
         client_instance = MockClient.return_value
         client_instance.chat.completions.create = mock_create
 
@@ -168,7 +168,7 @@ async def test_openai_compat_preserves_extra_content_on_tool_calls() -> None:
 def test_openai_model_passthrough() -> None:
     """OpenAI models pass through unchanged."""
     spec = find_by_name("openai")
-    with patch("nanobot.providers.openai_compat_provider.AsyncOpenAI"):
+    with patch("TARS.providers.openai_compat_provider.AsyncOpenAI"):
         provider = OpenAICompatProvider(
             api_key="sk-test-key",
             default_model="gpt-4o",
