@@ -14,8 +14,7 @@ software together: with care, clarity, and respect for the next person reading t
 
 | Maintainer | Focus |
 |------------|-------|
-| [@re-bin](https://github.com/re-bin) | Project lead, `main` branch |
-| [@chengyongru](https://github.com/chengyongru) | `nightly` branch, experimental features |
+| [@zandenkoh](https://github.com/zandenkoh) | Project lead, `main` branch |
 
 ## Branching Strategy
 
@@ -24,15 +23,8 @@ We use a two-branch model to balance stability and exploration:
 | Branch | Purpose | Stability |
 |--------|---------|-----------|
 | `main` | Stable releases | Production-ready |
-| `nightly` | Experimental features | May have bugs or breaking changes |
 
 ### Which Branch Should I Target?
-
-**Target `nightly` if your PR includes:**
-
-- New features or functionality
-- Refactoring that may affect existing behavior
-- Changes to APIs or configuration
 
 **Target `main` if your PR includes:**
 
@@ -40,30 +32,17 @@ We use a two-branch model to balance stability and exploration:
 - Documentation improvements
 - Minor tweaks that don't affect functionality
 
-**When in doubt, target `nightly`.** It is easier to move a stable idea from `nightly`
-to `main` than to undo a risky change after it lands in the stable branch.
-
-### How Does Nightly Get Merged to Main?
-
-We don't merge the entire `nightly` branch. Instead, stable features are **cherry-picked** from `nightly` into individual PRs targeting `main`:
-
-```
-nightly  ──┬── feature A (stable) ──► PR ──► main
-           ├── feature B (testing)
-           └── feature C (stable) ──► PR ──► main
-```
-
-This happens approximately **once a week**, but the timing depends on when features become stable enough.
+**When in doubt, target `main`.**
 
 ### Quick Summary
 
 | Your Change | Target Branch |
 |-------------|---------------|
-| New feature | `nightly` |
+| New feature | `main` |
 | Bug fix | `main` |
 | Documentation | `main` |
-| Refactoring | `nightly` |
-| Unsure | `nightly` |
+| Refactoring | `main` |
+| Unsure | `main` |
 
 ## Development Setup
 
@@ -71,7 +50,7 @@ Keep setup boring and reliable. The goal is to get you into the code quickly:
 
 ```bash
 # Clone the repository
-git clone https://github.com/HKUDS/TARS.git
+git clone https://github.com/zandenkoh/TARS.git
 cd TARS
 
 # Install with dev dependencies
@@ -113,10 +92,10 @@ In practice:
 
 If you have questions, ideas, or half-formed insights, you are warmly welcome here.
 
-Please feel free to open an [issue](https://github.com/HKUDS/TARS/issues), join the community, or simply reach out:
+Please feel free to open an [issue](https://github.com/zandenkoh/TARS/issues), join the community, or simply reach out:
 
 - [Discord](https://discord.gg/MnCvHqpUGB)
 - [Feishu/WeChat](./COMMUNICATION.md)
-- Email: Xubin Ren (@Re-bin) — <xubinrencs@gmail.com>
+- Email: Zanden Koh (@zandenkoh) — <[EMAIL_ADDRESS]>
 
 Thank you for spending your time and care on TARS. We would love for more people to participate in this community, and we genuinely welcome contributions of all sizes.
