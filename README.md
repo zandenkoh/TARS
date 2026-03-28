@@ -144,7 +144,7 @@
 **Install from source** (latest features, recommended for development)
 
 ```bash
-git clone https://github.com/HKUDS/TARS.git
+git clone https://github.com/zandenkoh/TARS.git
 cd TARS
 pip install -e .
 ```
@@ -767,7 +767,7 @@ Uses **HTTP long-poll** with QR-code login via the ilinkai personal WeChat API. 
 **1. Install from source**
 
 ```bash
-git clone https://github.com/HKUDS/TARS.git
+git clone https://github.com/zandenkoh/TARS.git
 cd TARS
 pip install -e ".[weixin]"
 ```
@@ -1682,7 +1682,7 @@ PRs welcome! The codebase is intentionally small and readable. 🤗
 
 **Unsure which branch to target?** See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
-**Roadmap** — Pick an item and [open a PR](https://github.com/HKUDS/TARS/pulls)!
+**Roadmap** — Pick an item and [open a PR](https://github.com/zandenkoh/TARS/pulls)!
 
 - [ ] **Multi-modal** — See and hear (images, voice, video)
 - [ ] **Long-term memory** — Never forget important context
@@ -1692,8 +1692,8 @@ PRs welcome! The codebase is intentionally small and readable. 🤗
 
 ### Contributors
 
-<a href="https://github.com/HKUDS/TARS/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=HKUDS/TARS&max=100&columns=12&updated=20260210" alt="Contributors" />
+<a href="https://github.com/zandenkoh/TARS/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=zandenkoh/TARS&max=100&columns=12&updated=20260210" alt="Contributors" />
 </a>
 
 
@@ -1711,7 +1711,7 @@ PRs welcome! The codebase is intentionally small and readable. 🤗
 
 <p align="center">
   <em> Thanks for visiting ✨ TARS!</em><br><br>
-  <img src="https://visitor-badge.laobi.icu/badge?page_id=HKUDS.TARS&style=for-the-badge&color=00d4ff" alt="Views">
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=zandenkoh.TARS&style=for-the-badge&color=00d4ff" alt="Views">
 </p>
 
 

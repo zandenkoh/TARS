@@ -8,6 +8,7 @@ import re
 import time
 import unicodedata
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Literal
 
 from loguru import logger
@@ -1116,32 +1117,6 @@ class TelegramChannel(BaseChannel):
     async def _on_error(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Log polling / handler errors instead of silently swallowing them."""
         logger.error("Telegram error: {}", context.error)
-
-    def _get_extension(
-        self,
-        media_type: str,
-        mime_type: str | None,
-        filename: str | None = None,
-    ) -> str:
-        """Get file extension based on media type or original filename."""
-        if mime_type:
-            ext_map = {
-                "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
-                "audio/ogg": ".ogg", "audio/mpeg": ".mp3", "audio/mp4": ".m4a",
-            }
-            if mime_type in ext_map:
-                return ext_map[mime_type]
-
-        type_map = {"image": ".jpg", "voice": ".ogg", "audio": ".mp3", "file": ""}
-        if ext := type_map.get(media_type, ""):
-            return ext
-
-        if filename:
-            from pathlib import Path
-
-            return "".join(Path(filename).suffixes)
-
-        return ""
 
     async def _on_tasks(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Handle /tasks command."""

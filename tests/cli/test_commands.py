@@ -428,8 +428,8 @@ def test_agent_config_sets_active_path(monkeypatch, tmp_path: Path) -> None:
     seen: dict[str, Path] = {}
 
     monkeypatch.setattr(
-        "TARS.config.loader.set_config_path",
-        lambda path: seen.__setitem__("config_path", path),
+       "TARS.config.loader.set_config_path",
+        lambda path, **kwargs: seen.__setitem__("config_path", path),
     )
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
@@ -652,8 +652,8 @@ def test_gateway_uses_workspace_from_config_by_default(monkeypatch, tmp_path: Pa
     seen: dict[str, Path] = {}
 
     monkeypatch.setattr(
-        "TARS.config.loader.set_config_path",
-        lambda path: seen.__setitem__("config_path", path),
+       "TARS.config.loader.set_config_path",
+        lambda path, **kwargs: seen.__setitem__("config_path", path),
     )
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr(

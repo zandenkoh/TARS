@@ -68,6 +68,9 @@ class _FakeBot:
     async def send_chat_action(self, **kwargs) -> None:
         pass
 
+    async def set_message_reaction(self, **kwargs) -> None:  # ← ADD THIS
+        pass
+
     async def get_file(self, file_id: str):
         """Return a fake file that 'downloads' to a path (for reply-to-media tests)."""
         async def _fake_download(path) -> None:
