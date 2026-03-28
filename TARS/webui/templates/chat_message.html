@@ -1,0 +1,38 @@
+<!-- User Message Row -->
+<div class="flex flex-col items-end space-y-2 group">
+    <div class="max-w-[85%] bg-[#2f2f2f] rounded-[20px] px-5 py-3 text-slate-100 shadow-lg border border-[#3f3f3f]">
+        <p class="text-[16px] leading-relaxed">{{ user_message }}</p>
+    </div>
+    <div class="flex items-center gap-2 px-3">
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">You</span>
+    </div>
+</div>
+
+<!-- Bot Message Row -->
+<div class="flex items-start gap-4 group py-4 transition-all hover:bg-white/[0.02] -mx-6 px-6 rounded-2xl">
+    <div class="w-9 h-9 rounded-full bg-white flex-shrink-0 flex items-center justify-center text-black text-xs font-bold shadow-xl">
+        OI
+    </div>
+    <div class="flex-1 min-w-0 space-y-4">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-white uppercase tracking-wider">TARS</span>
+            <span class="text-[10px] text-slate-500 font-medium">Just now</span>
+        </div>
+        <div class="text-[16px] text-slate-200 leading-relaxed whitespace-pre-wrap selection:bg-sky-500/30 selection:text-white">
+            {{ bot_reply }}
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex items-center gap-4 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button class="hover:text-sky-400 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            </button>
+            <button class="hover:text-sky-400 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            </button>
+            <button class="hover:text-emerald-400 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>

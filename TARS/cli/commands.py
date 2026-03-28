@@ -750,6 +750,71 @@ def gateway(
 
 
 # ============================================================================
+# Web UI
+# ============================================================================
+
+
+import subprocess
+import threading
+
+def _prefix_output(pipe, prefix):
+    for line in iter(pipe.readline, b''):
+        try:
+            decoded = line.decode('utf-8', errors='replace')
+            sys.stdout.write(f"{prefix} {decoded}")
+            sys.stdout.flush()
+        except Exception:
+            pass
+
+@app.command()
+def webui(
+    host: str = typer.Option("0.0.0.0", "--host", "-h", help="Binding host"),
+    port: int = typer.Option(18780, "--port", "-p", help="Binding port"),
+    reload: bool = typer.Option(True, "--reload/--no-reload", help="Enable hot reload (dev mode)"),
+    gateway: bool = typer.Option(True, "--gateway/--no-gateway", help="Start the gateway service alongside the web UI"),
+):
+    """Start the TARS Web UI server and optional background gateway."""
+    console.print(f"{__logo__} Starting TARS Web UI at http://{host}:{port}")
+    
+    gw_process = None
+    if gateway:
+        cmd = [sys.argv[0], "gateway"]
+        gw_process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        t = threading.Thread(target=_prefix_output, args=(gw_process.stdout, "[GATEWAY]"), daemon=True)
+        t.start()
+
+    webui_cmd = [
+        sys.executable, "-m", "uvicorn",
+        "TARS.webui.api:app",
+        "--host", host,
+        "--port", str(port),
+    ]
+    if reload:
+        webui_cmd.append("--reload")
+
+    web_process = subprocess.Popen(
+        webui_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    t_web = threading.Thread(target=_prefix_output, args=(web_process.stdout, "[WEBUI]"), daemon=True)
+    t_web.start()
+    
+    try:
+        web_process.wait()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        web_process.terminate()
+        if gw_process:
+            gw_process.terminate()
+
+
+# ============================================================================
 # Agent Commands
 # ============================================================================
 

@@ -1,0 +1,29 @@
+{% for message in messages %}
+    {% if message.role == 'user' %}
+    <div class="flex flex-col items-end space-y-2 group">
+        <div class="max-w-[85%] bg-[#2f2f2f] rounded-[20px] px-5 py-3 text-slate-100 shadow-lg border border-[#3f3f3f]">
+            <p class="text-[16px] leading-relaxed">{{ message.content }}</p>
+        </div>
+        <div class="flex items-center gap-2 px-3">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">You</span>
+        </div>
+    </div>
+    {% elif message.role == 'assistant' %}
+    <div class="flex items-start gap-4 group py-4 transition-all hover:bg-white/[0.02] -mx-6 px-6 rounded-2xl">
+        <div class="w-9 h-9 rounded-full bg-white flex-shrink-0 flex items-center justify-center text-black text-xs font-bold shadow-xl">
+            OI
+        </div>
+        <div class="flex-1 min-w-0 space-y-4">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-white uppercase tracking-wider">TARS</span>
+                {% if message.timestamp %}
+                <span class="text-[10px] text-slate-500 font-medium">{{ message.timestamp[:16].replace('T', ' ') }}</span>
+                {% endif %}
+            </div>
+            <div class="text-[16px] text-slate-200 leading-relaxed whitespace-pre-wrap selection:bg-sky-500/30 selection:text-white">
+                {{ message.content }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}

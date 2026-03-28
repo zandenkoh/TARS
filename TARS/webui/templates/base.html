@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!-- Part of TARS integrated web UI – prepared for HTMX + Tailwind -->
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TARS Web UI</title>
+    
+    <!-- PWA Foundations -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/png" href="/static/icon-192.png">
+
+    <!-- CSS/Styles: Tailwind CDN for instant prototyping -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              tars_dark: '#0a0a0a',
+              tars_sidebar: '#111827',
+              tars_primary: '#38bdf8',
+            },
+            animation: {
+              'in': 'in 0.3s ease-out',
+            },
+            keyframes: {
+              in: {
+                '0%': { opacity: 0, transform: 'translateY(10px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- HTMX CDN: For future interactivity without heavy SPA JS -->
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="https://unpkg.com/htmx-ext-sse@2.2.1/sse.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+      /* Dark theme defaults matching modern AI tools */
+      body {
+        background-color: #0a0a0a;
+        color: #e2e8f0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .safe-top { padding-top: env(safe-area-inset-top); }
+      .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="safe-top safe-bottom selection:bg-sky-500/30 overflow-hidden">
+    {% block content %}{% endblock %}
+</body>
+</html>

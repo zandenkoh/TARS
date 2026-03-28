@@ -1,0 +1,30 @@
+<div class="space-y-6">
+    <!-- User Message -->
+    <div class="flex flex-col items-end space-y-2 group">
+        <div class="max-w-[85%] bg-[#2f2f2f] rounded-[20px] px-5 py-3 text-slate-100 shadow-lg border border-[#3f3f3f]">
+            <p class="text-[16px] leading-relaxed">{{ user_message }}</p>
+        </div>
+        <div class="flex items-center gap-2 px-3">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">You</span>
+        </div>
+    </div>
+
+    <!-- The Bot wrapper -->
+    <div class="flex items-start gap-4 py-4 -mx-6 px-6 rounded-2xl group transition-all hover:bg-white/[0.02]">
+        <div class="w-9 h-9 rounded-full bg-white flex-shrink-0 flex items-center justify-center text-black text-xs font-bold shadow-xl">OI</div>
+        <div class="flex-1 min-w-0 space-y-4">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-white uppercase tracking-wider">TARS</span>
+                <span id="response-thinking-{{ turn_id }}" class="text-[10px] text-slate-500 font-medium animate-pulse">thinking...</span>
+            </div>
+            
+            <div hx-ext="sse" 
+                 sse-connect="/api/chat/stream?turn_id={{ turn_id }}&content={{ user_message | urlencode }}&session_id={{ session_id }}" 
+                 sse-swap="message" 
+                 hx-swap="beforeend"
+                 class="text-[16px] text-slate-200 leading-relaxed whitespace-pre-wrap selection:bg-sky-500/30 selection:text-white pb-2 min-h-[1.5rem]">
+                 <!-- Text deltas will natively append here -->
+            </div>
+        </div>
+    </div>
+</div>

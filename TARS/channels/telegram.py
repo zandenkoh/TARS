@@ -612,8 +612,8 @@ class TelegramChannel(BaseChannel):
                 self.config.tts_engine = "local" # Temporary fallback
                 return await self._send_tts(chat_id, text, reply_params, thread_kwargs)
 
-            # Use Gemini 2.0 Flash (exp) for audio generation
-            model = "gemini-3.1-flash-live-preview"
+            # Use Gemini 2.0 Flash for audio generation
+            model = "gemini-2.0-flash"
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             
             payload = {
