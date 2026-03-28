@@ -1,19 +1,54 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .input-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        border-radius: 28px;
+        background-color: #303030;
+        border: 1px solid transparent;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .input-container:focus-within {
+        border-color: rgba(255, 255, 255, 0.1);
+        background-color: #353535;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .input-container[data-state="multi"] {
+        border-radius: 1.25rem;
+    }
+    .chat-textarea {
+        transition: height 0.2s ease-out;
+    }
+</style>
+<meta id="tars-config-data" data-config='{{ config.model_dump() | tojson | safe }}'>
 <div class="flex h-screen overflow-hidden bg-tars-black text-zinc-300 font-inter">
     <!-- Left Sidebar (Glassmorphism) -->
-    <aside id="sidebar" class="hidden md:flex w-[260px] flex-col bg-[#181818] border-r border-white/[0.04] transition-all duration-300 ease-in-out z-50">
+    <aside id="sidebar"
+        class="hidden md:flex w-[260px] flex-col bg-[#181818] border-r border-white/[0.04] transition-all duration-300 ease-in-out z-50">
         <!-- Sidebar Header -->
         <div class="px-4 py-4 flex items-center justify-between">
-            <button onclick="newChat()" class="flex-1 flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl hover:bg-white/[0.05] hover:cursor-pointer text-zinc-200 transition-all group">
-                <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <button onclick="newChat()"
+                class="flex-1 flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl hover:bg-white/[0.05] hover:cursor-pointer text-zinc-200 transition-all group">
+                <div
+                    class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
                     <img src="/static/icon-192.png" alt="TARS" class="w-4 h-4 object-contain">
                 </div>
-                <svg class="ml-auto w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <svg class="ml-auto w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                    </path>
+                </svg>
             </button>
-            <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-500 hover:text-white ml-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+            <button onclick="toggleSidebar()"
+                class="md:hidden p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-500 hover:text-white ml-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                </svg>
             </button>
         </div>
 
@@ -21,29 +56,44 @@
         <nav class="px-2 space-y-0.5">
             <button hx-get="/api/workspace" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
                 Workspace
             </button>
             <button hx-get="/api/tasks/today" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                    </path>
+                </svg>
                 Tasks
             </button>
-            <button hx-get="/api/channels" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+            <button onclick="showExplorer('Search')"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Channels
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Search chats
             </button>
-            <button hx-get="/api/config" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+            <button onclick="showExplorer('Projects')"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Settings
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
+                Projects
             </button>
+
         </nav>
 
         <!-- Recent Chats -->
         <div class="flex-1 px-2 mt-6 overflow-y-auto custom-scrollbar">
-            <div class="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+            <div
+                class="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                 <span>Recent</span>
                 <div class="h-[1px] flex-1 bg-white/[0.04]"></div>
             </div>
@@ -52,110 +102,208 @@
             </div>
         </div>
 
-        <!-- User Profile -->
-        <div class="p-3 border-t border-white/[0.04] mt-auto">
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.05] transition-colors cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-400 border border-emerald-500/10">
+        <!-- User Profile & Context Menu -->
+        <div class="relative p-3 border-t border-white/[0.04] mt-auto">
+            <!-- Context Menu (hidden by default) -->
+            <div id="profile-context-menu" 
+                class="absolute bottom-[calc(100%+8px)] left-2 right-2 bg-[#252528] rounded-xl border border-white/[0.08] shadow-2xl overflow-hidden hidden animate-slide-up z-[60]">
+                <div class="p-1.5 flex flex-col">
+                    <button onclick="toggleProfileMenu(); openModal('Personalisation')" 
+                        class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] transition-all text-zinc-400 hover:text-zinc-200 group">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Personalisation
+                    </button>
+                    <button hx-get="/api/channels" hx-target="#modal-content" hx-on::after-request="openModal('Channels')" onclick="toggleProfileMenu()"
+                        class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] transition-all text-zinc-400 hover:text-zinc-200 group">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Channels
+                    </button>
+                    <button hx-get="/api/config" hx-target="#modal-content" hx-on::after-request="openSettings()" onclick="toggleProfileMenu()"
+                        class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] transition-all text-zinc-400 hover:text-zinc-200 group">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        </svg>
+                        Settings
+                    </button>
+                    <button onclick="toggleProfileMenu(); openModal('Help')" 
+                        class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] transition-all text-zinc-400 hover:text-zinc-200 group">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Help
+                    </button>
+                </div>
+            </div>
+
+            <div onclick="toggleProfileMenu()"
+                class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.05] transition-colors cursor-pointer group">
+                <div
+                    class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-400 border border-emerald-500/10">
                     U
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-[13px] font-semibold text-zinc-200 truncate">User account</p>
                 </div>
-                <svg class="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                <svg id="profile-chevron" class="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-all" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 9l-7 7-7-7">
+                    </path>
+                </svg>
             </div>
         </div>
+
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col relative bg-[#212121]">
         <!-- Top Bar -->
-        <header class="flex items-center justify-between px-6 py-3 border-b border-white/[0.04] sticky top-0 z-40 bg-[#212121]/80 backdrop-blur-md">
+        <header
+            class="flex items-center justify-between px-6 py-3 border-b border-white/[0.04] sticky top-0 z-40 bg-[#212121]/80 backdrop-blur-md">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-white/7 rounded-lg text-zinc-400 hover:text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button onclick="toggleSidebar()"
+                    class="md:hidden p-2 hover:bg-white/7 rounded-lg text-zinc-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
                 </button>
-                <div class="flex items-center gap-2 group cursor-pointer px-3 py-2 rounded-lg hover:bg-white/3 transition-colors">
+                <div
+                    class="flex items-center gap-2 group cursor-pointer px-3 py-2 rounded-lg hover:bg-white/3 transition-colors">
                     <span class="text-xs font-semibold text-zinc-400">TARS</span>
                     <span class="text-xs font-bold text-zinc-200 tracking-tight">{{ model_name }}</span>
-                    <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                 </div>
             </div>
-            
+
             <div class="flex items-center gap-2">
                 <button class="p-2 text-zinc-500 hover:text-zinc-200 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3"></path>
+                    </svg>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 border border-white/5">TB</div>
+                <div
+                    class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 border border-white/5">
+                    TB</div>
             </div>
         </header>
 
         <!-- Message Area & Welcome Content -->
-        <div id="chat-container" class="flex-1 overflow-y-auto flex flex-col items-center custom-scrollbar scroll-smooth">
-            <div id="welcome-view" class="w-full max-w-2xl px-6 flex flex-col items-center justify-center min-h-[75vh] animate-fade-in translate-y-[-5%]">
+        <div id="chat-container"
+            class="flex-1 overflow-y-auto flex flex-col items-center custom-scrollbar scroll-smooth">
+            <div id="welcome-view"
+                class="w-full max-w-2xl px-6 flex flex-col items-center justify-center min-h-[75vh] animate-fade-in translate-y-[-5%]">
                 <!-- Open WebUI Style Logo Section -->
                 <div class="flex items-center gap-3 mb-8 animate-float">
-                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                    <div
+                        class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                         <img src="/static/icon-192.png" alt="TARS" class="w-6 h-6 object-contain p-0.5">
                     </div>
                     <h1 class="text-2xl font-heading font-bold text-white tracking-tight">{{ model_name }}</h1>
                 </div>
 
-                <!-- Input Group Area (Centered) -->
-                <div class="w-full relative mb-12">
-                     <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset(); hideWelcome()" onsubmit="hideWelcome()">
-                        <div class="relative flex items-center p-2 rounded-full bg-zinc-900/50 border border-white/10 focus-within:border-white/20 transition-all shadow-xl group">
-                           <input type="hidden" name="session_id" id="current_session_id" value="new">
-                           
-                           <button type="button" class="p-3 text-zinc-500 hover:text-zinc-200 transition-colors" title="Attach Files">
-                               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                           </button>
-                           
-                           <input type="text" name="content" placeholder="How can I help you today?" autocomplete="off" autofocus
-                               class="w-full bg-transparent text-white py-3 px-2 outline-none placeholder:text-zinc-500 text-[15px]">
-                           
-                           <div class="flex items-center gap-2 pr-2">
-                               <button type="button" class="p-2 text-zinc-500 hover:text-zinc-200 transition-colors" title="Voice Input">
-                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                               </button>
-                               <button type="button" class="p-2 text-zinc-500 hover:text-zinc-200 transition-colors" title="Web Search">
-                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9h18"></path></svg>
-                               </button>
-                           </div>
+                <div class="w-full relative mb-12 max-w-3xl mx-auto">
+                    <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" class="chat-form">
+                        <div class="input-container group" data-state="single">
+                            <input type="hidden" name="session_id" class="session_id_field" value="new">
+                            <div class="flex items-start w-full gap-2">
+                                <button type="button" class="attach-btn flex items-center justify-center w-10 h-10 bg-transparent text-white rounded-full hover:bg-white/5 transition-colors shrink-0 mt-1" title="Attach Files">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                                    </svg>
+                                </button>
+                                <textarea name="content" placeholder="Ask anything..." autocomplete="off" autofocus
+                                    class="chat-textarea flex-1 bg-transparent text-white py-3 px-1 outline-none placeholder:text-zinc-500 text-[17px] leading-relaxed resize-none h-[48px] max-h-[200px] overflow-y-auto custom-scrollbar"></textarea>
+                                <div class="button-group-single flex items-center gap-1 pr-1 shrink-0 mt-1">
+                                    <button type="submit" class="flex items-center justify-center w-10 h-10 bg-white text-black rounded-full hover:bg-zinc-200 transition-all shadow-sm active:scale-95" title="Send">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="input-action-bar hidden group-data-[state=multi]:flex items-center justify-between w-full mt-2 px-1 pb-1 border-t border-white/5 pt-2">
+                                <button type="button" class="flex items-center justify-center w-10 h-10 bg-transparent text-white rounded-full hover:bg-white/5 transition-colors" title="Attach Files">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                                    </svg>
+                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" class="p-2.5 text-zinc-400 hover:text-zinc-200 transition-colors" title="Voice Input">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"></path>
+                                        </svg>
+                                    </button>
+                                    <button type="submit" class="flex items-center justify-center w-10 h-10 bg-white text-black rounded-full hover:bg-zinc-200 transition-all shadow-sm active:scale-95" title="Send">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
 
                 <!-- Suggested Actions (Cards) -->
                 <div class="w-full max-w-md">
-                    <div class="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.243 15.657l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM6.464 14.95l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 1.414z"></path></svg>
+                    <div
+                        class="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.243 15.657l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM6.464 14.95l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 1.414z">
+                            </path>
+                        </svg>
                         Suggested
                     </div>
                     <div class="space-y-2">
-                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" 
-                            hx-vals='js:{"content": "Show me a code snippet of a website\"s sticky header", "session_id": document.getElementById("current_session_id").value}' 
-                            onclick="hideWelcome()" 
+                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend"
+                            hx-vals='js:{"content": "Show me a code snippet of a website\"s sticky header", "session_id": document.getElementById("current_session_id").value}'
+                            onclick="hideWelcome()"
                             class="w-full flex flex-col items-start p-3 bg-zinc-900/30 border border-white/[0.04] hover:bg-zinc-800/50 hover:border-white/[0.08] rounded-xl transition-all group text-left">
                             <span class="text-[13px] font-semibold text-zinc-200">Show me a code snippet</span>
                             <span class="text-[11px] text-zinc-500">of a website's sticky header</span>
                         </button>
-                        
-                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" 
-                            hx-vals='js:{"content": "Help me study vocabulary for a college entrance exam", "session_id": document.getElementById("current_session_id").value}' 
-                            onclick="hideWelcome()" 
+
+                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend"
+                            hx-vals='js:{"content": "Help me study vocabulary for a college entrance exam", "session_id": document.getElementById("current_session_id").value}'
+                            onclick="hideWelcome()"
                             class="w-full flex flex-col items-start p-3 bg-zinc-900/30 border border-white/[0.04] hover:bg-zinc-800/50 hover:border-white/[0.08] rounded-xl transition-all group text-left">
                             <span class="text-[13px] font-semibold text-zinc-200">Help me study</span>
                             <span class="text-[11px] text-zinc-500">vocabulary for a college entrance exam</span>
                         </button>
-                        
-                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" 
-                            hx-vals='js:{"content": "Give me tips to overcome procrastination", "session_id": document.getElementById("current_session_id").value}' 
-                            onclick="hideWelcome()" 
+
+                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend"
+                            hx-vals='js:{"content": "Give me tips to overcome procrastination", "session_id": document.getElementById("current_session_id").value}'
+                            onclick="hideWelcome()"
                             class="w-full flex flex-col items-start p-3 bg-zinc-900/30 border border-white/[0.04] hover:bg-zinc-800/50 hover:border-white/[0.08] rounded-xl transition-all group text-left">
                             <span class="text-[13px] font-semibold text-zinc-200">Overcome procrastination</span>
                             <span class="text-[11px] text-zinc-500">give me tips</span>
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Explorer View (Search, etc) -->
+            <div id="explorer-view" class="hidden w-full max-w-3xl px-6 pt-12 animate-fade-in flex flex-col items-center">
+                <h2 id="explorer-title" class="text-3xl font-heading font-bold text-white mb-8">Search</h2>
+                <div class="w-full relative mb-12">
+                    <div class="flex items-center gap-3 p-1.5 rounded-full bg-white/5 border border-white/5 focus-within:border-white/20 transition-all">
+                        <svg class="w-5 h-5 text-zinc-500 ml-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="explorer-search-input" oninput="filterExplorer()" placeholder="Search your chats..." class="flex-1 bg-transparent text-white py-3 px-2 outline-none placeholder:text-zinc-600 text-[16px]">
+                        <button class="px-5 py-2.5 bg-white text-black rounded-full font-semibold text-sm hover:bg-zinc-200 transition-colors mr-1">Search</button>
+                    </div>
+                </div>
+                <div id="explorer-list" class="w-full space-y-2 pb-32">
+                    <!-- Sessions filtered here -->
                 </div>
             </div>
 
@@ -166,33 +314,85 @@
         </div>
 
         <!-- Sticky Bottom Input for Active Chat -->
-        <div id="active-chat-footer" class="fixed bottom-0 left-0 md:left-[280px] right-0 p-4 bg-gradient-to-t from-[#0d0d0f] via-[#0d0d0f]/95 to-transparent z-30 transition-all duration-300 translate-y-full opacity-0">
-             <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset()" class="w-full max-w-2xl mx-auto relative">
-                <div class="relative flex items-center p-1.5 rounded-2xl bg-zinc-900/80 border border-white/5 focus-within:border-white/10 transition-all shadow-xl">
-                    <input type="hidden" name="session_id" id="footer_session_id" value="new">
-                    
-                    <button type="button" class="p-2.5 text-zinc-500 hover:text-zinc-200" title="Attach Files">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                    </button>
-                    
-                    <input type="text" name="content" placeholder="Message {{ model_name }}..." autocomplete="off"
-                        class="w-full bg-transparent text-white py-2.5 px-2 outline-none placeholder:text-zinc-500 text-[14px]">
-                    
-                    <button type="submit" class="p-2.5 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-700 hover:text-white transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H19M19 5V11M19 5L5 19M5 19H11M5 19V13"></path></svg>
-                    </button>
-                </div>
-            </form>
+        <div id="active-chat-footer"
+            class="fixed bottom-0 left-0 md:left-[260px] right-0 p-4 pt-8 bg-gradient-to-t from-tars-black via-tars-black/95 to-transparent z-30 transition-all duration-300 translate-y-full opacity-0">
+            <div class="w-full max-w-2xl mx-auto relative px-4">
+                <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset(); resetTextareas();" class="chat-form">
+                    <div class="input-container group" data-state="single">
+                        <input type="hidden" name="session_id" class="session_id_field" value="new">
+                        <div class="flex items-start w-full gap-2">
+                            <button type="button" class="attach-btn flex items-center justify-center w-10 h-10 bg-transparent text-white rounded-full hover:bg-white/5 transition-colors shrink-0 mt-1" title="Attach Files">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                                </svg>
+                            </button>
+                            <textarea name="content" placeholder="Reply to TARS..." autocomplete="off"
+                                class="chat-textarea flex-1 bg-transparent text-white py-3 px-1 outline-none placeholder:text-zinc-500 text-[15px] leading-relaxed resize-none h-[48px] max-h-[200px] overflow-y-auto custom-scrollbar"></textarea>
+                            <div class="button-group-single flex items-center gap-1 pr-1 shrink-0 mt-1">
+                                <button type="submit" class="flex items-center justify-center w-10 h-10 bg-white text-black rounded-full hover:bg-zinc-200 transition-all shadow-xl active:scale-95" title="Send">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-action-bar hidden group-data-[state=multi]:flex items-center justify-between w-full mt-2 px-1 pb-1 border-t border-white/5 pt-2">
+                            <button type="button" class="flex items-center justify-center w-10 h-10 bg-transparent text-white rounded-full hover:bg-white/5 transition-colors" title="Attach Files">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                                </svg>
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="p-2.5 text-zinc-400 hover:text-zinc-200 transition-colors" title="Voice Input">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"></path>
+                                    </svg>
+                                </button>
+                                <button type="submit" class="flex items-center justify-center w-10 h-10 bg-white text-black rounded-full hover:bg-zinc-200 transition-all shadow-sm active:scale-95" title="Send">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </main>
+
+    <!-- Modal System -->
+    <div id="modal-backdrop" onclick="closeModal()"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden items-center justify-center animate-fade-in p-4">
+        <div id="modal-container" onclick="event.stopPropagation()"
+            class="bg-[#1c1c1e] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-slide-up">
+            <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+                <h3 id="modal-title" class="text-lg font-semibold text-white">Title</h3>
+                <button onclick="closeModal()" class="p-2 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="modal-content" class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <!-- Content loaded via JS or HTMX -->
+                <div class="flex flex-col items-center justify-center py-12 text-zinc-500">
+                    <div class="w-8 h-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin mb-4"></div>
+                    <p class="text-sm">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     let currentSessionId = 'new';
     let isTabMode = false;
-    
+
     function hideWelcome(tabMode = false) {
+        if (isTabMode === tabMode && document.getElementById('welcome-view').style.display === 'none') return;
         isTabMode = tabMode;
+        
         const welcome = document.getElementById('welcome-view');
         const footer = document.getElementById('active-chat-footer');
         if (welcome && welcome.style.display !== 'none') {
@@ -215,7 +415,7 @@
         const welcome = document.getElementById('welcome-view');
         const chatMessages = document.getElementById('chat-messages');
         const footer = document.getElementById('active-chat-footer');
-        
+
         isTabMode = false;
         chatMessages.innerHTML = '';
         welcome.classList.remove('hidden');
@@ -223,14 +423,13 @@
         welcome.style.opacity = '1';
         welcome.style.transform = 'translateY(0)';
         welcome.classList.add('animate-fade-in');
-        
+
         if (footer) {
             footer.classList.add('translate-y-full', 'opacity-0');
         }
-        
+
         currentSessionId = 'new';
-        document.getElementById('current_session_id').value = 'new';
-        document.getElementById('footer_session_id').value = 'new';
+        document.querySelectorAll('.session_id_field').forEach(el => el.value = 'new');
     }
 
     function toggleSidebar() {
@@ -239,32 +438,397 @@
         sidebar.classList.toggle('md:flex');
     }
 
+    function toggleProfileMenu() {
+        const menu = document.getElementById('profile-context-menu');
+        const chevron = document.getElementById('profile-chevron');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            menu.classList.add('flex');
+            chevron.style.transform = 'rotate(180deg)';
+        } else {
+            menu.classList.add('hidden');
+            menu.classList.remove('flex');
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    const tarsConfig = JSON.parse(document.getElementById('tars-config-data').dataset.config);
+
+    function checkOnboarding() {
+        if (!tarsConfig.user || !tarsConfig.user.username) {
+            openOnboardingModal();
+        }
+    }
+
+    function openOnboardingModal() {
+        const title = "Welcome to TARS";
+        const content = `
+            <div class="space-y-6 animate-fade-in">
+                <div class="flex flex-col items-center text-center mb-4">
+                    <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 shadow-inner">
+                        <img src="/static/icon-192.png" alt="TARS" class="w-10 h-10">
+                    </div>
+                    <p class="text-zinc-400 text-sm leading-relaxed px-4">Let's personalize your ultra-lightweight AI experience. Enter your details to get started.</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Username</label>
+                        <input type="text" id="setup-username" placeholder="e.g. Maverick" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Age</label>
+                        <input type="number" id="setup-age" placeholder="25" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500/50 transition-all">
+                    </div>
+                </div>
+                <button onclick="saveOnboarding()" class="w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition-all transform active:scale-[0.98] shadow-lg">Complete Setup</button>
+            </div>
+        `;
+        openModal(title, content);
+    }
+
+    async function saveOnboarding() {
+        const username = document.getElementById('setup-username').value;
+        const age = document.getElementById('setup-age').value;
+        if (!username || !age) return alert('Please fill in all fields');
+        
+        const newConfig = {...tarsConfig};
+        newConfig.user = { username, age: parseInt(age) };
+        
+        try {
+            const formData = new FormData();
+            formData.append('config_json', JSON.stringify(newConfig));
+            const resp = await fetch('/api/config', { method: 'POST', body: formData });
+            if (resp.ok) {
+                closeModal();
+                location.reload();
+            }
+        } catch (err) {
+            console.error("Setup failed", err);
+        }
+    }
+
+    function openSettings() {
+        const title = "Control Center";
+        const content = `
+            <div class="flex h-[500px] -m-6 divide-x divide-white/5 overflow-hidden">
+                <div class="w-[180px] bg-black/20 p-4 space-y-1">
+                    <button onclick="switchSettingsTab('general')" class="settings-tab-btn active w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all transition-colors">General</button>
+                    <button onclick="switchSettingsTab('providers')" class="settings-tab-btn w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all transition-colors">Providers</button>
+                    <button onclick="switchSettingsTab('agents')" class="settings-tab-btn w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all transition-colors">Agents</button>
+                    <button onclick="switchSettingsTab('tools')" class="settings-tab-btn w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all transition-colors">Tools</button>
+                    <button onclick="switchSettingsTab('mcp')" class="settings-tab-btn w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all transition-colors">MCP Servers</button>
+                </div>
+                <div id="settings-pane" class="flex-1 p-6 overflow-y-auto custom-scrollbar bg-transparent">
+                    <!-- Tab content injected here -->
+                </div>
+            </div>
+            <div class="absolute bottom-0 right-0 p-4 bg-[#1c1c1e] w-[calc(100%-180px)] border-l border-white/5">
+                <button onclick="saveConfig()" class="w-full py-2.5 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-400 transition-all">Save Changes</button>
+            </div>
+        `;
+        openModal(title, content);
+        switchSettingsTab('general');
+    }
+
+    function switchSettingsTab(tab) {
+        document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-white/5', 'text-white', 'active');
+            if (btn.textContent.toLowerCase().includes(tab)) {
+                btn.classList.add('bg-white/5', 'text-white', 'active');
+            }
+        });
+
+        const pane = document.getElementById('settings-pane');
+        
+        if (tab === 'general') {
+            const username = tarsConfig.user ? tarsConfig.user.username : '';
+            pane.innerHTML = `
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 px-1">User Profile</label>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                <span class="text-[13px] font-medium text-zinc-300">Username</span>
+                                <input type="text" value="${username}" class="bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-zinc-200 text-sm text-right outline-none w-32">
+                            </div>
+                            <div class="p-3 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                <span class="text-[13px] font-medium text-zinc-300">Interface Theme</span>
+                                <select class="bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-zinc-200 text-sm outline-none">
+                                    <option>Glassmorphism (Dark)</option>
+                                    <option>Solid (Dark)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (tab === 'providers') {
+            let providersHtml = '';
+            for (const [name, p] of Object.entries(tarsConfig.providers)) {
+                const status = p.apiKey ? 'Active' : 'Missing Key';
+                const keyVal = p.apiKey || '';
+                providersHtml += `
+                    <div class="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[14px] font-bold text-white capitalize">${name}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${status}</span>
+                        </div>
+                        <input type="password" value="${keyVal}" placeholder="API Key" class="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-2 text-zinc-300 text-sm outline-none focus:border-sky-500/50">
+                    </div>
+                `;
+            }
+            pane.innerHTML = `
+                <div class="space-y-6 pb-12">
+                    <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 px-1">Connect AI Providers</label>
+                    ${providersHtml}
+                </div>
+            `;
+        } else {
+            pane.innerHTML = '<div class="py-20 text-center text-zinc-600">This section is currently under construction for TARS v1.5.</div>';
+        }
+    }
+
+    async function saveConfig() {
+        // This would collect all inputs and send to /api/config
+        alert('Config saving will be fully wired in v1.5. For now, onboarding handles user data.');
+    }
+
+    function toggleSessionMenu(event, sessionId) {
+        event.stopPropagation();
+        const menu = document.getElementById(`session-menu-${sessionId}`);
+        // Close all other menus
+        document.querySelectorAll('[id^="session-menu-"]').forEach(m => {
+            if (m.id !== `session-menu-${sessionId}`) m.classList.add('hidden');
+        });
+        menu.classList.toggle('hidden');
+    }
+
+    async function deleteSession(sessionId) {
+        if (!confirm('Are you sure you want to delete this chat?')) return;
+        try {
+            const resp = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+            if (resp.ok) {
+                if (currentSessionId === sessionId) newChat();
+                refreshSessions();
+            }
+        } catch (err) {
+            console.error("Failed to delete session", err);
+        }
+    }
+
+    async function renameSession(sessionId, currentTitle) {
+        const newTitle = prompt('Enter new title:', currentTitle);
+        if (!newTitle || newTitle === currentTitle) return;
+        try {
+            const resp = await fetch(`/api/sessions/${sessionId}/title`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle })
+            });
+            if (resp.ok) refreshSessions();
+        } catch (err) {
+            console.error("Failed to rename session", err);
+        }
+    }
+
+    function openModal(title, contentHtml = null) {
+        const backdrop = document.getElementById('modal-backdrop');
+        const titleEl = document.getElementById('modal-title');
+        const contentEl = document.getElementById('modal-content');
+        
+        titleEl.textContent = title;
+        
+        if (contentHtml) {
+            contentEl.innerHTML = contentHtml;
+        } else if (title === 'Personalisation') {
+            contentEl.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <p class="text-sm text-zinc-400">Customize your TARS experience. These settings are saved to your local profile.</p>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+                            <div>
+                                <p class="text-sm font-medium text-white">Appearance</p>
+                                <p class="text-xs text-zinc-500">System theme with glassmorphism</p>
+                            </div>
+                            <div class="flex gap-1 bg-black/40 p-1 rounded-lg">
+                                <button class="px-3 py-1 text-[11px] font-bold rounded-md bg-zinc-700 text-white">Dark</button>
+                                <button class="px-3 py-1 text-[11px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors">Light</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 opacity-50">
+                            <div>
+                                <p class="text-sm font-medium text-white">Accent Color</p>
+                                <p class="text-xs text-zinc-500">Coming soon in TARS v2.0</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="w-4 h-4 rounded-full bg-sky-500"></div>
+                                <div class="w-4 h-4 rounded-full bg-emerald-500 opacity-50"></div>
+                                <div class="w-4 h-4 rounded-full bg-amber-500 opacity-50"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (title === 'Help') {
+            contentEl.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <div class="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex gap-4">
+                        <div class="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-sky-200">New to TARS?</p>
+                            <p class="text-xs text-sky-400/80 mt-0.5 leading-relaxed">TARS is your ultra-lightweight AI assistant. Try asking about coding, planning, or just chat.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button class="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 text-left transition-all">
+                            <p class="text-[13px] font-medium text-white">Shortcuts</p>
+                            <p class="text-[10px] text-zinc-500 mt-0.5">View hotkeys</p>
+                        </button>
+                        <button class="p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 text-left transition-all">
+                            <p class="text-[13px] font-medium text-white">Support</p>
+                            <p class="text-[10px] text-zinc-500 mt-0.5">Contact team</p>
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else if (title === 'Search' || title === 'Projects') {
+            contentEl.innerHTML = `
+                <div class="py-12 flex flex-col items-center justify-center text-center animate-fade-in">
+                    <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">${title} is arriving soon</h3>
+                    <p class="text-sm text-zinc-500 max-w-xs leading-relaxed">We're building a powerful new way to manage your ${title.toLowerCase()}. Stay tuned for TARS v1.5.</p>
+                </div>
+            `;
+        }
+        
+        backdrop.classList.remove('hidden');
+        backdrop.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const backdrop = document.getElementById('modal-backdrop');
+        backdrop.classList.add('hidden');
+        backdrop.classList.remove('flex');
+        document.body.style.overflow = '';
+        // Clear content after animation
+        setTimeout(() => {
+            document.getElementById('modal-content').innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 text-zinc-500">
+                    <div class="w-8 h-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin mb-4"></div>
+                    <p class="text-sm">Loading...</p>
+                </div>
+            `;
+        }, 300);
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+        const profileMenu = document.getElementById('profile-context-menu');
+        const profileBtn = profileMenu.nextElementSibling;
+        if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+            profileMenu.classList.add('hidden');
+            profileMenu.classList.remove('flex');
+            document.getElementById('profile-chevron').style.transform = 'rotate(0deg)';
+        }
+
+        // Close session menus
+        if (!e.target.closest('.session-menu-trigger')) {
+            document.querySelectorAll('[id^="session-menu-"]').forEach(m => m.classList.add('hidden'));
+        }
+    });
+
+    function showExplorer(type = 'Search') {
+        isTabMode = true;
+        hideWelcome(true);
+        const welcome = document.getElementById('welcome-view');
+        const chatMessages = document.getElementById('chat-messages');
+        const activeFooter = document.getElementById('active-chat-footer');
+        const explorer = document.getElementById('explorer-view');
+        const title = document.getElementById('explorer-title');
+        
+        chatMessages.classList.add('hidden');
+        welcome.classList.add('hidden');
+        activeFooter.classList.add('translate-y-full', 'opacity-0');
+        explorer.classList.remove('hidden');
+        title.textContent = type;
+        
+        if (type === 'Search') {
+            document.getElementById('explorer-search-input').focus();
+            filterExplorer();
+        }
+    }
+
+    async function filterExplorer() {
+        const query = document.getElementById('explorer-search-input').value.toLowerCase();
+        const list = document.getElementById('explorer-list');
+        
+        try {
+            const resp = await fetch('/api/sessions');
+            if (resp.ok) {
+                const sessions = await resp.json();
+                const filtered = sessions.filter(s => {
+                    const title = s.metadata?.title || s.key;
+                    return title.toLowerCase().includes(query);
+                });
+                
+                list.innerHTML = filtered.map(s => {
+                    const title = s.metadata?.title || s.key.split(':').pop();
+                    const date = s.metadata?.updated_at ? new Date(s.metadata.updated_at).toLocaleDateString() : '';
+                    return `
+                        <div onclick="hideExplorer(); loadSession('${s.key}')" class="flex items-center gap-4 p-4 bg-white/3 border border-white/5 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group">
+                             <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-white transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                             </div>
+                             <div class="flex-1">
+                                <p class="text-[15px] font-semibold text-zinc-200">${title}</p>
+                                <p class="text-xs text-zinc-500 mt-1">${date}</p>
+                             </div>
+                             <svg class="w-5 h-5 text-zinc-600 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } catch (err) {
+            console.error("Filter failed", err);
+        }
+    }
+
+    function hideExplorer() {
+        document.getElementById('explorer-view').classList.add('hidden');
+        document.getElementById('chat-messages').classList.remove('hidden');
+    }
+
     function newChat() {
+        hideExplorer();
         showWelcome();
     }
 
     async function loadSession(sessionId) {
         currentSessionId = sessionId;
-        const currentInput = document.getElementById('current_session_id');
-        const footerInput = document.getElementById('footer_session_id');
-        if (currentInput) currentInput.value = sessionId;
-        if (footerInput) footerInput.value = sessionId;
-        
+        document.querySelectorAll('.session_id_field').forEach(el => el.value = sessionId);
+
         hideWelcome(false);
-        
+
         const chatMessages = document.getElementById('chat-messages');
         chatMessages.innerHTML = `
             <div class="flex flex-col items-center justify-center py-20 space-y-4">
                 <div class="w-8 h-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin"></div>
             </div>
         `;
-        
+
         try {
             const resp = await fetch(`/api/sessions/${sessionId}`);
             if (resp.ok) {
                 const html = await resp.text();
                 chatMessages.innerHTML = html;
-                scrollToTop(); // Changed to scroll to top for loaded sessions
+                scrollToTop();
                 refreshSessions();
             } else {
                 chatMessages.innerHTML = '<div class="text-zinc-500 p-12 text-center text-sm">Failed to load history</div>';
@@ -285,14 +849,23 @@
                     historyList.innerHTML = '<div class="px-4 py-4 text-xs text-zinc-600">No recent chats</div>';
                     return;
                 }
-                
+
                 historyList.innerHTML = sessions.slice(0, 15).map(s => {
                     let title = s.metadata && s.metadata.title ? s.metadata.title : (s.key ? s.key.split(':').pop() : 'Session');
-                    if (title.length > 24) title = title.substring(0, 24) + '...';
-                    const active = s.key === currentSessionId ? 'bg-white/[0.06] text-white' : 'text-zinc-500 hover:bg-white/[0.03] hover:text-zinc-300';
+                    if (title.length > 20) title = title.substring(0, 20) + '...';
+                    const active = s.key === currentSessionId ? 'bg-white/[0.08] text-white' : 'text-zinc-500 hover:bg-white/[0.03] hover:text-zinc-300';
                     return `
-                    <div onclick="loadSession('${s.key}')" class="flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group ${active}">
+                    <div onclick="loadSession('${s.key}')" class="relative flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group ${active}">
                         <span class="truncate flex-1 font-medium">${title}</span>
+                        <div class="relative session-menu-trigger">
+                            <button onclick="toggleSessionMenu(event, '${s.key}')" class="p-1 hover:bg-white/10 rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                            </button>
+                            <div id="session-menu-${s.key}" class="absolute right-0 top-full mt-1 w-32 bg-[#252528] rounded-lg border border-white/10 shadow-xl overflow-hidden hidden z-50">
+                                <button onclick="event.stopPropagation(); renameSession('${s.key}', '${title}')" class="w-full text-left px-3 py-1.5 hover:bg-white/5 text-[12px] text-zinc-300">Rename</button>
+                                <button onclick="event.stopPropagation(); deleteSession('${s.key}')" class="w-full text-left px-3 py-1.5 hover:bg-red-500/10 text-[12px] text-red-400">Delete</button>
+                            </div>
+                        </div>
                     </div>
                 `}).join('');
             }
@@ -311,16 +884,25 @@
         if (chatContainer) chatContainer.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    const observer = new MutationObserver((mutations) => {
-        if (!isTabMode) {
-            const chatContainer = document.getElementById('chat-container');
-            // Check if user is near the bottom (100px threshold)
-            const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
-            if (isNearBottom) {
-                scrollToBottom();
+    let isUserScrollingUp = false;
+    const chatContainer = document.getElementById('chat-container');
+
+    if (chatContainer) {
+        chatContainer.addEventListener('scroll', () => {
+            const nearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
+            if (nearBottom) {
+                isUserScrollingUp = false;
+            } else {
+                // Determine if user is scrolling up or down
+                // Actually if they are not near bottom, we assume they are reading up
+                isUserScrollingUp = true;
             }
-        } else {
-            scrollToTop();
+        });
+    }
+
+    const observer = new MutationObserver(() => {
+        if (!isTabMode && !isUserScrollingUp) {
+            scrollToBottom();
         }
     });
 
@@ -330,15 +912,74 @@
     document.body.addEventListener('htmx:sseClose', () => {
         refreshSessions();
     });
-    
+
     document.body.addEventListener('htmx:afterOnLoad', (evt) => {
         if (evt.detail.target.id === 'chat-messages') {
             if (isTabMode) {
                 scrollToTop();
+            } else if (!isUserScrollingUp) {
+                scrollToBottom();
             }
         }
     });
 
-    window.onload = refreshSessions;
+    function resetTextareas() {
+        document.querySelectorAll('.chat-textarea').forEach(el => {
+            el.value = '';
+            el.style.height = '48px';
+            el.closest('.input-container').setAttribute('data-state', 'single');
+        });
+    }
+
+    // Initialize all textareas
+    function initTextareas() {
+        document.querySelectorAll('.chat-textarea').forEach(textarea => {
+            if (textarea.dataset.initialized) return;
+            textarea.dataset.initialized = 'true';
+            
+            const container = textarea.closest('.input-container');
+            
+            const handleInput = () => {
+                textarea.style.height = 'auto';
+                const newHeight = Math.min(textarea.scrollHeight, 200);
+                textarea.style.height = Math.max(newHeight, 48) + 'px';
+                
+                const hasNewLine = textarea.value.includes('\n');
+                const isMultiLine = hasNewLine || textarea.scrollHeight > 60;
+                container.setAttribute('data-state', isMultiLine ? 'multi' : 'single');
+            };
+
+            textarea.addEventListener('input', handleInput);
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const form = textarea.closest('form');
+                    form.dispatchEvent(new Event('submit', { cancelable: true }));
+                    setTimeout(resetTextareas, 50);
+                }
+            });
+        });
+    }
+
+    // Mutation observer to handle dynamically added containers if needed
+    const inputObserver = new MutationObserver(initTextareas);
+    inputObserver.observe(document.body, { childList: true, subtree: true });
+    initTextareas();
+
+    window.onload = () => {
+        refreshSessions();
+        checkOnboarding();
+    };
+
+    // Keyboard Shortcuts (Esc to close)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            const profileMenu = document.getElementById('profile-context-menu');
+            if (profileMenu && !profileMenu.classList.contains('hidden')) {
+                toggleProfileMenu();
+            }
+        }
+    });
 </script>
 {% endblock %}

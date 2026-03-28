@@ -13,6 +13,13 @@ class Base(BaseModel):
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
+class UserConfig(Base):
+    """User profile configuration."""
+
+    username: str | None = None
+    age: int | None = None
+
+
 class ChannelsConfig(Base):
     """Configuration for chat channels.
 
@@ -166,6 +173,7 @@ class SkillsConfig(Base):
 class Config(BaseSettings):
     """Root configuration for TARS."""
 
+    user: UserConfig = Field(default_factory=UserConfig)
     agents: AgentsConfig = Field(default_factory=AgentsConfig)
     channels: ChannelsConfig = Field(default_factory=ChannelsConfig)
     providers: ProvidersConfig = Field(default_factory=ProvidersConfig)

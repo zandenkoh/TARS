@@ -104,6 +104,7 @@
 - [Features](#-features)
 - [Install](#-install)
 - [Quick Start](#-quick-start)
+- [Web Dashboard](#-web-dashboard)
 - [Chat Apps](#-chat-apps)
 - [Agent Social Network](#-agent-social-network)
 - [Configuration](#️-configuration)
@@ -228,6 +229,16 @@ Configure these **two parts** in your config (other options have defaults).
 }
 ```
 
+*Personalize your profile* (used in the Web UI dashboard):
+```json
+{
+  "user": {
+    "username": "Maverick",
+    "age": 25
+  }
+}
+```
+
 **3. Chat**
 
 ```bash
@@ -235,6 +246,24 @@ tars agent
 ```
 
 That's it! You have a working AI assistant in 2 minutes.
+
+## 🖥️ Web Dashboard
+
+TARS now includes a premium, ultra-lightweight Web UI for interacting with your AI agent.
+
+**1. Launch the UI**
+```bash
+tars webui
+```
+
+**2. Access Dashboard**
+Open `http://localhost:18790` in your browser.
+
+**Features:**
+- **Minimalist Chat:** A high-performance, glassmorphism-themed interface.
+- **Session Explorer:** Full-screen search and management of all past conversations.
+- **Control Center:** A tabbed settings modal to configure your profile, providers, and tools on the fly.
+- **Onboarding:** First-time users are greeted with a personalized setup flow.
 
 ## 💬 Chat Apps
 
