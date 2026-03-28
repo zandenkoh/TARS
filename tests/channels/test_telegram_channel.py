@@ -628,7 +628,7 @@ async def test_download_message_media_returns_path_when_download_succeeds(
     assert len(paths) == 1
     assert len(parts) == 1
     assert "fid123" in paths[0]
-    assert "[image:" in parts[0]
+    assert "[file_uploaded:" in parts[0]
 
 
 @pytest.mark.asyncio
@@ -678,8 +678,11 @@ async def test_download_message_media_uses_file_unique_id_when_available(
     paths, parts = await channel._download_message_media(msg)
 
     assert downloaded["path"].endswith("stable-unique-id.jpg")
-    assert paths == [str(media_dir / "stable-unique-id.jpg")]
-    assert parts == [f"[image: {media_dir / 'stable-unique-id.jpg'}]"]
+    from datetime import datetime
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    expected_path = str(media_dir / date_str / "stable-unique-id.jpg")
+    assert paths == [expected_path]
+    assert parts == [f"[file_uploaded: {expected_path}]"]
 
 
 @pytest.mark.asyncio
@@ -726,7 +729,7 @@ async def test_on_message_attaches_reply_to_media_when_available(monkeypatch, tm
     await channel._on_message(update, None)
 
     assert len(handled) == 1
-    assert handled[0]["content"].startswith("[Reply to: [image:")
+    assert handled[0]["content"].startswith("[Reply to: [file_uploaded:")
     assert "what is the image?" in handled[0]["content"]
     assert len(handled[0]["media"]) == 1
     assert "reply_photo_fid" in handled[0]["media"][0]
