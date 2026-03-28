@@ -152,6 +152,7 @@ def _make_telegram_update(
         media_group_id=None,
         message_thread_id=None,
         message_id=1,
+        from_user=user,
     )
     return SimpleNamespace(message=message, effective_user=user)
 
@@ -621,6 +622,7 @@ async def test_download_message_media_returns_path_when_download_succeeds(
         video=None,
         video_note=None,
         animation=None,
+        from_user=SimpleNamespace(id=123, username="alice"),
     )
     paths, parts = await channel._download_message_media(msg)
     assert len(paths) == 1
@@ -670,6 +672,7 @@ async def test_download_message_media_uses_file_unique_id_when_available(
         video=None,
         video_note=None,
         animation=None,
+        from_user=SimpleNamespace(id=123, username="alice"),
     )
 
     paths, parts = await channel._download_message_media(msg)
@@ -714,6 +717,7 @@ async def test_on_message_attaches_reply_to_media_when_available(monkeypatch, tm
         video=None,
         video_note=None,
         animation=None,
+        from_user=SimpleNamespace(id=123, username="alice"),
     )
     update = _make_telegram_update(
         text="what is the image?",
@@ -797,6 +801,7 @@ async def test_on_message_reply_to_caption_and_media(monkeypatch, tmp_path) -> N
         video=None,
         video_note=None,
         animation=None,
+        from_user=SimpleNamespace(id=123, username="alice"),
     )
     update = _make_telegram_update(
         text="what breed is this?",

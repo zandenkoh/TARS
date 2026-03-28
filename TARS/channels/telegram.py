@@ -903,13 +903,13 @@ class TelegramChannel(BaseChannel):
             await file.download_to_drive(str(file_path))
             path_str = str(file_path)
             
-            # Create metadata JSON
+            from_user = getattr(msg, "from_user", None)
             metadata = {
                 "original_filename": original_name,
                 "mime_type": mime_type,
                 "file_unique_id": unique_id,
-                "sender_id": msg.from_user.id if msg.from_user else None,
-                "sender_username": msg.from_user.username if msg.from_user else None,
+                "sender_id": from_user.id if from_user else None,
+                "sender_username": from_user.username if from_user else None,
                 "timestamp": datetime.now().isoformat(),
                 "media_type": media_type,
             }
