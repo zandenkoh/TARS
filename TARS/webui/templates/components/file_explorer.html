@@ -1,0 +1,148 @@
+<div class="w-full animate-fade-in p-6" id="workspace-root">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-heading font-bold text-white tracking-tight">Workspace Explorer</h2>
+        <div class="flex items-center gap-2">
+            <!-- View Toggle -->
+            <div class="flex bg-zinc-900 rounded-lg p-1 border border-white/5 mr-4">
+                <button onclick="setWorkspaceView('grid')" id="view-grid-btn" class="p-1.5 rounded-md bg-white/10 text-white transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                </button>
+                <button onclick="setWorkspaceView('list')" id="view-list-btn" class="p-1.5 rounded-md text-zinc-500 hover:text-white transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+            <div class="px-3 py-1 rounded-lg bg-zinc-900 border border-white/5 text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
+                TARS Storage: Active
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumbs (Drop Target) -->
+    <div class="flex items-center gap-2 mb-6 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-sm drop-target" 
+         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '.')">
+        <button hx-get="/api/workspace?path=." hx-target="#chat-messages" class="text-tars-primary hover:underline">root</button>
+        {% if current_path != "." %}
+            {% set parts = current_path.split('/') %}
+            {% set current_acc = [] %}
+            {% for part in parts %}
+                {% set _ = current_acc.append(part) %}
+                {% set full_path = current_acc|join('/') %}
+                <span class="text-zinc-700">/</span>
+                <button hx-get="/api/workspace?path={{ full_path }}" hx-target="#chat-messages" 
+                        class="text-zinc-300 hover:text-white drop-target"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ full_path }}')">
+                    {{ part }}
+                </button>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div id="explorer-items" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% if parent_path is not none %}
+        <div hx-get="/api/workspace?path={{ parent_path }}" hx-target="#chat-messages" 
+             class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer flex items-center gap-4 group drop-target"
+             ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ parent_path }}')">
+            <div class="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-white">..</p>
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest">Back</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% for item in items %}
+        <div {% if item.is_dir %}hx-get="/api/workspace?path={{ item.path }}" hx-target="#chat-messages"{% endif %} 
+             class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer flex items-center gap-4 group draggable relative {% if item.is_dir %}drop-target{% endif %}"
+             draggable="true" ondragstart="handleDragStart(event, '{{ item.path }}')"
+             {% if item.is_dir %}ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ item.path }}')"{% endif %}>
+            
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform 
+                 {% if item.is_dir %}bg-tars-primary/10 text-tars-primary{% else %}bg-zinc-800 text-zinc-400{% endif %}">
+                {% if item.is_dir %}
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+                {% else %}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                {% endif %}
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-white truncate">{{ item.name }}</p>
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest">{{ item.size if not item.is_dir else "Folder" }}</p>
+            </div>
+            
+            <!-- Context Action -->
+            <button class="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-white transition-opacity">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function setWorkspaceView(mode) {
+            const container = document.getElementById('explorer-items');
+            const gridBtn = document.getElementById('view-grid-btn');
+            const listBtn = document.getElementById('view-list-btn');
+            
+            if (mode === 'grid') {
+                container.classList.remove('flex', 'flex-col', 'space-y-2');
+                container.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+                gridBtn.classList.add('bg-white/10', 'text-white');
+                listBtn.classList.remove('bg-white/10', 'text-white');
+                listBtn.classList.add('text-zinc-500');
+            } else {
+                container.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+                container.classList.add('flex', 'flex-col', 'space-y-2');
+                listBtn.classList.add('bg-white/10', 'text-white');
+                gridBtn.classList.remove('bg-white/10', 'text-white');
+                gridBtn.classList.add('text-zinc-500');
+            }
+        }
+
+        function handleDragStart(e, path) {
+            e.dataTransfer.setData('text/plain', path);
+            e.currentTarget.classList.add('opacity-50');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const target = e.currentTarget;
+            if (target.classList.contains('drop-target')) {
+                target.classList.add('ring-2', 'ring-tars-primary', 'bg-tars-primary/5');
+            }
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('ring-2', 'ring-tars-primary', 'bg-tars-primary/5');
+        }
+
+        async function handleDrop(e, dstPath) {
+            e.preventDefault();
+            const srcPath = e.dataTransfer.getData('text/plain');
+            e.currentTarget.classList.remove('ring-2', 'ring-tars-primary', 'bg-tars-primary/5');
+            
+            if (srcPath === dstPath) return;
+
+            const formData = new FormData();
+            formData.append('src', srcPath);
+            formData.append('dst', dstPath);
+
+            try {
+                const resp = await fetch('/api/workspace/move', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (resp.ok) {
+                    // Reload the component
+                    htmx.trigger('#workspace-root', 'reload');
+                    // Workaround: if no reload trigger, just fetch current path again
+                    const currentPath = "{{ current_path }}";
+                    htmx.ajax('GET', `/api/workspace?path=${currentPath}`, {target:'#chat-messages'});
+                }
+            } catch (err) {
+                console.error("Move failed", err);
+            }
+        }
+    </script>
+</div>

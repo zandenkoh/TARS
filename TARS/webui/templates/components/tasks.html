@@ -1,0 +1,54 @@
+<div class="w-full animate-fade-in p-6">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-heading font-bold text-white tracking-tight">Routine & Tasks</h2>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 uppercase font-bold tracking-[0.2em]">
+            Syncing...
+        </div>
+<div class="w-full animate-fade-in p-6" id="tasks-root">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-2xl font-heading font-bold text-white tracking-tight">Tasks & Routine</h2>
+            <p class="text-xs text-zinc-500 mt-1 uppercase tracking-widest">{{ tasks_path }}</p>
+        </div>
+        <div class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 uppercase font-bold tracking-widest">
+            Daily Sync: Active
+        </div>
+    </div>
+
+    <!-- Quick Add Task -->
+    <div class="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5">
+        <form hx-post="/api/tasks" hx-target="#tasks-root" hx-on::after-request="this.reset(); htmx.ajax('GET', '/api/tasks/today', {target:'#chat-messages'})" class="flex gap-2">
+            <input type="text" name="content" placeholder="Add a new task..." required
+                   class="flex-1 bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-tars-primary/50 transition-all">
+            <button type="submit" class="px-4 py-2 bg-tars-primary text-black font-bold text-xs rounded-xl hover:bg-white transition-all">
+                ADD TASK
+            </button>
+        </form>
+    </div>
+
+    <div class="space-y-6">
+        {% if tasks %}
+            {% for task_file in tasks %}
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="text-sm font-semibold text-white">{{ task_file.date }}</span>
+                    </div>
+                    <span class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{{ task_file.count }} Tasks</span>
+                </div>
+                
+                <div class="w-full bg-zinc-900 rounded-full h-1 overflow-hidden">
+                    <div class="bg-emerald-500 h-full w-full opacity-30"></div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="p-12 text-center border-2 border-dashed border-white/5 rounded-3xl">
+                <p class="text-zinc-600 text-sm">No tasks recorded yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>

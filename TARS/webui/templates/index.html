@@ -1,169 +1,187 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex h-screen overflow-hidden bg-black text-slate-200 font-sans">
-    <!-- Left Sidebar -->
-    <aside id="sidebar" class="hidden md:flex w-[260px] flex-col bg-black border-r border-[#1f1f1f] transition-all duration-300">
+<div class="flex h-screen overflow-hidden bg-tars-black text-zinc-300 font-inter">
+    <!-- Left Sidebar (Glassmorphism) -->
+    <aside id="sidebar" class="hidden md:flex w-[260px] flex-col bg-[#181818] border-r border-white/[0.04] transition-all duration-300 ease-in-out z-50">
         <!-- Sidebar Header -->
-        <div class="p-4 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-[#e3e3e3] flex items-center justify-center font-bold text-black text-xs">OI</div>
-                <span class="font-medium text-[15px] text-white">TARS AI</span>
-            </div>
-            <button class="p-1 hover:bg-[#1f1f1f] rounded-md transition-colors">
-                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+        <div class="px-4 py-4 flex items-center justify-between">
+            <button onclick="newChat()" class="flex-1 flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-xl hover:bg-white/[0.05] hover:cursor-pointer text-zinc-200 transition-all group">
+                <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                    <img src="/static/icon-192.png" alt="TARS" class="w-4 h-4 object-contain">
+                </div>
+                <svg class="ml-auto w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            </button>
+            <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-500 hover:text-white ml-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
             </button>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="px-2 mt-2 space-y-0.5">
-            <button onclick="newChat()" class="w-full flex items-center gap-3 px-3 py-2 text-[14px] font-medium rounded-lg hover:bg-[#1f1f1f] transition-colors group">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                New Chat
-            </button>
-            <button class="w-full flex items-center gap-3 px-3 py-2 text-[14px] font-medium rounded-lg hover:bg-[#1f1f1f] transition-colors text-slate-400 group">
-                <svg class="w-5 h-5 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                Search
-            </button>
-            <button class="w-full flex items-center gap-3 px-3 py-2 text-[14px] font-medium rounded-lg hover:bg-[#1f1f1f] transition-colors text-slate-400 group">
-                <svg class="w-5 h-5 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                Notes
-            </button>
-            <button class="w-full flex items-center gap-3 px-3 py-2 text-[14px] font-medium rounded-lg hover:bg-[#1f1f1f] transition-colors text-slate-400 group">
-                <svg class="w-5 h-5 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        <!-- Navigation Tabs -->
+        <nav class="px-2 space-y-0.5">
+            <button hx-get="/api/workspace" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                 Workspace
             </button>
-        </div>
+            <button hx-get="/api/tasks/today" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                Tasks
+            </button>
+            <button hx-get="/api/channels" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Channels
+            </button>
+            <button hx-get="/api/config" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Settings
+            </button>
+        </nav>
 
-        <div class="px-4 mt-8">
-            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Channels</div>
-            <div class="flex items-center gap-2 px-2 py-1.5 text-[14px] text-slate-400 hover:text-white cursor-pointer hover:bg-[#1f1f1f] rounded-lg">
-                <span class="text-slate-600 font-bold">#</span> general
+        <!-- Recent Chats -->
+        <div class="flex-1 px-2 mt-6 overflow-y-auto custom-scrollbar">
+            <div class="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <span>Recent</span>
+                <div class="h-[1px] flex-1 bg-white/[0.04]"></div>
+            </div>
+            <div id="session-history" class="space-y-0.5">
+                <!-- Session items loaded via JS -->
             </div>
         </div>
 
-        <div class="px-4 mt-6">
-            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Folders</div>
-            <div class="space-y-1">
-                <div class="flex items-center gap-3 px-2 py-1.5 text-[14px] text-slate-400 hover:text-white cursor-pointer hover:bg-[#1f1f1f] rounded-lg">
-                    <span>📂</span> Finance
+        <!-- User Profile -->
+        <div class="p-3 border-t border-white/[0.04] mt-auto">
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.05] transition-colors cursor-pointer group">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-400 border border-emerald-500/10">
+                    U
                 </div>
-                <div class="flex items-center gap-3 px-2 py-1.5 text-[14px] text-slate-400 hover:text-white cursor-pointer hover:bg-[#1f1f1f] rounded-lg">
-                    <span>📂</span> Study
+                <div class="flex-1 min-w-0">
+                    <p class="text-[13px] font-semibold text-zinc-200 truncate">User account</p>
                 </div>
+                <svg class="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
             </div>
-        </div>
-
-        <div class="px-4 mt-6 overflow-y-auto max-h-[300px]">
-            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Recent Chats</div>
-            <div id="session-history" class="space-y-1">
-                <!-- Session items will be loaded here -->
-                <div class="text-[11px] text-slate-600 px-2 italic">No recent chats</div>
-            </div>
-        </div>
-
-        <div class="mt-auto p-4 flex items-center gap-3 bg-black">
-            <div class="w-8 h-8 rounded-full bg-[#d97706] flex items-center justify-center text-xs font-bold text-white">TB</div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-white truncate">Tim Baek</p>
-            </div>
-            <button class="p-1 text-slate-500 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col relative bg-[#171717]">
+    <main class="flex-1 flex flex-col relative bg-[#212121]">
         <!-- Top Bar -->
-        <header class="flex items-center justify-between p-4 bg-[#171717]">
-            <div class="flex flex-col">
-                <button class="flex items-center gap-2 text-white font-medium hover:bg-[#2f2f2f] px-2 py-1 rounded-md transition-colors">
-                    {{ model_name }}
-                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    <span class="p-0.5 bg-[#2f2f2f] rounded ml-1 group cursor-pointer">
-                        <svg class="w-3 h-3 text-slate-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </span>
+        <header class="flex items-center justify-between px-6 py-3 border-b border-white/[0.04] sticky top-0 z-40 bg-[#212121]/80 backdrop-blur-md">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-white/7 rounded-lg text-zinc-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <span class="text-[11px] text-slate-500 px-2">Set as default</span>
+                <div class="flex items-center gap-2 group cursor-pointer px-3 py-2 rounded-lg hover:bg-white/3 transition-colors">
+                    <span class="text-xs font-semibold text-zinc-400">TARS</span>
+                    <span class="text-xs font-bold text-zinc-200 tracking-tight">{{ model_name }}</span>
+                    <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
             </div>
             
-            <div class="flex items-center gap-1">
-                <button class="p-2 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></button>
-                <div class="w-8 h-8 rounded-full bg-[#d97706] flex items-center justify-center text-xs font-bold text-white">TB</div>
+            <div class="flex items-center gap-2">
+                <button class="p-2 text-zinc-500 hover:text-zinc-200 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21a9 9 0 100-18 9 9 0 000 18z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3"></path></svg>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 border border-white/5">TB</div>
             </div>
         </header>
 
         <!-- Message Area & Welcome Content -->
-        <div id="chat-container" class="flex-1 overflow-y-auto flex flex-col items-center">
-            <div id="welcome-view" class="w-full max-w-2xl px-6 flex flex-col items-center justify-center min-h-[60vh] transition-opacity duration-300">
-                <div class="flex items-center gap-4 mb-8">
-                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                        <span class="text-black font-bold text-base">OI</span>
+        <div id="chat-container" class="flex-1 overflow-y-auto flex flex-col items-center custom-scrollbar scroll-smooth">
+            <div id="welcome-view" class="w-full max-w-2xl px-6 flex flex-col items-center justify-center min-h-[75vh] animate-fade-in translate-y-[-5%]">
+                <!-- Open WebUI Style Logo Section -->
+                <div class="flex items-center gap-3 mb-8 animate-float">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                        <img src="/static/icon-192.png" alt="TARS" class="w-6 h-6 object-contain p-0.5">
                     </div>
-                    <h1 class="text-2xl font-semibold text-white tracking-tight">{{ model_name }}</h1>
+                    <h1 class="text-2xl font-heading font-bold text-white tracking-tight">{{ model_name }}</h1>
                 </div>
 
-                <!-- Input Group -->
-                <div class="w-full relative group mb-8">
-                    <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset()" onsubmit="hideWelcome()">
-                        <div class="relative flex items-center">
-                            <input type="hidden" name="session_id" id="current_session_id" value="new">
-                            <input type="text" name="content" placeholder="How can I help you today?" autocomplete="off"
-                                class="w-full bg-[#2f2f2f] text-white border border-[#3f3f3f] rounded-[24px] py-4 pl-12 pr-24 outline-none transition-all placeholder:text-slate-500 text-[16px]">
-                            
-                            <div class="absolute left-4">
-                                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            </div>
-                            
-                            <div class="absolute right-4 flex items-center gap-3">
-                                <button type="button" class="text-slate-500 hover:text-white transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                                </button>
-                                <button type="button" class="text-slate-500 hover:text-white transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                                </button>
-                            </div>
+                <!-- Input Group Area (Centered) -->
+                <div class="w-full relative mb-12">
+                     <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset(); hideWelcome()" onsubmit="hideWelcome()">
+                        <div class="relative flex items-center p-2 rounded-full bg-zinc-900/50 border border-white/10 focus-within:border-white/20 transition-all shadow-xl group">
+                           <input type="hidden" name="session_id" id="current_session_id" value="new">
+                           
+                           <button type="button" class="p-3 text-zinc-500 hover:text-zinc-200 transition-colors" title="Attach Files">
+                               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                           </button>
+                           
+                           <input type="text" name="content" placeholder="How can I help you today?" autocomplete="off" autofocus
+                               class="w-full bg-transparent text-white py-3 px-2 outline-none placeholder:text-zinc-500 text-[15px]">
+                           
+                           <div class="flex items-center gap-2 pr-2">
+                               <button type="button" class="p-2 text-zinc-500 hover:text-zinc-200 transition-colors" title="Voice Input">
+                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                               </button>
+                               <button type="button" class="p-2 text-zinc-500 hover:text-zinc-200 transition-colors" title="Web Search">
+                                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9h18"></path></svg>
+                               </button>
+                           </div>
                         </div>
                     </form>
                 </div>
 
-                <!-- Suggested List -->
-                <div class="w-full space-y-4">
-                    <div class="flex items-center gap-2 text-[12px] font-bold text-slate-500 uppercase tracking-wider px-2">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"></path></svg>
+                <!-- Suggested Actions (Cards) -->
+                <div class="w-full max-w-md">
+                    <div class="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 px-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.243 15.657l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414zM6.464 14.95l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 1.414z"></path></svg>
                         Suggested
                     </div>
-                    
-                    <div class="space-y-4 px-2">
-                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-vals='js:{"content": "Show me a code snippet of a website&lsquo;s sticky header", "session_id": document.getElementById("current_session_id").value}' onclick="hideWelcome()" class="w-full text-left group">
-                            <p class="text-[15px] font-semibold text-slate-200 group-hover:text-white">Show me a code snippet</p>
-                            <p class="text-[13px] text-slate-500">of a website's sticky header</p>
+                    <div class="space-y-2">
+                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" 
+                            hx-vals='js:{"content": "Show me a code snippet of a website\"s sticky header", "session_id": document.getElementById("current_session_id").value}' 
+                            onclick="hideWelcome()" 
+                            class="w-full flex flex-col items-start p-3 bg-zinc-900/30 border border-white/[0.04] hover:bg-zinc-800/50 hover:border-white/[0.08] rounded-xl transition-all group text-left">
+                            <span class="text-[13px] font-semibold text-zinc-200">Show me a code snippet</span>
+                            <span class="text-[11px] text-zinc-500">of a website's sticky header</span>
                         </button>
-                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-vals='js:{"content": "Help me study vocabulary for a college entrance exam", "session_id": document.getElementById("current_session_id").value}' onclick="hideWelcome()" class="w-full text-left group">
-                            <p class="text-[15px] font-semibold text-slate-200 group-hover:text-white">Help me study</p>
-                            <p class="text-[13px] text-slate-500">vocabulary for a college entrance exam</p>
+                        
+                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" 
+                            hx-vals='js:{"content": "Help me study vocabulary for a college entrance exam", "session_id": document.getElementById("current_session_id").value}' 
+                            onclick="hideWelcome()" 
+                            class="w-full flex flex-col items-start p-3 bg-zinc-900/30 border border-white/[0.04] hover:bg-zinc-800/50 hover:border-white/[0.08] rounded-xl transition-all group text-left">
+                            <span class="text-[13px] font-semibold text-zinc-200">Help me study</span>
+                            <span class="text-[11px] text-zinc-500">vocabulary for a college entrance exam</span>
                         </button>
-                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-vals='js:{"content": "Overcome procrastination give me tips", "session_id": document.getElementById("current_session_id").value}' onclick="hideWelcome()" class="w-full text-left group">
-                            <p class="text-[15px] font-semibold text-slate-200 group-hover:text-white">Overcome procrastination</p>
-                            <p class="text-[13px] text-slate-500">give me tips</p>
+                        
+                        <button hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" 
+                            hx-vals='js:{"content": "Give me tips to overcome procrastination", "session_id": document.getElementById("current_session_id").value}' 
+                            onclick="hideWelcome()" 
+                            class="w-full flex flex-col items-start p-3 bg-zinc-900/30 border border-white/[0.04] hover:bg-zinc-800/50 hover:border-white/[0.08] rounded-xl transition-all group text-left">
+                            <span class="text-[13px] font-semibold text-zinc-200">Overcome procrastination</span>
+                            <span class="text-[11px] text-zinc-500">give me tips</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Chat Content Append Point -->
-            <div id="chat-messages" class="w-full max-w-2xl px-6 space-y-6 pb-24"></div>
+            <div id="chat-messages" class="w-full max-w-3xl px-6 space-y-6 pt-6 pb-32">
+                <!-- Messages will appear here -->
+            </div>
         </div>
 
-        <!-- Input Area for Active Chat (Initially Hidden) -->
-        <div id="active-chat-footer" class="hidden absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#171717] via-[#171717] to-transparent">
-             <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset()" class="w-full max-w-2xl mx-auto relative group">
-                <input type="hidden" name="session_id" id="footer_session_id" value="new">
-                <input type="text" name="content" placeholder="Type a message..." 
-                    class="w-full bg-[#2f2f2f] text-white border border-[#3f3f3f] rounded-[24px] py-4 pl-12 pr-12 outline-none">
-                <div class="absolute left-4 top-1/2 -translate-y-1/2"><svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></div>
-                <button class="absolute right-4 top-1/2 -translate-y-1/2 text-sky-500 hover:text-white">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </button>
+        <!-- Sticky Bottom Input for Active Chat -->
+        <div id="active-chat-footer" class="fixed bottom-0 left-0 md:left-[280px] right-0 p-4 bg-gradient-to-t from-[#0d0d0f] via-[#0d0d0f]/95 to-transparent z-30 transition-all duration-300 translate-y-full opacity-0">
+             <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::after-request="this.reset()" class="w-full max-w-2xl mx-auto relative">
+                <div class="relative flex items-center p-1.5 rounded-2xl bg-zinc-900/80 border border-white/5 focus-within:border-white/10 transition-all shadow-xl">
+                    <input type="hidden" name="session_id" id="footer_session_id" value="new">
+                    
+                    <button type="button" class="p-2.5 text-zinc-500 hover:text-zinc-200" title="Attach Files">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                    </button>
+                    
+                    <input type="text" name="content" placeholder="Message {{ model_name }}..." autocomplete="off"
+                        class="w-full bg-transparent text-white py-2.5 px-2 outline-none placeholder:text-zinc-500 text-[14px]">
+                    
+                    <button type="submit" class="p-2.5 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-700 hover:text-white transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H19M19 5V11M19 5L5 19M5 19H11M5 19V13"></path></svg>
+                    </button>
+                </div>
             </form>
         </div>
     </main>
@@ -171,81 +189,110 @@
 
 <script>
     let currentSessionId = 'new';
+    let isTabMode = false;
     
-    function hideWelcome() {
+    function hideWelcome(tabMode = false) {
+        isTabMode = tabMode;
         const welcome = document.getElementById('welcome-view');
         const footer = document.getElementById('active-chat-footer');
         if (welcome && welcome.style.display !== 'none') {
             welcome.style.opacity = '0';
+            welcome.style.transform = 'translateY(-10px)';
             setTimeout(() => {
                 welcome.style.display = 'none';
-                if (footer) footer.classList.remove('hidden');
+                if (footer && !tabMode) {
+                    footer.classList.remove('translate-y-full', 'opacity-0');
+                } else if (footer) {
+                    footer.classList.add('translate-y-full', 'opacity-0');
+                }
             }, 300);
+        } else if (tabMode && footer) {
+            footer.classList.add('translate-y-full', 'opacity-0');
         }
+    }
+
+    function showWelcome() {
+        const welcome = document.getElementById('welcome-view');
+        const chatMessages = document.getElementById('chat-messages');
+        const footer = document.getElementById('active-chat-footer');
+        
+        isTabMode = false;
+        chatMessages.innerHTML = '';
+        welcome.classList.remove('hidden');
+        welcome.style.display = 'flex';
+        welcome.style.opacity = '1';
+        welcome.style.transform = 'translateY(0)';
+        welcome.classList.add('animate-fade-in');
+        
+        if (footer) {
+            footer.classList.add('translate-y-full', 'opacity-0');
+        }
+        
+        currentSessionId = 'new';
+        document.getElementById('current_session_id').value = 'new';
+        document.getElementById('footer_session_id').value = 'new';
     }
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('hidden');
+        sidebar.classList.toggle('md:flex');
     }
 
-    // New Chat handler
     function newChat() {
-        currentSessionId = 'new';
-        document.getElementById('current_session_id').value = 'new';
-        document.getElementById('footer_session_id').value = 'new';
-        document.getElementById('chat-messages').innerHTML = '';
-        document.getElementById('welcome-view').style.display = 'flex';
-        document.getElementById('welcome-view').style.opacity = '1';
-        document.getElementById('active-chat-footer').classList.add('hidden');
+        showWelcome();
     }
 
-    // Load Chat Session History
     async function loadSession(sessionId) {
         currentSessionId = sessionId;
-        document.getElementById('current_session_id').value = sessionId;
-        document.getElementById('footer_session_id').value = sessionId;
+        const currentInput = document.getElementById('current_session_id');
+        const footerInput = document.getElementById('footer_session_id');
+        if (currentInput) currentInput.value = sessionId;
+        if (footerInput) footerInput.value = sessionId;
         
-        hideWelcome();
+        hideWelcome(false);
         
         const chatMessages = document.getElementById('chat-messages');
-        chatMessages.innerHTML = '<div class="w-full text-center py-8 text-slate-500 animate-pulse">Loading history...</div>';
+        chatMessages.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-20 space-y-4">
+                <div class="w-8 h-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin"></div>
+            </div>
+        `;
         
         try {
             const resp = await fetch(`/api/sessions/${sessionId}`);
             if (resp.ok) {
                 const html = await resp.text();
                 chatMessages.innerHTML = html;
-                // Scroll to bottom
-                const chatContainer = document.getElementById('chat-container');
-                chatContainer.scrollTo({ top: chatContainer.scrollHeight });
+                scrollToTop(); // Changed to scroll to top for loaded sessions
+                refreshSessions();
             } else {
-                chatMessages.innerHTML = '<div class="text-red-500 py-4">Failed to load history</div>';
+                chatMessages.innerHTML = '<div class="text-zinc-500 p-12 text-center text-sm">Failed to load history</div>';
             }
         } catch (err) {
-            chatMessages.innerHTML = `<div class="text-red-500 py-4">Error: ${err.message}</div>`;
+            chatMessages.innerHTML = `<div class="text-red-400/60 p-12 text-center text-sm">Error: ${err.message}</div>`;
         }
     }
 
-    // Load All Sessions
     async function refreshSessions() {
         const historyList = document.getElementById('session-history');
+        if (!historyList) return;
         try {
             const resp = await fetch('/api/sessions');
             if (resp.ok) {
                 const sessions = await resp.json();
                 if (sessions.length === 0) {
-                    historyList.innerHTML = '<div class="text-[11px] text-slate-600 px-2 italic">No recent chats</div>';
+                    historyList.innerHTML = '<div class="px-4 py-4 text-xs text-zinc-600">No recent chats</div>';
                     return;
                 }
                 
-                historyList.innerHTML = sessions.map(s => {
-                    let title = s.metadata && s.metadata.title ? s.metadata.title : (s.key ? s.key.split(':').pop() : 'Chat');
+                historyList.innerHTML = sessions.slice(0, 15).map(s => {
+                    let title = s.metadata && s.metadata.title ? s.metadata.title : (s.key ? s.key.split(':').pop() : 'Session');
                     if (title.length > 24) title = title.substring(0, 24) + '...';
+                    const active = s.key === currentSessionId ? 'bg-white/[0.06] text-white' : 'text-zinc-500 hover:bg-white/[0.03] hover:text-zinc-300';
                     return `
-                    <div onclick="loadSession('${s.key}')" class="flex items-center gap-3 px-2 py-2 text-[14px] text-slate-400 hover:text-white hover:bg-[#1f1f1f] rounded-lg cursor-pointer transition-colors group">
-                        <span class="text-slate-600">💬</span>
-                        <span class="truncate">${title}</span>
+                    <div onclick="loadSession('${s.key}')" class="flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group ${active}">
+                        <span class="truncate flex-1 font-medium">${title}</span>
                     </div>
                 `}).join('');
             }
@@ -254,33 +301,44 @@
         }
     }
 
-    // HTMX SSE Close Handler
-    document.body.addEventListener('htmx:sseClose', function(evt) {
-        console.log("SSE Connection closed by server");
-        refreshSessions(); // Refresh list after a chat completes
-    });
+    function scrollToBottom() {
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer) chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+    }
 
-    document.body.addEventListener('htmx:afterOnLoad', function(evt) {
-        if (evt.detail.target.id === 'chat-messages') {
+    function scrollToTop() {
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer) chatContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        if (!isTabMode) {
             const chatContainer = document.getElementById('chat-container');
-            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
-            
-            // If we just sent a message from a "new" chat, we should update our session ID
-            // in case the server returned a new one. 
-            // In our current chat_turn.html, session_id is available.
-            // But for simplicity, we'll let the next message handle it or refresh sessions.
-             refreshSessions();
+            // Check if user is near the bottom (100px threshold)
+            const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
+            if (isNearBottom) {
+                scrollToBottom();
+            }
+        } else {
+            scrollToTop();
         }
     });
-    
-    // Auto-scroll on any mutations in the chat area (for streaming deltas)
-    const observer = new MutationObserver(() => {
-        const chatContainer = document.getElementById('chat-container');
-        chatContainer.scrollTo({ top: chatContainer.scrollHeight });
-    });
-    observer.observe(document.getElementById('chat-messages'), { childList: true, subtree: true });
 
-    // Initial load
+    const msgElement = document.getElementById('chat-messages');
+    if (msgElement) observer.observe(msgElement, { childList: true, subtree: true });
+
+    document.body.addEventListener('htmx:sseClose', () => {
+        refreshSessions();
+    });
+    
+    document.body.addEventListener('htmx:afterOnLoad', (evt) => {
+        if (evt.detail.target.id === 'chat-messages') {
+            if (isTabMode) {
+                scrollToTop();
+            }
+        }
+    });
+
     window.onload = refreshSessions;
 </script>
 {% endblock %}

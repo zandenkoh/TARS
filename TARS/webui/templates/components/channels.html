@@ -1,0 +1,68 @@
+<div class="w-full animate-fade-in p-6">
+    <div class="flex items-center justify-between mb-10">
+        <h2 class="text-3xl font-heading font-bold text-white tracking-tight">Active Channels</h2>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-tars-accent/10 border border-tars-accent/20 text-[10px] text-tars-accent uppercase font-bold tracking-[0.2em]">
+            Multi-protocol Ready
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for channel in channels %}
+        <div class="group p-6 rounded-3xl bg-white/5 border border-white/5 hover:border-white/10 transition-all">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:bg-tars-accent group-hover:text-white transition-all">
+                        {% if channel.name == 'telegram' %}
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.88.03-.24.36-.48.98-.71 3.82-1.66 6.37-2.75 7.64-3.28 3.64-1.53 4.4-1.79 4.89-1.8.11 0 .35.03.5.16.13.11.17.26.18.37 0 .09-.01.21-.02.32z"/></svg>
+                        {% elif channel.name == 'discord' %}
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.27 4.57c-1.51-.7-3.13-1.21-4.83-1.51-.21.36-.43.76-.59 1.15-1.81-.27-3.6-.27-5.38 0-.16-.38-.38-.79-.6-1.15-1.7.3-3.32.81-4.83 1.51-3.05 4.55-3.89 8.99-3.48 13.37 2.03 1.5 3.97 2.41 5.86 3.01.48-.65.9-.13 1.24-2-.67-.25-1.31-.56-1.91-.91.16-.11.31-.24.46-.36 3.67 1.7 7.37 1.7 11.08 0 .15.12.3.24.46.36-.6.35-1.24.66-1.91.91.34.65.66 1.35 1.05 1.99 1.9-.6 3.83-1.51 5.86-3.01.48-4.38-.35-8.82-3.48-13.37z"/></svg>
+                        {% else %}
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="px-3 py-1 rounded-full {% if channel.enabled %}bg-emerald-500/10 text-emerald-400{% else %}bg-zinc-800 text-zinc-600{% endif %} text-[9px] font-bold uppercase tracking-widest border border-current/10">
+                    {{ 'Active' if channel.enabled else 'Inactive' }}
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <h3 class="text-xl font-heading font-bold text-white uppercase tracking-tight">{{ channel.name }}</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-[11px] text-zinc-500 font-mono tracking-tighter">
+                        <span>Identity / Token</span>
+                        <span class="text-white select-all">{{ channel.id }}</span>
+                    </div>
+                </div>
+                
+                <!-- Toggle Button -->
+                <button onclick="toggleChannel('{{ channel.name }}', this)" 
+                        class="w-full py-2 rounded-xl border border-white/5 text-[10px] font-bold uppercase tracking-widest transition-all
+                               {% if channel.enabled %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20{% else %}bg-zinc-800 text-zinc-500 hover:text-white{% endif %}">
+                    {{ 'Disable Channel' if channel.enabled else 'Enable Channel' }}
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        async function toggleChannel(name, btn) {
+            const formData = new FormData();
+            formData.append('name', name);
+            try {
+                const resp = await fetch('/api/channels/toggle', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await resp.json();
+                if (result.status === 'success') {
+                    // Quick refresh of the channels tab
+                    htmx.ajax('GET', '/api/channels', {target: '#chat-messages'});
+                }
+            } catch (err) {
+                console.error("Toggle failed", err);
+            }
+        }
+    </script>
+</div>
