@@ -384,6 +384,44 @@ class TelegramChannel(BaseChannel):
         return "document"
 
     @staticmethod
+    def _get_extension(media_type: str, mime_type: str | None, original_name: str | None) -> str:
+        """Get file extension from media type, mime type, or original filename."""
+        # If original filename has extension, use it
+        if original_name and "." in original_name:
+            # Handle multiple extensions like .tar.gz
+            exts = "".join(Path(original_name).suffixes).lower()
+            return exts if exts else "." + original_name.rsplit(".", 1)[-1].lower()
+        
+        # Fall back to mime type
+        if mime_type:
+            ext_map = {
+                "image/jpeg": ".jpg",
+                "image/png": ".png",
+                "image/gif": ".gif",
+                "image/webp": ".webp",
+                "audio/mpeg": ".mp3",
+                "audio/ogg": ".ogg",
+                "audio/wav": ".wav",
+                "video/mp4": ".mp4",
+                "video/webm": ".webm",
+            }
+            if mime_type in ext_map:
+                return ext_map[mime_type]
+            # Generic fallback from mime type
+            subtype = mime_type.split("/")[-1].split(";")[0]
+            return f".{subtype}" if subtype else ""
+        
+        # Fall back to media type
+        type_map = {
+            "image": ".jpg",
+            "voice": ".ogg",
+            "audio": ".mp3",
+            "video": ".mp4",
+            "animation": ".gif",
+        }
+        return type_map.get(media_type, "")
+
+    @staticmethod
     def _is_remote_media_url(path: str) -> bool:
         return path.startswith(("http://", "https://"))
 
