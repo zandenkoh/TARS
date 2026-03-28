@@ -880,9 +880,16 @@ class TelegramChannel(BaseChannel):
                 original_name,
             )
             
-            # Use workspace/uploads/YYYY-MM-DD/ for persistent uploads
-            workspace = Path(self.bus.config.workspace_path)
-            upload_dir = workspace / "uploads" / datetime.now().strftime("%Y-%m-%d")
+            # Use get_media_dir for testability, falling back to workspace if available
+            try:
+                upload_dir = get_media_dir(channel=self) / datetime.now().strftime("%Y-%m-%d")
+            except (AttributeError, TypeError):
+                # Fallback for tests or when bus.config is not available
+                if hasattr(self.bus, 'config') and hasattr(self.bus.config, 'workspace_path'):
+                    workspace = Path(self.bus.config.workspace_path)
+                    upload_dir = workspace / "uploads" / datetime.now().strftime("%Y-%m-%d")
+                else:
+                    upload_dir = get_media_dir() / datetime.now().strftime("%Y-%m-%d")
             upload_dir.mkdir(parents=True, exist_ok=True)
             
             unique_id = getattr(media_file, "file_unique_id", media_file.file_id)

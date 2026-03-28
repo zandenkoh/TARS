@@ -434,7 +434,7 @@ def test_agent_config_sets_active_path(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
     monkeypatch.setattr(
         "TARS.cron.service.CronService",
         lambda store_path, **kwargs: seen.__setitem__("cron_store", store_path) or object(),
@@ -472,7 +472,7 @@ def test_agent_uses_workspace_directory_for_cron_store(monkeypatch, tmp_path: Pa
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
 
     class _FakeCron:
         def __init__(self, store_path: Path, **kwargs) -> None:
@@ -518,7 +518,7 @@ def test_agent_workspace_override_does_not_migrate_legacy_cron(
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
     monkeypatch.setattr("TARS.config.paths.get_cron_dir", lambda: legacy_dir)
 
     class _FakeCron:
@@ -571,7 +571,7 @@ def test_agent_custom_config_workspace_does_not_migrate_legacy_cron(
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
     monkeypatch.setattr("TARS.config.paths.get_cron_dir", lambda: legacy_dir)
 
     class _FakeCron:
@@ -719,7 +719,7 @@ def test_gateway_uses_workspace_directory_for_cron_store(monkeypatch, tmp_path: 
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
     monkeypatch.setattr("TARS.session.manager.SessionManager", lambda _workspace: object())
 
     class _StopCron:
@@ -755,7 +755,7 @@ def test_gateway_workspace_override_does_not_migrate_legacy_cron(
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
     monkeypatch.setattr("TARS.session.manager.SessionManager", lambda _workspace: object())
     monkeypatch.setattr("TARS.config.paths.get_cron_dir", lambda: legacy_dir)
 
@@ -798,7 +798,7 @@ def test_gateway_custom_config_workspace_does_not_migrate_legacy_cron(
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
     monkeypatch.setattr("TARS.cli.commands.sync_workspace_templates", lambda _path: None)
     monkeypatch.setattr("TARS.cli.commands._make_provider", lambda _config: object())
-    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda: object())
+    monkeypatch.setattr("TARS.bus.queue.MessageBus", lambda **kwargs: object())
     monkeypatch.setattr("TARS.session.manager.SessionManager", lambda _workspace: object())
     monkeypatch.setattr("TARS.config.paths.get_cron_dir", lambda: legacy_dir)
 
