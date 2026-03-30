@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import socket
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, AsyncMock
 
 import pytest
 

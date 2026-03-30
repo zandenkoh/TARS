@@ -113,7 +113,7 @@ class ExecTool(Tool):
                     await asyncio.wait_for(process.wait(), timeout=5.0)
                 except asyncio.TimeoutError:
                     pass
-            finally:
+
                 # Force close transport to prevent loop-closed warnings during GC
                 if hasattr(process, "_transport") and process._transport:
                     try:
@@ -127,7 +127,15 @@ class ExecTool(Tool):
                         os.waitpid(process.pid, os.WNOHANG)
                     except (ProcessLookupError, ChildProcessError, AttributeError):
                         pass
+
                 return f"Error: Command timed out after {effective_timeout} seconds"
+            finally:
+                # Fallback for process transport cleanup if communicate didn't raise
+                if hasattr(process, "_transport") and process._transport:
+                    try:
+                        process._transport.close()
+                    except Exception:
+                        pass
 
             output_parts = []
 
