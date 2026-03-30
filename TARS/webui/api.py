@@ -143,8 +143,9 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
         first = True
 
         async def on_stream(delta: str):
+            import html
             nonlocal first
-            safe_delta = delta.replace("\n", "&#13;")
+            safe_delta = html.escape(delta).replace("\n", "&#13;")
             data = safe_delta
             if first:
                 first = False
@@ -153,13 +154,15 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
             await queue.put(f"event: message\ndata: {data}\n\n")
 
         async def on_progress(text: str, tool_hint: bool = False):
+            import html
             # Send tool hints as OOB updates to a status area
             if tool_hint:
                 # Format: "web_search('...')" -> premium badge
+                safe_text = html.escape(text)
                 status_html = f"""<div id='response-status-{turn_id}' hx-swap-oob='innerHTML'>
                     <div class='flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-800 border border-white/5 animate-pulse'>
                         <div class='w-2 h-2 rounded-full bg-tars-primary'></div>
-                        <span class='text-[10px] font-bold text-zinc-400 uppercase tracking-widest'>Executing: {text}</span>
+                        <span class='text-[10px] font-bold text-zinc-400 uppercase tracking-widest'>Executing: {safe_text}</span>
                     </div>
                 </div>"""
                 await queue.put(f"event: message\ndata: {status_html}\n\n")
