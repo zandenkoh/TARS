@@ -65,6 +65,7 @@ class MochatTarget:
     """Outbound target resolution result."""
     id: str
     is_panel: bool
+    user_id: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -123,6 +124,11 @@ def resolve_mochat_target(raw: str) -> MochatTarget:
     if not trimmed:
         return MochatTarget(id="", is_panel=False)
 
+    user_id = None
+    if "@" in trimmed:
+        trimmed, user_id = trimmed.split("@", 1)
+        trimmed = trimmed.strip()
+
     lowered = trimmed.lower()
     cleaned, forced_panel = trimmed, False
     for prefix in ("mochat:", "group:", "channel:", "panel:"):
@@ -132,8 +138,8 @@ def resolve_mochat_target(raw: str) -> MochatTarget:
             break
 
     if not cleaned:
-        return MochatTarget(id="", is_panel=False)
-    return MochatTarget(id=cleaned, is_panel=forced_panel or not cleaned.startswith("session_"))
+        return MochatTarget(id="", is_panel=False, user_id=user_id)
+    return MochatTarget(id=cleaned, is_panel=forced_panel or not cleaned.startswith("session_"), user_id=user_id)
 
 
 def extract_mention_ids(value: Any) -> list[str]:
