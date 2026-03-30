@@ -138,6 +138,32 @@ class TestFindMatch:
         # Empty string is always "in" any string via exact match
         assert match == ""
 
+    def test_exact_multiple_matches(self):
+        content = "foo bar foo bar foo"
+        old_text = "foo"
+        match, count = _find_match(content, old_text)
+        assert match == "foo"
+        assert count == 3
+
+    def test_line_trim_no_match(self):
+        # old_text not in content exactly, and line-trimming doesn't match either
+        content = "    def foo():\n        pass\n"
+        old_text = "def bar():\n    pass"
+        match, count = _find_match(content, old_text)
+        assert match is None
+        assert count == 0
+
+    def test_line_trim_empty_old_lines_fallback(self):
+        # " \n \n " not in "abc", and splitlines gives empty lines or lines with spaces
+        # this specifically tests the `if not old_lines` block fallback in line-trimmed search
+        content = "abc\ndef"
+        # "\n \n" isn't exactly in content
+        # old_text.splitlines() might return ["", " "]
+        old_text = "\n \n "
+        match, count = _find_match(content, old_text)
+        assert match is None
+        assert count == 0
+
 
 # ---------------------------------------------------------------------------
 # EditFileTool
