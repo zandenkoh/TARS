@@ -1,0 +1,3 @@
+## 2025-03-31 - Pre-compiling RegEx in Web Tools
+**Learning:** During extensive web scraping and formatting inside `TARS/agent/tools/web.py` (e.g. `_strip_tags`, `_normalize`, `_to_markdown`), the system heavily relies on `re.sub()`. For large strings or heavy tool usage, dynamically recompiling the same regex expressions continuously wastes CPU cycles and slows down operations. This is especially true for hot-path regex strings containing flags like `re.I`.
+**Action:** Always pre-compile regular expressions (`re.compile`) at the module level for repetitive text processing loops and scraping modules to reduce regex overhead and maintain speed.
