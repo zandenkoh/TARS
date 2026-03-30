@@ -1,4 +1,5 @@
-"""Tests for multi-provider web search."""
+with open("tests/tools/test_web_search_tool.py", "w") as f:
+    f.write('''"""Tests for multi-provider web search."""
 
 import httpx
 import pytest
@@ -173,7 +174,7 @@ def test_format_results_basic():
         {"title": "<b>Test</b> Title", "url": "https://test.com", "content": "Some snippet"}
     ]
     res = _format_results("test", items, 1)
-    assert "Results for: test\n" in res or "Results for: test" in res
+    assert "Results for: test\\n" in res or "Results for: test" in res
     assert "1. Test Title" in res
     assert "https://test.com" in res
     assert "Some snippet" in res
@@ -205,3 +206,4 @@ def test_format_results_limit_n():
     assert "First" in res
     assert "Second" in res
     assert "Third" not in res
+''')
