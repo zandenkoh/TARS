@@ -113,13 +113,6 @@ class ExecTool(Tool):
                     await asyncio.wait_for(process.wait(), timeout=5.0)
                 except asyncio.TimeoutError:
                     pass
-
-                # Best-effort reap
-                if sys.platform != "win32":
-                    try:
-                        os.waitpid(process.pid, os.WNOHANG)
-                    except (ProcessLookupError, ChildProcessError, AttributeError):
-                        pass
                 return f"Error: Command timed out after {effective_timeout} seconds"
             finally:
                 # Force close transport to prevent loop-closed warnings during GC
@@ -127,6 +120,13 @@ class ExecTool(Tool):
                     try:
                         process._transport.close()
                     except Exception:
+                        pass
+                
+                # Best-effort reap
+                if sys.platform != "win32":
+                    try:
+                        os.waitpid(process.pid, os.WNOHANG)
+                    except (ProcessLookupError, ChildProcessError, AttributeError):
                         pass
 
             output_parts = []

@@ -216,7 +216,7 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
     try:
         base_path = tars.workspace
         target_path = (base_path / path).resolve()
-        if not target_path.is_relative_to(base_path.resolve()):
+        if not target_path.resolve().is_relative_to(base_path.resolve()):
             return HTMLResponse("<div class='text-red-500'>Access Denied</div>")
 
         items = []
@@ -336,13 +336,13 @@ async def move_workspace_item(tars: TARS, src: str = Form(...), dst: str = Form(
         src_path = (base / src).resolve()
         dst_path = (base / dst).resolve()
 
-        if not src_path.is_relative_to(base.resolve()) or \
-           not dst_path.is_relative_to(base.resolve()):
+        if not src_path.resolve().is_relative_to(base.resolve()) or \
+           not dst_path.resolve().is_relative_to(base.resolve()):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
 
         if dst_path.exists() and dst_path.is_dir():
             dst_path = (dst_path / src_path.name).resolve()
-            if not dst_path.is_relative_to(base.resolve()):
+            if not dst_path.resolve().is_relative_to(base.resolve()):
                 return JSONResponse({"status": "error", "message": "Access Denied: Invalid destination"}, status_code=403)
 
         shutil.move(str(src_path), str(dst_path))
@@ -356,13 +356,13 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
     try:
         base = tars.workspace
         target_dir = (base / path).resolve()
-        if not target_dir.is_relative_to(base.resolve()):
+        if not target_dir.resolve().is_relative_to(base.resolve()):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
 
         for file in files:
             # Prevent path traversal in filename
             file_path = (target_dir / file.filename).resolve()
-            if not file_path.is_relative_to(base.resolve()):
+            if not file_path.resolve().is_relative_to(base.resolve()):
                 return JSONResponse({"status": "error", "message": "Access Denied: Invalid filename"}, status_code=403)
 
             with open(file_path, "wb") as f:
