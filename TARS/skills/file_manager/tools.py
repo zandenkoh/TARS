@@ -1,12 +1,9 @@
 """Tools for managing files in the TARS workspace."""
 
-import os
 import mimetypes
-from pathlib import Path
 from typing import Any
 from datetime import datetime
 
-from TARS.agent.tools.base import Tool
 from TARS.agent.tools.filesystem import _FsTool, _is_under
 from TARS.bus.events import OutboundMessage
 

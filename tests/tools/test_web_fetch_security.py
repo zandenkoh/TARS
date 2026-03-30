@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import socket
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, AsyncMock
 
 import pytest
 
@@ -61,7 +61,8 @@ async def test_web_fetch_result_contains_untrusted_flag():
         return FakeResponse()
 
     with patch("TARS.security.network.socket.getaddrinfo", _fake_resolve_public), \
-         patch("httpx.AsyncClient.get", _fake_get):
+         patch("httpx.AsyncClient.get", _fake_get), \
+         patch("httpx.AsyncClient.stream", MagicMock(return_value=AsyncMock(__aenter__=AsyncMock(return_value=FakeResponse())))):
         result = await tool.execute(url="https://example.com/page")
 
     data = json.loads(result)

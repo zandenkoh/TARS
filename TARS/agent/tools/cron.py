@@ -204,7 +204,10 @@ class CronTool(Tool):
 
     def _format_state(self, state: CronJobState, schedule: CronSchedule) -> list[str]:
         """Format job run state as display lines."""
-        lines: list[str] = []
+        lines: list[str] = [
+            f"Status: {'Active' if not state.paused else 'Paused'}",
+            f"Failures: {state.consecutive_failures}",
+        ]
         display_tz = self._display_timezone(schedule)
         if state.last_run_at_ms:
             info = (
