@@ -135,6 +135,7 @@ class AgentLoop:
         if self.exec_config.enable:
             self.tools.register(ExecTool(
                 working_dir=str(self.workspace),
+                workspace_dir=self.workspace,
                 timeout=self.exec_config.timeout,
                 restrict_to_workspace=self.restrict_to_workspace,
                 path_append=self.exec_config.path_append,
