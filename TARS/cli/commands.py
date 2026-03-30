@@ -939,7 +939,7 @@ def agent(
             async def _consume_outbound():
                 while True:
                     try:
-                        msg = await asyncio.wait_for(bus.consume_outbound(), timeout=1.0)
+                        msg = await bus.consume_outbound()
 
                         if msg.metadata.get("_stream_delta"):
                             if renderer:
@@ -976,9 +976,6 @@ def agent(
                                 render_markdown=markdown,
                                 metadata=msg.metadata,
                             )
-
-                    except asyncio.TimeoutError:
-                        continue
                     except asyncio.CancelledError:
                         break
 

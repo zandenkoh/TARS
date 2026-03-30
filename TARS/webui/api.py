@@ -173,21 +173,24 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
             on_stream=on_stream,
             on_progress=on_progress
         ))
-
         try:
-            while not process_task.done() or not queue.empty():
-                # If there's something in the queue, yield it immediately
-                if not queue.empty():
-                    yield await queue.get()
-                    continue
+            while True:
+                get_task = asyncio.create_task(queue.get())
+                done, pending = await asyncio.wait(
+                    [process_task, get_task],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
 
-                # Otherwise, wait for either the task to finish or something to arrive in the queue
-                # We use a small sleep to avoid tight-looping while waiting for a task to finish
-                # but it's better to use an event or just wait for the task.
-                if process_task.done():
-                    break
-
-                await asyncio.sleep(0.05)
+                if get_task in done:
+                    yield get_task.result()
+                else:
+                    get_task.cancel()
+                    try:
+                        await get_task
+                    except asyncio.CancelledError:
+                        pass
+                    if process_task in done:
+                        break
 
             # Ensure we drain the queue one last time
             while not queue.empty():

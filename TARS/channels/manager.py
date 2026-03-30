@@ -116,10 +116,7 @@ class ChannelManager:
 
         while True:
             try:
-                msg = await asyncio.wait_for(
-                    self.bus.consume_outbound(),
-                    timeout=1.0
-                )
+                msg = await self.bus.consume_outbound()
 
                 if msg.metadata.get("_progress"):
                     if msg.metadata.get("_tool_hint") and not self.config.channels.send_tool_hints:
@@ -140,9 +137,6 @@ class ChannelManager:
                         logger.error("Error sending to {}: {}", msg.channel, e)
                 else:
                     logger.warning("Unknown channel: {}", msg.channel)
-
-            except asyncio.TimeoutError:
-                continue
             except asyncio.CancelledError:
                 break
 
