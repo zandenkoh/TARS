@@ -48,13 +48,11 @@ def is_default_workspace(workspace: str | Path | None) -> bool:
 
 
 def get_cli_history_path() -> Path:
-    """Return the shared CLI history file path."""
-    return Path.home() / ".TARS" / "history" / "cli_history"
+    return get_config_path() / ".history"
 
 
 def get_bridge_install_dir() -> Path:
-    """Return the shared WhatsApp bridge installation directory."""
-    return Path.home() / ".TARS" / "bridge"
+    return get_config_path() / ".bridge"
 
 
 def get_legacy_sessions_dir() -> Path:
