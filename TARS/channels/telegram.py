@@ -33,12 +33,18 @@ TELEGRAM_MAX_MESSAGE_LEN = 4000  # Telegram message character limit
 TELEGRAM_REPLY_CONTEXT_MAX_LEN = TELEGRAM_MAX_MESSAGE_LEN  # Max length for reply context in user message
 
 
+# ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead
+_STRIP_MD_RE_BOLD = re.compile(r'\*\*(.+?)\*\*')
+_STRIP_MD_RE_UNDERLINE = re.compile(r'__(.+?)__')
+_STRIP_MD_RE_STRIKE = re.compile(r'~~(.+?)~~')
+_STRIP_MD_RE_CODE = re.compile(r'`([^`]+)`')
+
 def _strip_md(s: str) -> str:
     """Strip markdown inline formatting from text."""
-    s = re.sub(r'\*\*(.+?)\*\*', r'\1', s)
-    s = re.sub(r'__(.+?)__', r'\1', s)
-    s = re.sub(r'~~(.+?)~~', r'\1', s)
-    s = re.sub(r'`([^`]+)`', r'\1', s)
+    s = _STRIP_MD_RE_BOLD.sub(r'\1', s)
+    s = _STRIP_MD_RE_UNDERLINE.sub(r'\1', s)
+    s = _STRIP_MD_RE_STRIKE.sub(r'\1', s)
+    s = _STRIP_MD_RE_CODE.sub(r'\1', s)
     return s.strip()
 
 
@@ -52,7 +58,7 @@ def _render_table_box(table_lines: list[str]) -> str:
     has_sep = False
     for line in table_lines:
         cells = [_strip_md(c) for c in line.strip().strip('|').split('|')]
-        if all(re.match(r'^:?-+:?$', c) for c in cells if c):
+        if all(_TG_MD_RE_TABLE_SEP.match(c) for c in cells if c):
             has_sep = True
             continue
         rows.append(cells)
@@ -74,6 +80,21 @@ def _render_table_box(table_lines: list[str]) -> str:
     return '\n'.join(out)
 
 
+_TG_MD_RE_CODE_BLOCK = re.compile(r'```[\w]*\n?([\s\S]*?)```')
+_TG_MD_RE_INLINE_CODE = re.compile(r'`([^`]+)`')
+_TG_MD_RE_HEADERS = re.compile(r'^#{1,6}\s+(.+)$', re.MULTILINE)
+_TG_MD_RE_BLOCKQUOTES = re.compile(r'^>\s*(.*)$', re.MULTILINE)
+_TG_MD_RE_LINKS = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
+_TG_MD_RE_BOLD1 = re.compile(r'\*\*(.+?)\*\*')
+_TG_MD_RE_BOLD2 = re.compile(r'__(.+?)__')
+_TG_MD_RE_ITALIC = re.compile(r'(?<![a-zA-Z0-9])_([^_]+)_(?![a-zA-Z0-9])')
+_TG_MD_RE_STRIKE = re.compile(r'~~(.+?)~~')
+_TG_MD_RE_BULLETS = re.compile(r'^[-*]\s+', re.MULTILINE)
+_TG_MD_RE_TABLE_ROW = re.compile(r'^\s*\|.+\|')
+_TG_MD_RE_TABLE_SEP = re.compile(r'^:?-+:?$')
+
+
+# ⚡ Bolt: Use pre-compiled regex constants to avoid recompilation overhead in parsing
 def _markdown_to_telegram_html(text: str) -> str:
     """
     Convert markdown to Telegram-safe HTML.
@@ -87,16 +108,16 @@ def _markdown_to_telegram_html(text: str) -> str:
         code_blocks.append(m.group(1))
         return f"\x00CB{len(code_blocks) - 1}\x00"
 
-    text = re.sub(r'```[\w]*\n?([\s\S]*?)```', save_code_block, text)
+    text = _TG_MD_RE_CODE_BLOCK.sub(save_code_block, text)
 
     # 1.5. Convert markdown tables to box-drawing (reuse code_block placeholders)
     lines = text.split('\n')
     rebuilt: list[str] = []
     li = 0
     while li < len(lines):
-        if re.match(r'^\s*\|.+\|', lines[li]):
+        if _TG_MD_RE_TABLE_ROW.match(lines[li]):
             tbl: list[str] = []
-            while li < len(lines) and re.match(r'^\s*\|.+\|', lines[li]):
+            while li < len(lines) and _TG_MD_RE_TABLE_ROW.match(lines[li]):
                 tbl.append(lines[li])
                 li += 1
             box = _render_table_box(tbl)
@@ -116,32 +137,32 @@ def _markdown_to_telegram_html(text: str) -> str:
         inline_codes.append(m.group(1))
         return f"\x00IC{len(inline_codes) - 1}\x00"
 
-    text = re.sub(r'`([^`]+)`', save_inline_code, text)
+    text = _TG_MD_RE_INLINE_CODE.sub(save_inline_code, text)
 
     # 3. Headers # Title -> just the title text
-    text = re.sub(r'^#{1,6}\s+(.+)$', r'\1', text, flags=re.MULTILINE)
+    text = _TG_MD_RE_HEADERS.sub(r'\1', text)
 
     # 4. Blockquotes > text -> just the text (before HTML escaping)
-    text = re.sub(r'^>\s*(.*)$', r'\1', text, flags=re.MULTILINE)
+    text = _TG_MD_RE_BLOCKQUOTES.sub(r'\1', text)
 
     # 5. Escape HTML special characters
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     # 6. Links [text](url) - must be before bold/italic to handle nested cases
-    text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', text)
+    text = _TG_MD_RE_LINKS.sub(r'<a href="\2">\1</a>', text)
 
     # 7. Bold **text** or __text__
-    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
-    text = re.sub(r'__(.+?)__', r'<b>\1</b>', text)
+    text = _TG_MD_RE_BOLD1.sub(r'<b>\1</b>', text)
+    text = _TG_MD_RE_BOLD2.sub(r'<b>\1</b>', text)
 
     # 8. Italic _text_ (avoid matching inside words like some_var_name)
-    text = re.sub(r'(?<![a-zA-Z0-9])_([^_]+)_(?![a-zA-Z0-9])', r'<i>\1</i>', text)
+    text = _TG_MD_RE_ITALIC.sub(r'<i>\1</i>', text)
 
     # 9. Strikethrough ~~text~~
-    text = re.sub(r'~~(.+?)~~', r'<s>\1</s>', text)
+    text = _TG_MD_RE_STRIKE.sub(r'<s>\1</s>', text)
 
     # 10. Bullet lists - item -> • item
-    text = re.sub(r'^[-*]\s+', '• ', text, flags=re.MULTILINE)
+    text = _TG_MD_RE_BULLETS.sub('• ', text)
 
     # 11. Restore inline code with HTML tags
     for i, code in enumerate(inline_codes):
