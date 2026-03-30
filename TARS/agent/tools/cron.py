@@ -48,10 +48,16 @@ class CronTool(Tool):
 
     @staticmethod
     def _format_timestamp(ms: int, tz_name: str) -> str:
-        from zoneinfo import ZoneInfo
+        import zoneinfo
+        from datetime import timezone
 
-        dt = datetime.fromtimestamp(ms / 1000, tz=ZoneInfo(tz_name))
-        return f"{dt.isoformat()} ({tz_name})"
+        dt = datetime.fromtimestamp(ms / 1000.0, timezone.utc)
+        try:
+            tz = zoneinfo.ZoneInfo(tz_name)
+            dt = dt.astimezone(tz)
+            return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
+        except Exception:
+            return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
     @property
     def name(self) -> str:
@@ -198,7 +204,10 @@ class CronTool(Tool):
 
     def _format_state(self, state: CronJobState, schedule: CronSchedule) -> list[str]:
         """Format job run state as display lines."""
-        lines: list[str] = []
+        lines: list[str] = [
+            f"Status: {'Active' if not state.paused else 'Paused'}",
+            f"Failures: {state.consecutive_failures}",
+        ]
         display_tz = self._display_timezone(schedule)
         if state.last_run_at_ms:
             info = (

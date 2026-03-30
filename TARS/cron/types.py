@@ -46,6 +46,8 @@ class CronJobState:
     last_status: Literal["ok", "error", "skipped"] | None = None
     last_error: str | None = None
     run_history: list[CronRunRecord] = field(default_factory=list)
+    paused: bool = False
+    consecutive_failures: int = 0
 
 
 @dataclass
