@@ -82,33 +82,42 @@ def test_format_timing_fallback(tmp_path) -> None:
 def test_format_state_empty(tmp_path) -> None:
     tool = _make_tool(tmp_path)
     state = CronJobState()
-    assert tool._format_state(state, CronSchedule(kind="every")) == []
+    res = tool._format_state(state, CronSchedule(kind="every"))
+    assert len(res) == 2
+    assert res[0] == "Status: Active"
+    assert res[1] == "Failures: 0"
 
 
 def test_format_state_last_run_ok(tmp_path) -> None:
     tool = _make_tool(tmp_path)
     state = CronJobState(last_run_at_ms=1773673200000, last_status="ok")
     lines = tool._format_state(state, CronSchedule(kind="cron", expr="0 9 * * *", tz="UTC"))
-    assert len(lines) == 1
-    assert "Last run:" in lines[0]
-    assert "ok" in lines[0]
+    assert len(lines) == 3
+    assert "Status: Active" in lines[0]
+    assert "Failures: 0" in lines[1]
+    assert "Last run:" in lines[2]
+    assert "ok" in lines[2]
 
 
 def test_format_state_last_run_with_error(tmp_path) -> None:
     tool = _make_tool(tmp_path)
     state = CronJobState(last_run_at_ms=1773673200000, last_status="error", last_error="timeout")
     lines = tool._format_state(state, CronSchedule(kind="cron", expr="0 9 * * *", tz="UTC"))
-    assert len(lines) == 1
-    assert "error" in lines[0]
-    assert "timeout" in lines[0]
+    assert len(lines) == 3
+    assert "Status: Active" in lines[0]
+    assert "Failures: 0" in lines[1]
+    assert "error" in lines[2]
+    assert "timeout" in lines[2]
 
 
 def test_format_state_next_run_only(tmp_path) -> None:
     tool = _make_tool(tmp_path)
     state = CronJobState(next_run_at_ms=1773684000000)
     lines = tool._format_state(state, CronSchedule(kind="cron", expr="0 9 * * *", tz="UTC"))
-    assert len(lines) == 1
-    assert "Next run:" in lines[0]
+    assert len(lines) == 3
+    assert "Status: Active" in lines[0]
+    assert "Failures: 0" in lines[1]
+    assert "Next run:" in lines[2]
 
 
 def test_format_state_both(tmp_path) -> None:
@@ -117,16 +126,18 @@ def test_format_state_both(tmp_path) -> None:
         last_run_at_ms=1773673200000, last_status="ok", next_run_at_ms=1773684000000
     )
     lines = tool._format_state(state, CronSchedule(kind="cron", expr="0 9 * * *", tz="UTC"))
-    assert len(lines) == 2
-    assert "Last run:" in lines[0]
-    assert "Next run:" in lines[1]
+    assert len(lines) == 4
+    assert "Status: Active" in lines[0]
+    assert "Failures: 0" in lines[1]
+    assert "Last run:" in lines[2]
+    assert "Next run:" in lines[3]
 
 
 def test_format_state_unknown_status(tmp_path) -> None:
     tool = _make_tool(tmp_path)
     state = CronJobState(last_run_at_ms=1773673200000, last_status=None)
     lines = tool._format_state(state, CronSchedule(kind="cron", expr="0 9 * * *", tz="UTC"))
-    assert "unknown" in lines[0]
+    assert "unknown" in lines[2]
 
 
 # -- _list_jobs integration tests --
