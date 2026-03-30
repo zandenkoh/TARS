@@ -1,16 +1,8 @@
 from pathlib import Path
 
-base = Path("./workspace").resolve()
-target_dir = base
+base = Path("/app/workspace").resolve()
+target = Path("/app/workspace2").resolve()
 
-f_filename = "../../../etc/passwd"
-file_path = target_dir / f_filename
+print(str(target).startswith(str(base)))
+print(target.is_relative_to(base))
 
-print("Base:", base)
-print("File path:", file_path)
-print("Resolved file path:", file_path.resolve())
-
-if not str(file_path.resolve()).startswith(str(base)):
-    print("Access Denied")
-else:
-    print("Access Granted")
