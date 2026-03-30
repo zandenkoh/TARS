@@ -113,7 +113,6 @@ class ExecTool(Tool):
                     await asyncio.wait_for(process.wait(), timeout=5.0)
                 except asyncio.TimeoutError:
                     pass
-                # Return here will actually execute the finally block first
                 return f"Error: Command timed out after {effective_timeout} seconds"
             finally:
                 # Force close transport to prevent loop-closed warnings during GC
