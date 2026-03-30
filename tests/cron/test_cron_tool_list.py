@@ -66,7 +66,7 @@ def test_format_timing_at(tmp_path) -> None:
     tool = _make_tool_with_tz(tmp_path, "Asia/Shanghai")
     s = CronSchedule(kind="at", at_ms=1773684000000)
     result = tool._format_timing(s)
-    assert "Asia/Shanghai" in result
+    assert "CST" in result
     assert result.startswith("at 2026-")
 
 
@@ -212,7 +212,7 @@ def test_list_at_job_shows_iso_timestamp(tmp_path) -> None:
     )
     result = tool._list_jobs()
     assert "at 2026-" in result
-    assert "Asia/Shanghai" in result
+    assert "CST" in result
 
 
 def test_list_shows_last_run_state(tmp_path) -> None:
