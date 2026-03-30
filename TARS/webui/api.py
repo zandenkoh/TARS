@@ -382,7 +382,10 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
         tasks_dir = tars.workspace / "tasks"
         tasks_dir.mkdir(exist_ok=True)
 
-        file_path = tasks_dir / f"daily_{target_date}.json"
+        file_path = (tasks_dir / f"daily_{target_date}.json").resolve()
+        if not file_path.is_relative_to(tasks_dir.resolve()):
+            return JSONResponse({"status": "error", "message": "Access Denied: Invalid date parameter"}, status_code=403)
+
         tasks_data = {"tasks": [], "date": target_date}
 
         if file_path.exists():

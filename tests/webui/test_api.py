@@ -83,3 +83,22 @@ def test_upload_workspace_file_out_of_bounds_filename(client, mock_tars):
     )
     assert response.status_code == 403
     assert "Access Denied: Invalid filename" in response.json()["message"]
+
+def test_create_task_in_bounds(client, mock_tars):
+    response = client.post(
+        "/api/tasks",
+        data={"content": "Learn HTMX", "date": "2023-10-25"}
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
+    task_file = mock_tars.workspace / "tasks" / "daily_2023-10-25.json"
+    assert task_file.exists()
+    assert "Learn HTMX" in task_file.read_text()
+
+def test_create_task_path_traversal(client, mock_tars):
+    response = client.post(
+        "/api/tasks",
+        data={"content": "Hacked", "date": "../../../etc/passwd"}
+    )
+    assert response.status_code == 403
+    assert "Access Denied" in response.json()["message"]
