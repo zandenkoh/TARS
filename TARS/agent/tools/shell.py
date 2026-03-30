@@ -113,7 +113,6 @@ class ExecTool(Tool):
                     await asyncio.wait_for(process.wait(), timeout=5.0)
                 except asyncio.TimeoutError:
                     pass
-            finally:
                 # Force close transport to prevent loop-closed warnings during GC
                 if hasattr(process, "_transport") and process._transport:
                     try:
