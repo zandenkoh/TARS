@@ -11,10 +11,14 @@ from typing import Any
 import tiktoken
 
 
+# ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead in hot streaming loops
+_THINK_BLOCK_RE = re.compile(r"<think>[\s\S]*?</think>")
+_THINK_TRAILING_RE = re.compile(r"<think>[\s\S]*$")
+
 def strip_think(text: str) -> str:
     """Remove <think>…</think> blocks and any unclosed trailing <think> tag."""
-    text = re.sub(r"<think>[\s\S]*?</think>", "", text)
-    text = re.sub(r"<think>[\s\S]*$", "", text)
+    text = _THINK_BLOCK_RE.sub("", text)
+    text = _THINK_TRAILING_RE.sub("", text)
     return text.strip()
 
 
