@@ -72,6 +72,14 @@ class TestReadFileTool:
         assert result[1] == {"type": "text", "text": f"(Image file: {f})"}
 
     @pytest.mark.asyncio
+    async def test_binary_file_decode_error(self, tool, tmp_path):
+        f = tmp_path / "binary.bin"
+        # Write invalid UTF-8 bytes to trigger UnicodeDecodeError
+        f.write_bytes(b"\xff\xfe\xfd\x00\x11")
+        result = await tool.execute(path=str(f))
+        assert "Error: Cannot read binary file" in result
+
+    @pytest.mark.asyncio
     async def test_file_not_found(self, tool, tmp_path):
         result = await tool.execute(path=str(tmp_path / "nope.txt"))
         assert "Error" in result
