@@ -1,27 +1,22 @@
 from __future__ import annotations
-# Part of TARS integrated web UI – prepared for HTMX + Tailwind
-
-import os
-import shutil
-from pathlib import Path
-from typing import Annotated, List, Optional
 
 import json
-from pathlib import Path
-from typing import Annotated, AsyncGenerator
 
-from fastapi import FastAPI, Depends, Request, Form, UploadFile, File
+# Part of TARS integrated web UI – prepared for HTMX + Tailwind
+import shutil
+from pathlib import Path
+from typing import Annotated, AsyncGenerator, List, Optional
+
+from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from TARS.config.schema import Config
-from TARS.config.paths import get_workspace_path
-from TARS.bus.queue import MessageBus
-from TARS.session.manager import SessionManager
 from TARS.agent.loop import AgentLoop
-from TARS.webui.utils import load_tars_config
+from TARS.bus.queue import MessageBus
+from TARS.config.paths import get_workspace_path
+from TARS.session.manager import SessionManager
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -52,9 +47,9 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 class TARSState:
     """Singleton-like state for TARS core to avoid re-initializing on Every request."""
     _instance = None
-    
+
     def __init__(self):
-        from TARS.cli.commands import _make_provider, _load_runtime_config
+        from TARS.cli.commands import _load_runtime_config, _make_provider
         self.config = _load_runtime_config()
         self.workspace = get_workspace_path(self.config.workspace_path)
         self.bus = MessageBus(config=self.config)
@@ -97,6 +92,7 @@ async def read_root(request: Request, tars: TARS):
 
 import uuid
 
+
 @app.get("/api/sessions")
 async def list_sessions(tars: TARS):
     """List all available chat sessions."""
@@ -110,7 +106,7 @@ async def get_session_history(request: Request, tars: TARS, session_id: str):
     session = tars.sessions.get_or_create(session_id)
     # Filter out metadata and system messages for the UI
     messages = [m for m in session.messages if m.get("_type") != "metadata" and m.get("role") != "system"]
-    
+
     # We want to render each message using the existing template
     return templates.TemplateResponse(request, "chat_history.html", {
         "messages": messages,
@@ -124,7 +120,7 @@ async def chat(request: Request, tars: TARS, content: Annotated[str, Form()], se
     # Default to web:chat if no session_id provided, or generate a new one if it's "new"
     if not session_id or session_id == "new":
         session_id = f"web:{uuid.uuid4().hex[:8]}"
-    
+
     # Ensure session exists and has a title if it's the first message
     session = tars.sessions.get_or_create(session_id)
     if not session.metadata.get("title"):
@@ -144,7 +140,7 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
         import asyncio
         queue = asyncio.Queue()
         first = True
-        
+
         async def on_stream(delta: str):
             nonlocal first
             safe_delta = delta.replace("\n", "&#13;")
@@ -183,15 +179,15 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
                 if not queue.empty():
                     yield await queue.get()
                     continue
-                
+
                 # Otherwise, wait for either the task to finish or something to arrive in the queue
                 # We use a small sleep to avoid tight-looping while waiting for a task to finish
                 # but it's better to use an event or just wait for the task.
                 if process_task.done():
                     break
-                
+
                 await asyncio.sleep(0.05)
-                
+
             # Ensure we drain the queue one last time
             while not queue.empty():
                 yield await queue.get()
@@ -199,7 +195,7 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
         except asyncio.CancelledError:
             process_task.cancel()
             raise
-        
+
         # Final cleanup: remove status badge
         yield f"event: message\ndata: <div id='response-status-{turn_id}' hx-swap-oob='delete'></div>\n\n"
         yield "event: close\ndata: done\n\n"
@@ -219,7 +215,7 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
         target_path = (base_path / path).resolve()
         if not str(target_path).startswith(str(base_path.resolve())):
             return HTMLResponse("<div class='text-red-500'>Access Denied</div>")
-        
+
         items = []
         for p in target_path.iterdir():
             if p.name.startswith('.'): continue # Hide hidden files
@@ -229,10 +225,10 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
                 "size": f"{p.stat().st_size / 1024:.1f} KB" if p.is_file() else "-",
                 "path": str(p.relative_to(base_path))
             })
-        
+
         # Sort: directories first, then files
         items.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
-        
+
         return templates.TemplateResponse(request, "components/file_explorer.html", {
             "items": items,
             "current_path": path,
@@ -264,7 +260,7 @@ async def get_tasks_ui(request: Request, tars: TARS):
                     data = json.load(f)
                     tasks.append({"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))})
             except: continue
-            
+
     return templates.TemplateResponse(request, "components/tasks.html", {
         "tasks": tasks,
         "tasks_path": str(tasks_dir)
@@ -277,19 +273,19 @@ async def get_channels_ui(request: Request, tars: TARS):
     if hasattr(tars.config, "channels"):
         # Pydantic v2 model_dump() includes extra fields allowed via extra="allow"
         all_channels_data = tars.config.channels.model_dump()
-        
+
         # Filter out the internal config settings
         internal_keys = {"send_progress", "send_tool_hints"}
-        
+
         for name, cfg in all_channels_data.items():
             if name in internal_keys:
                 continue
-            
+
             if isinstance(cfg, dict) and cfg.get("enabled"):
                 # Mask sensitive IDs
                 raw_id = cfg.get("appId") or cfg.get("botToken") or cfg.get("token") or "configured"
                 masked_id = str(raw_id)[:10] + "..."
-                
+
                 channels.append({
                     "name": name,
                     "enabled": True,
@@ -301,7 +297,7 @@ async def get_channels_ui(request: Request, tars: TARS):
                     "enabled": False,
                     "id": "N/A"
                 })
-    
+
     return templates.TemplateResponse(request, "components/channels.html", {
         "channels": channels
     })
@@ -312,18 +308,18 @@ async def toggle_channel(tars: TARS, name: str = Form(...)):
     try:
         config_dict = tars.config.model_dump()
         channels = config_dict.get("channels", {})
-        
+
         if name in channels:
             channels[name]["enabled"] = not channels[name].get("enabled", False)
         else:
             return JSONResponse({"status": "error", "message": f"Channel {name} not found"}, status_code=404)
-            
+
         # Save updated config
         from TARS.config.loader import save_config
         from TARS.config.schema import Config
         new_config = Config.model_validate(config_dict)
         save_config(new_config)
-        
+
         tars.refresh_config()
         return JSONResponse({"status": "success", "message": f"Channel {name} toggled", "enabled": channels[name]["enabled"]})
     except Exception as e:
@@ -336,14 +332,16 @@ async def move_workspace_item(tars: TARS, src: str = Form(...), dst: str = Form(
         base = tars.workspace
         src_path = (base / src).resolve()
         dst_path = (base / dst).resolve()
-        
+
         if not str(src_path).startswith(str(base.resolve())) or \
            not str(dst_path).startswith(str(base.resolve())):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
-            
+
         if dst_path.exists() and dst_path.is_dir():
-            dst_path = dst_path / src_path.name
-            
+            dst_path = (dst_path / src_path.name).resolve()
+            if not str(dst_path).startswith(str(base.resolve())):
+                return JSONResponse({"status": "error", "message": "Access Denied: Invalid destination"}, status_code=403)
+
         shutil.move(str(src_path), str(dst_path))
         return JSONResponse({"status": "success", "message": f"Moved {src_path.name} to {dst}"})
     except Exception as e:
@@ -357,12 +355,16 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
         target_dir = (base / path).resolve()
         if not str(target_dir).startswith(str(base.resolve())):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
-            
+
         for file in files:
-            file_path = target_dir / file.filename
+            # Prevent path traversal in filename
+            file_path = (target_dir / file.filename).resolve()
+            if not str(file_path).startswith(str(base.resolve())):
+                return JSONResponse({"status": "error", "message": "Access Denied: Invalid filename"}, status_code=403)
+
             with open(file_path, "wb") as f:
                 shutil.copyfileobj(file.file, f)
-                
+
         return JSONResponse({"status": "success", "message": f"Uploaded {len(files)} files"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
@@ -375,24 +377,24 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
         target_date = date or datetime.now().strftime("%Y-%m-%d")
         tasks_dir = tars.workspace / "tasks"
         tasks_dir.mkdir(exist_ok=True)
-        
+
         file_path = tasks_dir / f"daily_{target_date}.json"
         tasks_data = {"tasks": [], "date": target_date}
-        
+
         if file_path.exists():
             with open(file_path, "r") as f:
                 tasks_data = json.load(f)
-                
+
         tasks_data["tasks"].append({
             "id": uuid.uuid4().hex[:8],
             "content": content,
             "status": "pending",
             "created_at": datetime.now().isoformat()
         })
-        
+
         with open(file_path, "w") as f:
             json.dump(tasks_data, f, indent=2)
-            
+
         return JSONResponse({"status": "success", "message": "Task created"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
@@ -402,15 +404,15 @@ async def update_config(tars: TARS, config_json: str = Form(...)):
     """Save global configuration changes."""
     try:
         new_config = json.loads(config_json)
-        config_path = tars.workspace / "tars_config.json" # Need to find the actual path
+        tars.workspace / "tars_config.json" # Need to find the actual path
         # In TARS, config is usually in workspace or ~/.tars/config.json
         # The TARSState._load_runtime_config uses the paths.
         from TARS.config.paths import get_config_path
         path = get_config_path()
-        
+
         with open(path, "w") as f:
             json.dump(new_config, f, indent=2)
-            
+
         tars.refresh_config()
         return JSONResponse({"status": "success", "message": "Configuration updated and reloaded"})
     except Exception as e:
