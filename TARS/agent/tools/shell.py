@@ -19,6 +19,7 @@ class ExecTool(Tool):
         self,
         timeout: int = 60,
         working_dir: str | None = None,
+        workspace_dir: str | Path | None = None,
         deny_patterns: list[str] | None = None,
         allow_patterns: list[str] | None = None,
         restrict_to_workspace: bool = False,
@@ -26,6 +27,7 @@ class ExecTool(Tool):
     ):
         self.timeout = timeout
         self.working_dir = working_dir
+        self.workspace_dir = workspace_dir or working_dir
         self.deny_patterns = deny_patterns or [
             r"\brm\s+-[rf]{1,2}\b",          # rm -r, rm -rf, rm -fr
             r"\bdel\s+/[fq]\b",              # del /f, del /q
@@ -176,10 +178,17 @@ class ExecTool(Tool):
             return "Error: Command blocked by safety guard (internal/private URL detected)"
 
         if self.restrict_to_workspace:
+            if not self.workspace_dir:
+                return "Error: Command blocked by safety guard (restrict_to_workspace requires a workspace_dir or working_dir)"
+
             if "..\\" in cmd or "../" in cmd:
                 return "Error: Command blocked by safety guard (path traversal detected)"
 
+            ws_path = Path(self.workspace_dir).resolve()
             cwd_path = Path(cwd).resolve()
+
+            if not cwd_path.is_relative_to(ws_path):
+                return "Error: Command blocked by safety guard (working directory outside workspace)"
 
             for raw in self._extract_absolute_paths(cmd):
                 try:
@@ -187,8 +196,8 @@ class ExecTool(Tool):
                     p = Path(expanded).expanduser().resolve()
                 except Exception:
                     continue
-                if p.is_absolute() and cwd_path not in p.parents and p != cwd_path:
-                    return "Error: Command blocked by safety guard (path outside working dir)"
+                if p.is_absolute() and not p.is_relative_to(ws_path):
+                    return "Error: Command blocked by safety guard (path outside workspace)"
 
         return None
 
