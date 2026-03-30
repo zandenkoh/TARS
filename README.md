@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="TARS_logo.png" alt="TARS" width="500">
+  <img src="assets/TARS_logo.png" alt="TARS" width="500">
   <h1>TARS: Ultra-Lightweight Personal AI Assistant</h1>
   <p>
     <a href="https://pypi.org/project/TARS-ai/"><img src="https://img.shields.io/pypi/v/TARS-ai" alt="PyPI"></a>
     <a href="https://pepy.tech/project/TARS-ai"><img src="https://static.pepy.tech/badge/TARS-ai" alt="Downloads"></a>
     <img src="https://img.shields.io/badge/python-≥3.11-blue" alt="Python">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-    <a href="./COMMUNICATION.md"><img src="https://img.shields.io/badge/Feishu-Group-E9DBFC?style=flat&logo=feishu&logoColor=white" alt="Feishu"></a>
-    <a href="./COMMUNICATION.md"><img src="https://img.shields.io/badge/WeChat-Group-C5EAB4?style=flat&logo=wechat&logoColor=white" alt="WeChat"></a>
+    <a href="./docs/COMMUNICATION.md"><img src="https://img.shields.io/badge/Feishu-Group-E9DBFC?style=flat&logo=feishu&logoColor=white" alt="Feishu"></a>
+    <a href="./docs/COMMUNICATION.md"><img src="https://img.shields.io/badge/WeChat-Group-C5EAB4?style=flat&logo=wechat&logoColor=white" alt="WeChat"></a>
     <a href="https://discord.gg/MnCvHqpUGB"><img src="https://img.shields.io/badge/Discord-Community-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord"></a>
   </p>
 </div>
@@ -16,7 +16,7 @@
 
 ⚡️ Delivers core agent functionality with **99% fewer lines of code** than OpenClaw.
 
-📏 Real-time line count: run `bash core_agent_lines.sh` to verify anytime.
+📏 Real-time line count: run `bash scripts/core_agent_lines.sh` to verify anytime.
 
 ## 📢 News
 
@@ -93,7 +93,7 @@
 ## 🏗️ Architecture
 
 <p align="center">
-  <img src="TARS_arch.png" alt="TARS architecture" width="800">
+  <img src="assets/TARS_arch.png" alt="TARS architecture" width="800">
 </p>
 
 ## Table of Contents
@@ -126,10 +126,10 @@
     <th><p align="center">📚 Personal Knowledge Assistant</p></th>
   </tr>
   <tr>
-    <td align="center"><p align="center"><img src="case/search.gif" width="180" height="400"></p></td>
-    <td align="center"><p align="center"><img src="case/code.gif" width="180" height="400"></p></td>
-    <td align="center"><p align="center"><img src="case/scedule.gif" width="180" height="400"></p></td>
-    <td align="center"><p align="center"><img src="case/memory.gif" width="180" height="400"></p></td>
+    <td align="center"><p align="center"><img src="assets/showcase/search.gif" width="180" height="400"></p></td>
+    <td align="center"><p align="center"><img src="assets/showcase/code.gif" width="180" height="400"></p></td>
+    <td align="center"><p align="center"><img src="assets/showcase/scedule.gif" width="180" height="400"></p></td>
+    <td align="center"><p align="center"><img src="assets/showcase/memory.gif" width="180" height="400"></p></td>
   </tr>
   <tr>
     <td align="center">Discovery • Insights • Trends</td>
