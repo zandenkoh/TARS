@@ -26,9 +26,12 @@
 </style>
 <meta id="tars-config-data" data-config='{{ config.model_dump() | tojson | safe }}'>
 <div class="flex h-screen overflow-hidden bg-tars-black text-zinc-300 font-inter">
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
     <!-- Left Sidebar (Glassmorphism) -->
     <aside id="sidebar"
-        class="hidden md:flex w-[260px] flex-col bg-[#181818] border-r border-white/[0.04] transition-all duration-300 ease-in-out z-50">
+        class="fixed md:relative inset-y-0 left-0 w-[260px] flex flex-col bg-[#181818] border-r border-white/[0.04] transition-transform duration-300 ease-in-out z-50 -translate-x-full md:translate-x-0">
         <!-- Sidebar Header -->
         <div class="px-4 py-4 flex items-center justify-between">
             <button aria-label="New Chat" onclick="newChat()"
@@ -54,7 +57,7 @@
 
         <!-- Navigation Tabs -->
         <nav class="px-2 space-y-0.5">
-            <button hx-get="/api/workspace" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+            <button hx-get="/api/workspace" hx-target="#chat-messages" hx-on::before-request="prepareTabContent(); hideWelcome(true); closeSidebarOnMobile()"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -62,7 +65,7 @@
                 </svg>
                 Workspace
             </button>
-            <button hx-get="/api/tasks/today" hx-target="#chat-messages" hx-on::before-request="hideWelcome(true)"
+            <button hx-get="/api/tasks/today" hx-target="#chat-messages" hx-on::before-request="prepareTabContent(); hideWelcome(true); closeSidebarOnMobile()"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -71,7 +74,7 @@
                 </svg>
                 Tasks
             </button>
-            <button onclick="showExplorer('Search')"
+            <button onclick="showExplorer('Search'); closeSidebarOnMobile()"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -79,7 +82,7 @@
                 </svg>
                 Search chats
             </button>
-            <button onclick="showExplorer('Projects')"
+            <button onclick="showExplorer('Projects'); closeSidebarOnMobile()"
                 class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -398,14 +401,13 @@
         if (welcome && welcome.style.display !== 'none') {
             welcome.style.opacity = '0';
             welcome.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                welcome.style.display = 'none';
-                if (footer && !tabMode) {
-                    footer.classList.remove('translate-y-full', 'opacity-0');
-                } else if (footer) {
-                    footer.classList.add('translate-y-full', 'opacity-0');
-                }
-            }, 300);
+            // Immediate display change for responsive feel instead of timeout
+            welcome.style.display = 'none';
+            if (footer && !tabMode) {
+                footer.classList.remove('translate-y-full', 'opacity-0');
+            } else if (footer) {
+                footer.classList.add('translate-y-full', 'opacity-0');
+            }
         } else if (tabMode && footer) {
             footer.classList.add('translate-y-full', 'opacity-0');
         }
@@ -434,8 +436,35 @@
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('hidden');
-        sidebar.classList.toggle('md:flex');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        sidebar.classList.toggle('-translate-x-full');
+        if (backdrop) {
+            backdrop.classList.toggle('opacity-0');
+            backdrop.classList.toggle('pointer-events-none');
+        }
+    }
+
+    function closeSidebarOnMobile() {
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                toggleSidebar();
+            }
+        }
+    }
+
+    function prepareTabContent() {
+        const explorer = document.getElementById('explorer-view');
+        if (explorer) explorer.classList.add('hidden');
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.classList.remove('hidden');
+            chatMessages.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 space-y-4">
+                    <div class="w-8 h-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin"></div>
+                </div>
+            `;
+        }
     }
 
     function toggleProfileMenu() {
@@ -808,9 +837,11 @@
     function newChat() {
         hideExplorer();
         showWelcome();
+        closeSidebarOnMobile();
     }
 
     async function loadSession(sessionId) {
+        closeSidebarOnMobile();
         currentSessionId = sessionId;
         document.querySelectorAll('.session_id_field').forEach(el => el.value = sessionId);
 
