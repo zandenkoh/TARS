@@ -217,7 +217,7 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
     try:
         base_path = tars.workspace
         target_path = (base_path / path).resolve()
-        if not str(target_path).startswith(str(base_path.resolve())):
+        if not target_path.is_relative_to(base_path.resolve()):
             return HTMLResponse("<div class='text-red-500'>Access Denied</div>")
         
         items = []
@@ -337,8 +337,8 @@ async def move_workspace_item(tars: TARS, src: str = Form(...), dst: str = Form(
         src_path = (base / src).resolve()
         dst_path = (base / dst).resolve()
         
-        if not str(src_path).startswith(str(base.resolve())) or \
-           not str(dst_path).startswith(str(base.resolve())):
+        if not src_path.is_relative_to(base.resolve()) or \
+           not dst_path.is_relative_to(base.resolve()):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
             
         if dst_path.exists() and dst_path.is_dir():
@@ -355,7 +355,7 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
     try:
         base = tars.workspace
         target_dir = (base / path).resolve()
-        if not str(target_dir).startswith(str(base.resolve())):
+        if not target_dir.is_relative_to(base.resolve()):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
             
         for file in files:
