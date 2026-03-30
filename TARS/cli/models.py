@@ -28,4 +28,8 @@ def get_model_suggestions(partial: str, provider: str = "auto", limit: int = 20)
 
 def format_token_count(tokens: int) -> str:
     """Format token count for display (e.g., 200000 -> '200,000')."""
-    return f"{tokens:,}"
+    if tokens < 1000:
+        return str(tokens)
+    if tokens < 1000000:
+        return f"{tokens / 1000:.1f}k"
+    return f"{tokens / 1000000:.1f}M"
