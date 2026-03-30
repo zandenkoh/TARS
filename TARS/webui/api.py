@@ -167,37 +167,28 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
                 </div>"""
                 await queue.put(f"event: message\ndata: {status_html}\n\n")
 
+        async def run_agent():
+            try:
+                await tars.agent.process_direct(
+                    content,
+                    session_key=session_id,
+                    channel="web",
+                    chat_id="user",
+                    on_stream=on_stream,
+                    on_progress=on_progress
+                )
+            finally:
+                await queue.put(None)
+
         # Start agent processing in the background
-        process_task = asyncio.create_task(tars.agent.process_direct(
-            content,
-            session_key=session_id,
-            channel="web",
-            chat_id="user",
-            on_stream=on_stream,
-            on_progress=on_progress
-        ))
+        process_task = asyncio.create_task(run_agent())
+
         try:
             while True:
-                get_task = asyncio.create_task(queue.get())
-                done, pending = await asyncio.wait(
-                    [process_task, get_task],
-                    return_when=asyncio.FIRST_COMPLETED
-                )
-
-                if get_task in done:
-                    yield get_task.result()
-                else:
-                    get_task.cancel()
-                    try:
-                        await get_task
-                    except asyncio.CancelledError:
-                        pass
-                    if process_task in done:
-                        break
-
-            # Ensure we drain the queue one last time
-            while not queue.empty():
-                yield await queue.get()
+                data = await queue.get()
+                if data is None:
+                    break
+                yield data
 
         except asyncio.CancelledError:
             process_task.cancel()
