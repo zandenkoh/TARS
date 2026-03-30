@@ -1,0 +1,3 @@
+## 2025-03-30 - Added ARIA labels to icon buttons
+**Learning:** The TARS webui relies heavily on Tailwind CSS and icon-only buttons for a minimalist aesthetic. Many of these buttons (such as the toggle sidebar, attach files, send message, grid/list view toggles, etc.) were completely invisible to screen readers because they lacked `aria-label`s. In addition, the internal `<svg>` elements were lacking `aria-hidden="true"`, which is considered best practice.
+**Action:** When working on UI enhancements in the future, proactively check for missing `aria-label` and `aria-hidden` attributes on icon-only interactive elements. Use `aria-haspopup` for elements that trigger menus or dialogs to further aid assistive technologies.
