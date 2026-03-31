@@ -195,12 +195,17 @@ Note: This is a text placeholder. Actual assets can be any file type.
 """
 
 
+# Pre-compiled static regexes for normalization performance
+_NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
+_MULTI_HYPHEN_RE = re.compile(r"-{2,}")
+
 def normalize_skill_name(skill_name):
     """Normalize a skill name to lowercase hyphen-case."""
     normalized = skill_name.strip().lower()
-    normalized = re.sub(r"[^a-z0-9]+", "-", normalized)
+    # Apply compiled regexes
+    normalized = _NON_ALNUM_RE.sub("-", normalized)
     normalized = normalized.strip("-")
-    normalized = re.sub(r"-{2,}", "-", normalized)
+    normalized = _MULTI_HYPHEN_RE.sub("-", normalized)
     return normalized
 
 

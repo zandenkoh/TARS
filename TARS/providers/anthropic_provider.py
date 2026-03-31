@@ -168,13 +168,17 @@ class AnthropicProvider(LLMProvider):
             result.append(item)
         return result or "(empty)"
 
-    @staticmethod
-    def _convert_image_block(block: dict[str, Any]) -> dict[str, Any] | None:
+    # Pre-compiled to avoid runtime penalty when streaming heavy image payloads
+    _BASE64_IMAGE_RE = re.compile(r"data:(image/\w+);base64,(.+)", re.DOTALL)
+
+    @classmethod
+    def _convert_image_block(cls, block: dict[str, Any]) -> dict[str, Any] | None:
         """Convert OpenAI image_url block to Anthropic image block."""
         url = (block.get("image_url") or {}).get("url", "")
         if not url:
             return None
-        m = re.match(r"data:(image/\w+);base64,(.+)", url, re.DOTALL)
+        # Use module-level pre-compiled regex instead of inline match
+        m = cls._BASE64_IMAGE_RE.match(url)
         if m:
             return {
                 "type": "image",

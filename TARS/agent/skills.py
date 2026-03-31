@@ -158,10 +158,13 @@ class SkillsLoader:
             return meta["description"]
         return name  # Fallback to skill name
 
+    # Avoid recompiling multiline regex inside loop for skill parsing
+    _FRONTMATTER_RE = re.compile(r"^---\n.*?\n---\n", re.DOTALL)
+
     def _strip_frontmatter(self, content: str) -> str:
         """Remove YAML frontmatter from markdown content."""
         if content.startswith("---"):
-            match = re.match(r"^---\n.*?\n---\n", content, re.DOTALL)
+            match = self._FRONTMATTER_RE.match(content)
             if match:
                 return content[match.end():].strip()
         return content
@@ -200,6 +203,8 @@ class SkillsLoader:
                 result.append(s["name"])
         return result
 
+    _FRONTMATTER_EXTRACT_RE = re.compile(r"^---\n(.*?)\n---", re.DOTALL)
+
     def get_skill_metadata(self, name: str) -> dict | None:
         """
         Get metadata from a skill's frontmatter.
@@ -215,7 +220,7 @@ class SkillsLoader:
             return None
 
         if content.startswith("---"):
-            match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+            match = self._FRONTMATTER_EXTRACT_RE.match(content)
             if match:
                 # Simple YAML parsing
                 metadata = {}
