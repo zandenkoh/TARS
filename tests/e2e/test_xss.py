@@ -1,5 +1,6 @@
 import requests
 
+
 def test_stream():
     url = "http://localhost:18780/api/chat/stream"
     params = {

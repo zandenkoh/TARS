@@ -11,7 +11,6 @@ from unittest.mock import patch
 from TARS.providers.base import ToolCallRequest
 from TARS.providers.openai_compat_provider import OpenAICompatProvider
 
-
 GEMINI_EXTRA = {"google": {"thought_signature": "sig-abc-123"}}
 
 

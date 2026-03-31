@@ -7,13 +7,13 @@ from collections import OrderedDict
 from typing import Any
 
 from loguru import logger
+from pydantic import Field
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.paths import get_media_dir
 from TARS.config.schema import Base
-from pydantic import Field
 
 WECOM_AVAILABLE = importlib.util.find_spec("wecom_aibot_sdk") is not None
 

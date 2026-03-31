@@ -1,9 +1,10 @@
+
 import pytest
 from fastapi.testclient import TestClient
-from pathlib import Path
 
-from TARS.webui.api import app, TARSState
 from TARS.config.schema import Config
+from TARS.webui.api import app
+
 
 # Create a mock TARSState to inject into the API
 class MockTARSState:

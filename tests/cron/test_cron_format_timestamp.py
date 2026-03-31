@@ -1,7 +1,5 @@
 """Tests for CronTool._format_timestamp() function."""
 
-import pytest
-from datetime import datetime, timezone
 from TARS.agent.tools.cron import CronTool
 
 # timestamp for 2024-01-01 12:00:00 UTC = 1704110400000

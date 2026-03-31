@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from TARS.bus.events import InboundMessage, OutboundMessage
+from TARS.bus.events import InboundMessage
 from TARS.providers.base import LLMResponse
 
 

@@ -47,7 +47,6 @@ async def test_web_fetch_result_contains_untrusted_flag():
 
     fake_html = "<html><head><title>Test</title></head><body><p>Hello world</p></body></html>"
 
-    import httpx
 
     class FakeResponse:
         status_code = 200
@@ -112,10 +111,10 @@ async def test_web_fetch_blocks_private_redirect_before_returning_image(monkeypa
             # If our mock `FakeClient` does not trigger event hooks, the tool might try to parse it.
             # To properly test the new `_verify_request` behavior, we should raise RuntimeError in the mock or
             # simulate the event hook firing. Here we just manually simulate the hook to check if it raises.
-            from TARS.agent.tools.web import _verify_request
-
             # Simulate httpx calling the request hook for the redirect
             import httpx
+
+            from TARS.agent.tools.web import _verify_request
             req = httpx.Request("GET", "http://127.0.0.1/secret.png")
             await _verify_request(req)
         except Exception as e:

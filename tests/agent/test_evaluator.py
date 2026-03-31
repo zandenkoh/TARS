@@ -1,7 +1,7 @@
 import pytest
 
-from TARS.utils.evaluator import evaluate_response
 from TARS.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+from TARS.utils.evaluator import evaluate_response
 
 
 class DummyProvider(LLMProvider):

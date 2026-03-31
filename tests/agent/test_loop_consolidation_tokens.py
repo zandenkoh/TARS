@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from TARS.agent.loop import AgentLoop
 import TARS.agent.memory as memory_module
+from TARS.agent.loop import AgentLoop
 from TARS.bus.queue import MessageBus
 from TARS.providers.base import LLMResponse
 

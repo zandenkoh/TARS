@@ -167,7 +167,7 @@ class WebSearchTool(Tool):
             logger.warning("SEARXNG_BASE_URL not set, falling back to DuckDuckGo")
             return await self._search_duckduckgo(query, n)
         endpoint = f"{base_url.rstrip('/')}/search"
-        is_valid, error_msg = _validate_url(endpoint)
+        is_valid, error_msg = _validate_url_safe(endpoint)
         if not is_valid:
             return f"Error: invalid SearXNG URL: {error_msg}"
         try:
@@ -192,7 +192,7 @@ class WebSearchTool(Tool):
             headers = {"Accept": "application/json", "Authorization": f"Bearer {api_key}"}
             async with httpx.AsyncClient(proxy=self.proxy) as client:
                 r = await client.get(
-                    f"https://s.jina.ai/",
+                    "https://s.jina.ai/",
                     params={"q": query},
                     headers=headers,
                     timeout=15.0,

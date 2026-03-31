@@ -17,8 +17,8 @@ from TARS.channels.matrix import (
     MATRIX_HTML_FORMAT,
     TYPING_NOTICE_TIMEOUT_MS,
     MatrixChannel,
+    MatrixConfig,
 )
-from TARS.channels.matrix import MatrixConfig
 
 _ROOM_SEND_UNSET = object()
 

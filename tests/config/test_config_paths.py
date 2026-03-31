@@ -1,8 +1,6 @@
 from pathlib import Path
 
 from TARS.config.paths import (
-    get_bridge_install_dir,
-    get_cli_history_path,
     get_cron_dir,
     get_data_dir,
     get_legacy_sessions_dir,

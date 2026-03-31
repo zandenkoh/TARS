@@ -1,12 +1,11 @@
 """CLI commands for TARS."""
 
 import asyncio
-from contextlib import contextmanager, nullcontext
-
 import os
 import select
 import signal
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
@@ -438,7 +437,7 @@ def _make_provider(config: Config):
     from TARS.providers.base import GenerationSettings
 
     failover_configs = config.get_failover_providers()
-    
+
     if not failover_configs:
         model = config.agents.defaults.model
         provider_name = config.get_provider_name(model)
@@ -495,6 +494,7 @@ def _load_runtime_config(config: str | None = None, workspace: str | None = None
 def _warn_deprecated_config_keys(config_path: Path | None) -> None:
     """Hint users to remove obsolete keys from their config file."""
     import json
+
     from TARS.config.loader import get_config_path
 
     path = config_path or get_config_path()
@@ -757,6 +757,7 @@ def gateway(
 import subprocess
 import threading
 
+
 def _prefix_output(pipe, prefix):
     for line in iter(pipe.readline, b''):
         try:
@@ -775,7 +776,7 @@ def webui(
 ):
     """Start the TARS Web UI server and optional background gateway."""
     console.print(f"{__logo__} Starting TARS Web UI at http://{host}:{port}")
-    
+
     gw_process = None
     if gateway:
         cmd = [sys.argv[0], "gateway"]
@@ -803,7 +804,7 @@ def webui(
     )
     t_web = threading.Thread(target=_prefix_output, args=(web_process.stdout, "[WEBUI]"), daemon=True)
     t_web.start()
-    
+
     try:
         web_process.wait()
     except KeyboardInterrupt:
