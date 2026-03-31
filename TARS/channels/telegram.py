@@ -24,7 +24,7 @@ from TARS.channels.base import BaseChannel
 from TARS.config.paths import get_media_dir
 from TARS.config.schema import Base
 from TARS.config.loader import load_config, save_config
-from TARS.skills.tasks_manager import TasksManager
+from TARS.skills.tasks.tasks_manager import TasksManager
 from TARS.security.network import validate_url_target
 from TARS.utils.helpers import split_message
 from datetime import datetime
