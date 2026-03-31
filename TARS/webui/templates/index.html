@@ -1005,12 +1005,13 @@
             const container = textarea.closest('.input-container');
             
             const handleInput = () => {
-                textarea.style.height = 'auto';
-                const newHeight = Math.min(textarea.scrollHeight, 200);
+                textarea.style.height = '40px';
+                const scrollHeight = textarea.scrollHeight;
+                const newHeight = Math.min(scrollHeight, 200);
                 textarea.style.height = Math.max(newHeight, 40) + 'px';
                 
                 const hasNewLine = textarea.value.includes('\n');
-                const isMultiLine = hasNewLine || textarea.scrollHeight > 50;
+                const isMultiLine = hasNewLine || scrollHeight > 50;
                 container.setAttribute('data-state', isMultiLine ? 'multi' : 'single');
             };
 
