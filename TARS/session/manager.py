@@ -285,3 +285,48 @@ class SessionManager:
                 continue
 
         return sorted(sessions, key=lambda x: x.get("updated_at", ""), reverse=True)
+
+    def search_sessions(self, query: str) -> list[dict[str, Any]]:
+        """
+        Search sessions for a specific query in the title or message content.
+
+        Args:
+            query: The search string.
+
+        Returns:
+            List of matching session metadata dicts.
+        """
+        query_lower = query.lower()
+        matching_sessions = []
+
+        for path in self.sessions_dir.glob("*.jsonl"):
+            key = path.stem.replace("_", ":", 1)
+            session = self._load(key)
+            if not session:
+                continue
+
+            # First check title
+            title = session.metadata.get("title", "").lower()
+            match = False
+
+            if query_lower in title:
+                match = True
+            else:
+                # Then check message contents
+                for msg in session.messages:
+                    if msg.get("role") in ("user", "assistant"):
+                        content = msg.get("content", "")
+                        if isinstance(content, str) and query_lower in content.lower():
+                            match = True
+                            break
+
+            if match:
+                matching_sessions.append({
+                    "key": session.key,
+                    "created_at": session.created_at.isoformat() if session.created_at else None,
+                    "updated_at": session.updated_at.isoformat() if session.updated_at else None,
+                    "metadata": session.metadata,
+                    "path": str(path)
+                })
+
+        return sorted(matching_sessions, key=lambda x: x.get("updated_at", "") or "", reverse=True)
