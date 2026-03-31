@@ -264,7 +264,7 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
 async def get_config_ui(request: Request, tars: TARS):
     """Render the configuration/settings dashboard."""
     # Convert to dict for easier iteration in template
-    config_dict = tars.config.model_dump()
+    config_dict = tars.config.model_dump(by_alias=True)
     return templates.TemplateResponse(request, "components/settings.html", {
         "config": config_dict,
         "workspace": str(tars.workspace)
@@ -329,7 +329,7 @@ async def get_channels_ui(request: Request, tars: TARS):
 async def toggle_channel(tars: TARS, name: str = Form(...)):
     """Toggle a communication channel's enabled status."""
     try:
-        config_dict = tars.config.model_dump()
+        config_dict = tars.config.model_dump(by_alias=True)
         channels = config_dict.get("channels", {})
 
         if name in channels:
