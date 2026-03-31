@@ -235,7 +235,7 @@
 
                             <!-- Primary (Textarea) -->
                             <div class="[grid-area:primary] flex items-center min-h-[40px] px-1 group-data-[state=multi]:px-3 group-data-[state=multi]:py-2 group-data-[state=multi]:pb-0">
-                                <textarea name="content" placeholder="Ask anything..." autocomplete="off" autofocus
+                                <textarea name="content" aria-label="Message text area" placeholder="Ask anything..." autocomplete="off" autofocus
                                     class="chat-textarea w-full bg-transparent text-white py-2 outline-none placeholder:text-zinc-500 text-[17px] leading-relaxed resize-none h-[40px] max-h-[200px] overflow-y-auto custom-scrollbar"></textarea>
                             </div>
 
@@ -315,7 +315,7 @@
                 <div class="w-full relative mb-12">
                     <div class="flex items-center gap-3 p-1.5 rounded-full bg-white/5 border border-white/5 focus-within:border-white/20 transition-all">
                         <svg class="w-5 h-5 text-zinc-500 ml-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="explorer-search-input" oninput="filterExplorer()" placeholder="Search your chats..." class="flex-1 bg-transparent text-white py-3 px-2 outline-none placeholder:text-zinc-600 text-[16px]">
+                        <input type="text" id="explorer-search-input" aria-label="Search your chats" oninput="filterExplorer()" placeholder="Search your chats..." class="flex-1 bg-transparent text-white py-3 px-2 outline-none placeholder:text-zinc-600 text-[16px]">
                         <button class="px-5 py-2.5 bg-white text-black rounded-full font-semibold text-sm hover:bg-zinc-200 transition-colors mr-1">Search</button>
                     </div>
                 </div>
@@ -349,7 +349,7 @@
 
                         <!-- Primary (Textarea) -->
                         <div class="[grid-area:primary] flex items-center min-h-[40px] px-1 group-data-[state=multi]:px-3 group-data-[state=multi]:py-2 group-data-[state=multi]:pb-0">
-                            <textarea name="content" placeholder="Reply to TARS..." autocomplete="off"
+                            <textarea name="content" aria-label="Reply text area" placeholder="Reply to TARS..." autocomplete="off"
                                 class="chat-textarea w-full bg-transparent text-white py-2 outline-none placeholder:text-zinc-500 text-[15px] leading-relaxed resize-none h-[40px] max-h-[200px] overflow-y-auto custom-scrollbar"></textarea>
                         </div>
 
@@ -523,11 +523,11 @@
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Username</label>
+                        <label for="setup-username" class="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Username</label>
                         <input type="text" id="setup-username" placeholder="e.g. Maverick" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500/50 transition-all">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Age</label>
+                        <label for="setup-age" class="block text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">Age</label>
                         <input type="number" id="setup-age" placeholder="25" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500/50 transition-all">
                     </div>
                 </div>
@@ -600,7 +600,7 @@
                         <div class="space-y-3">
                             <div class="p-3 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
                                 <span class="text-[13px] font-medium text-zinc-300">Username</span>
-                                <input type="text" value="${username}" class="bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-zinc-200 text-sm text-right outline-none w-32">
+                                <input type="text" aria-label="Username" value="${username}" class="bg-black/40 border border-white/5 rounded-lg px-2 py-1 text-zinc-200 text-sm text-right outline-none w-32">
                             </div>
                             <div class="p-3 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
                                 <span class="text-[13px] font-medium text-zinc-300">Interface Theme</span>
@@ -624,7 +624,7 @@
                             <span class="text-[14px] font-bold text-white capitalize">${name}</span>
                             <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${status}</span>
                         </div>
-                        <input type="password" value="${keyVal}" placeholder="API Key" class="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-2 text-zinc-300 text-sm outline-none focus:border-sky-500/50">
+                        <input type="password" value="${keyVal}" aria-label="${name} API Key" placeholder="API Key" class="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-2 text-zinc-300 text-sm outline-none focus:border-sky-500/50">
                     </div>
                 `;
             }
