@@ -1,10 +1,8 @@
 <div align="center">
-  <img src="assets/TARS_logo.png" alt="TARS" width="500">
+  <img src="assets/TARS.png" alt="TARS" width="500">
   <h1>TARS: Ultra-Lightweight Personal AI Assistant</h1>
-- 🎨 Palette: Improve context menu button layout and settings modal width
   <p>
     <a href="https://pypi.org/project/TARS-ai/"><img src="https://img.shields.io/pypi/v/TARS-ai" alt="PyPI"></a>
-    <a href="https://pepy.tech/project/TARS-ai"><img src="https://static.pepy.tech/badge/TARS-ai" alt="Downloads"></a>
     <img src="https://img.shields.io/badge/python-≥3.11-blue" alt="Python">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
     <a href="./docs/COMMUNICATION.md"><img src="https://img.shields.io/badge/Feishu-Group-E9DBFC?style=flat&logo=feishu&logoColor=white" alt="Feishu"></a>
@@ -13,7 +11,7 @@
   </p>
 </div>
 
-🐈 **TARS** is an **ultra-lightweight** personal AI assistant inspired by [OpenClaw](https://github.com/openclaw/openclaw).
+🐈 **TARS** is an **ultra-lightweight** personal AI assistant inspired by [OpenClaw](https://github.com/openclaw/openclaw), and built on [Nanobot](https://github.com/HKUDS/nanobot)
 
 ⚡️ Delivers core agent functionality with **99% fewer lines of code** than OpenClaw.
 
@@ -21,12 +19,12 @@
 
 ## 📢 News
 
-- **2026-03-22** ⚡ Bolt: pre-compile regex in hot paths to avoid repeated runtime compilation across tools, channels, and providers.
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 
 - **2026-04-01** 🛡️ Sentinel: [CRITICAL] Harden WebFetchTool against SSRF via redirects. 🎨 Redesigned the Tasks UI in the WebUI to include a new search bar, filter dropdowns, and a detailed data table layout.
 - **2026-03-31** 🎨 Updated WebUI profile context menu to match the new design with dynamic user avatars and working features only.
+- **2026-03-22** ⚡ Bolt: pre-compile regex in hot paths to avoid repeated runtime compilation across tools, channels, and providers.
 - **2026-03-21** 🔒 Replace `litellm` with native `openai` + `anthropic` SDKs. Please see [commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 - **2026-03-20** 🧙 Interactive setup wizard — pick your provider, model autocomplete, and you're good to go.
 - **2026-03-19** 💬 Telegram gets more resilient under load; Feishu now renders code blocks properly.
