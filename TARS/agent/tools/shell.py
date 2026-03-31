@@ -181,7 +181,7 @@ class ExecTool(Tool):
             if not self.workspace_dir:
                 return "Error: Command blocked by safety guard (restrict_to_workspace requires a workspace_dir or working_dir)"
 
-            if "..\\" in cmd or "../" in cmd:
+            if re.search(r'(?:^|[\s"\'|<>&;/\\=()`])\.\.(?:[\s"\'|<>&;/\\=()`]|$)', cmd) or "..\\" in cmd or "../" in cmd:
                 return "Error: Command blocked by safety guard (path traversal detected)"
 
             ws_path = Path(self.workspace_dir).resolve()

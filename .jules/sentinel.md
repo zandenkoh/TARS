@@ -21,3 +21,10 @@
 1. Always securely initialize bounding directories (`workspace_dir`) directly from the system configuration (`agent/loop.py`) instead of relying on tool execution arguments.
 2. Use strict `Path.is_relative_to()` to validate all resolved paths (both `cwd` and command targets) against the definitive `workspace_dir`.
 3. Ensure security checks do not fail-open: if `restrict_to_workspace` is active but `workspace_dir` is undefined, the guard must explicitly block execution.
+## 2025-03-31 - [ExecTool Directory Traversal Bypass]
+
+**Vulnerability:** The `ExecTool` safety guard `_guard_command` relies on simple substring matching (`"../"` or `".."`) to enforce `restrict_to_workspace`. This check is easily bypassed by subshell commands using `cd ..`, allowing execution outside the restricted workspace (e.g. `cd .. && cat /etc/passwd`).
+
+**Learning:** In a lightweight agent architecture utilizing raw shell command execution without heavy containerization per-tool, simplistic string checks for directory traversal fail against shell syntax variations. The shell evaluates bounded occurrences of `..` as parent directories even if they don't explicitly contain slashes.
+
+**Prevention:** Use a comprehensive regex boundary check like `r'(?:^|[\s"\'|<>&;/\\=])\.\.(?:[\s"\'|<>&;/\\=]|$)'` to detect `..` used as a standalone path component, intercepting subshell navigations while allowing legitimate filenames like `foo..bar`.
