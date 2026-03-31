@@ -101,6 +101,31 @@ async def list_sessions(tars: TARS):
     # Filter for web sessions if needed, but for now show all
     return sessions
 
+@app.delete("/api/sessions/{session_id}")
+async def delete_session(tars: TARS, session_id: str):
+    """Delete a chat session."""
+    try:
+        tars.sessions.delete_session(session_id)
+        return JSONResponse({"status": "success", "message": "Session deleted"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.post("/api/sessions/{session_id}/title")
+async def rename_session(request: Request, tars: TARS, session_id: str):
+    """Rename a chat session."""
+    try:
+        data = await request.json()
+        new_title = data.get("title")
+        if not new_title:
+            return JSONResponse({"status": "error", "message": "Title is required"}, status_code=400)
+
+        session = tars.sessions.get_or_create(session_id)
+        session.metadata["title"] = new_title
+        tars.sessions.save(session)
+        return JSONResponse({"status": "success", "message": "Session renamed"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
 @app.get("/api/sessions/{session_id}", response_class=HTMLResponse)
 async def get_session_history(request: Request, tars: TARS, session_id: str):
     """Get the message history for a specific session and render as HTMX fragments."""
