@@ -1,35 +1,51 @@
 <div class="w-full animate-fade-in p-6" id="workspace-root">
-    <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-heading font-bold text-white tracking-tight">Workspace Explorer</h2>
-        <div class="flex items-center gap-2">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h2 class="text-2xl font-heading font-bold text-white tracking-tight">Workspace</h2>
+            <p class="text-xs text-zinc-500 mt-1 uppercase tracking-widest font-bold">Local File System</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- Search/Filter -->
+            <div class="relative group">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 group-focus-within:text-tars-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="workspace-filter" oninput="filterWorkspaceItems()" placeholder="Filter files..." 
+                       class="bg-white/5 border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-white outline-none focus:border-tars-primary/30 focus:bg-white/[0.08] transition-all w-48 md:w-64">
+            </div>
+
             <!-- View Toggle -->
-            <div class="flex bg-zinc-900 rounded-lg p-1 border border-white/5 mr-4">
-                <button aria-label="Grid View" onclick="setWorkspaceView('grid')" id="view-grid-btn" class="p-1.5 rounded-md bg-white/10 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary">
-                    <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            <div class="flex bg-white/5 rounded-xl p-1 border border-white/5">
+                <button aria-label="Grid View" onclick="setWorkspaceView('grid')" id="view-grid-btn" class="p-1.5 rounded-lg bg-white/10 text-white transition-all shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 </button>
-                <button aria-label="List View" onclick="setWorkspaceView('list')" id="view-list-btn" class="p-1.5 rounded-md text-zinc-500 hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary">
-                    <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button aria-label="List View" onclick="setWorkspaceView('list')" id="view-list-btn" class="p-1.5 rounded-lg text-zinc-500 hover:text-white transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
             </div>
-            <div class="px-3 py-1 rounded-lg bg-zinc-900 border border-white/5 text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
-                TARS Storage: Active
-            </div>
+            
+            <button class="p-2 bg-tars-primary text-black rounded-xl hover:bg-tars-primary/90 transition-all active:scale-95 shadow-lg shadow-tars-primary/10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            </button>
         </div>
     </div>
 
     <!-- Breadcrumbs (Drop Target) -->
-    <div class="flex items-center gap-2 mb-6 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-sm drop-target" 
+    <div class="flex items-center gap-1.5 mb-8 px-4 py-2.5 bg-white/[0.03] rounded-2xl border border-white/[0.05] text-[13px] drop-target overflow-x-auto custom-scrollbar no-scrollbar" 
          ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '.')">
-        <button hx-get="/api/workspace?path=." hx-target="#chat-messages" class="text-tars-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary rounded px-1">root</button>
+        <button hx-get="/api/workspace?path=." hx-target="#chat-messages" class="flex items-center gap-2 text-zinc-500 hover:text-tars-primary hover:bg-tars-primary/5 px-2 py-1 rounded-lg transition-all font-medium">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            root
+        </button>
         {% if current_path != "." %}
             {% set parts = current_path.split('/') %}
             {% set current_acc = [] %}
             {% for part in parts %}
                 {% set _ = current_acc.append(part) %}
                 {% set full_path = current_acc|join('/') %}
-                <span class="text-zinc-700">/</span>
+                <svg class="w-3 h-3 text-zinc-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                 <button hx-get="/api/workspace?path={{ full_path }}" hx-target="#chat-messages" 
-                        class="text-zinc-300 hover:text-white drop-target focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary rounded px-1"
+                        class="text-zinc-300 hover:text-white hover:bg-white/5 px-2 py-1 rounded-lg transition-all drop-target whitespace-nowrap font-medium"
                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ full_path }}')">
                     {{ part }}
                 </button>
@@ -80,6 +96,22 @@
     </div>
 
     <script>
+        function filterWorkspaceItems() {
+            const query = document.getElementById('workspace-filter').value.toLowerCase();
+            const items = document.querySelectorAll('#explorer-items > div');
+            items.forEach(item => {
+                const name = item.querySelector('p.text-sm').innerText.toLowerCase();
+                const isBack = name === '..';
+                if (isBack) return;
+                
+                if (name.includes(query)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
         function setWorkspaceView(mode) {
             const container = document.getElementById('explorer-items');
             const gridBtn = document.getElementById('view-grid-btn');
@@ -97,30 +129,37 @@
                 listBtn.classList.add('bg-white/10', 'text-white');
                 gridBtn.classList.remove('bg-white/10', 'text-white');
                 gridBtn.classList.add('text-zinc-500');
+                
+                // Adjust card padding for list view
+                container.querySelectorAll('.p-4').forEach(el => el.classList.remove('p-4'));
+                container.querySelectorAll('.rounded-2xl').forEach(el => {
+                    el.classList.add('px-4', 'py-3');
+                    el.classList.remove('p-4');
+                });
             }
         }
 
         function handleDragStart(e, path) {
             e.dataTransfer.setData('text/plain', path);
-            e.currentTarget.classList.add('opacity-50');
+            e.currentTarget.classList.add('opacity-50', 'ring-2', 'ring-tars-primary/30');
         }
 
         function handleDragOver(e) {
             e.preventDefault();
             const target = e.currentTarget;
             if (target.classList.contains('drop-target')) {
-                target.classList.add('ring-2', 'ring-tars-primary', 'bg-tars-primary/5');
+                target.classList.add('ring-2', 'ring-tars-primary', 'bg-tars-primary/10', 'scale-[1.02]');
             }
         }
 
         function handleDragLeave(e) {
-            e.currentTarget.classList.remove('ring-2', 'ring-tars-primary', 'bg-tars-primary/5');
+            e.currentTarget.classList.remove('ring-2', 'ring-tars-primary', 'bg-tars-primary/10', 'scale-[1.02]');
         }
 
         async function handleDrop(e, dstPath) {
             e.preventDefault();
             const srcPath = e.dataTransfer.getData('text/plain');
-            e.currentTarget.classList.remove('ring-2', 'ring-tars-primary', 'bg-tars-primary/5');
+            e.currentTarget.classList.remove('ring-2', 'ring-tars-primary', 'bg-tars-primary/10', 'scale-[1.02]');
             
             if (srcPath === dstPath) return;
 
@@ -129,16 +168,18 @@
             formData.append('dst', dstPath);
 
             try {
+                // Show loading state
+                e.currentTarget.innerHTML += '<div class="absolute inset-0 bg-black/20 flex items-center justify-center rounded-2xl"><div class="w-4 h-4 border-2 border-white/20 border-t-white animate-spin rounded-full"></div></div>';
+                
                 const resp = await fetch('/api/workspace/move', {
                     method: 'POST',
                     body: formData
                 });
                 if (resp.ok) {
-                    // Reload the component
-                    htmx.trigger('#workspace-root', 'reload');
-                    // Workaround: if no reload trigger, just fetch current path again
                     const currentPath = "{{ current_path }}";
                     htmx.ajax('GET', `/api/workspace?path=${currentPath}`, {target:'#chat-messages'});
+                } else {
+                    alert("Move failed. Please try again.");
                 }
             } catch (err) {
                 console.error("Move failed", err);
