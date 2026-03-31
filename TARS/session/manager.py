@@ -300,33 +300,44 @@ class SessionManager:
         matching_sessions = []
 
         for path in self.sessions_dir.glob("*.jsonl"):
-            key = path.stem.replace("_", ":", 1)
-            session = self._load(key)
-            if not session:
+            try:
+                with open(path, encoding="utf-8") as f:
+                    first_line = f.readline().strip()
+                    if not first_line:
+                        continue
+
+                    metadata_data = json.loads(first_line)
+                    if metadata_data.get("_type") != "metadata":
+                        continue
+
+                    key = metadata_data.get("key") or path.stem.replace("_", ":", 1)
+                    metadata = metadata_data.get("metadata", {})
+                    title = metadata.get("title", "").lower()
+                    match = False
+
+                    # First check title
+                    if query_lower in title:
+                        match = True
+                    else:
+                        # Then stream remaining lines checking for the query string first
+                        for line in f:
+                            if query_lower in line.lower():
+                                data = json.loads(line)
+                                if data.get("role") in ("user", "assistant"):
+                                    content = data.get("content", "")
+                                    if isinstance(content, str) and query_lower in content.lower():
+                                        match = True
+                                        break
+
+                    if match:
+                        matching_sessions.append({
+                            "key": key,
+                            "created_at": metadata_data.get("created_at"),
+                            "updated_at": metadata_data.get("updated_at"),
+                            "metadata": metadata,
+                            "path": str(path)
+                        })
+            except Exception:
                 continue
-
-            # First check title
-            title = session.metadata.get("title", "").lower()
-            match = False
-
-            if query_lower in title:
-                match = True
-            else:
-                # Then check message contents
-                for msg in session.messages:
-                    if msg.get("role") in ("user", "assistant"):
-                        content = msg.get("content", "")
-                        if isinstance(content, str) and query_lower in content.lower():
-                            match = True
-                            break
-
-            if match:
-                matching_sessions.append({
-                    "key": session.key,
-                    "created_at": session.created_at.isoformat() if session.created_at else None,
-                    "updated_at": session.updated_at.isoformat() if session.updated_at else None,
-                    "metadata": session.metadata,
-                    "path": str(path)
-                })
 
         return sorted(matching_sessions, key=lambda x: x.get("updated_at", "") or "", reverse=True)
