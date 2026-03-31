@@ -33,3 +33,8 @@
 **Learning:** In a lightweight agent architecture utilizing raw shell command execution without heavy containerization per-tool, simplistic string checks for directory traversal fail against shell syntax variations. The shell evaluates bounded occurrences of `..` as parent directories even if they don't explicitly contain slashes.
 
 **Prevention:** Use a comprehensive regex boundary check like `r'(?:^|[\s"\'|<>&;/\\=])\.\.(?:[\s"\'|<>&;/\\=]|$)'` to detect `..` used as a standalone path component, intercepting subshell navigations while allowing legitimate filenames like `foo..bar`.
+## 2026-03-22 - Prevent SSRF via HTTP Redirects in MCP Client Setup
+
+**Vulnerability:** The TARS `mcp.py` client utilized `httpx.AsyncClient` with `follow_redirects=True` for connecting to MCP servers via `sse` and `streamableHttp` transports. However, there was no validation of the target URL before attempting the connection, and no validation of URLs during HTTP redirects. This allowed Server-Side Request Forgery (SSRF) where a malicious server configuration could target or redirect to internal, private IP addresses.
+**Learning:** Like `WebFetchTool`, the MCP client's HTTP transports must validate both the initial connection URL and any subsequent redirects to prevent internal network scanning or interaction.
+**Prevention:** Always validate user-provided URLs using `validate_url_target` before establishing connections, and use event hooks (e.g., `event_hooks={"request": [_verify_request]}`) to validate each URL in the redirect chain before the request is actually sent.

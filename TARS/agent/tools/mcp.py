@@ -9,6 +9,13 @@ from loguru import logger
 
 from TARS.agent.tools.base import Tool
 from TARS.agent.tools.registry import ToolRegistry
+from TARS.security.network import validate_resolved_url, validate_url_target
+
+
+async def _verify_request(request: httpx.Request) -> None:
+    ok, err = validate_resolved_url(str(request.url))
+    if not ok:
+        raise RuntimeError(f"SSRF blocked: {err}")
 
 
 def _extract_nullable_branch(options: Any) -> tuple[dict[str, Any], bool] | None:
@@ -165,6 +172,12 @@ async def connect_mcp_servers(
                 )
                 read, write = await stack.enter_async_context(stdio_client(params))
             elif transport_type == "sse":
+                if cfg.url:
+                    ok, err = validate_url_target(cfg.url)
+                    if not ok:
+                        logger.warning("MCP server '{}': SSRF blocked on URL '{}': {}", name, cfg.url, err)
+                        continue
+
                 def httpx_client_factory(
                     headers: dict[str, str] | None = None,
                     timeout: httpx.Timeout | None = None,
@@ -176,12 +189,19 @@ async def connect_mcp_servers(
                         follow_redirects=True,
                         timeout=timeout,
                         auth=auth,
+                        event_hooks={"request": [_verify_request]},
                     )
 
                 read, write = await stack.enter_async_context(
                     sse_client(cfg.url, httpx_client_factory=httpx_client_factory)
                 )
             elif transport_type == "streamableHttp":
+                if cfg.url:
+                    ok, err = validate_url_target(cfg.url)
+                    if not ok:
+                        logger.warning("MCP server '{}': SSRF blocked on URL '{}': {}", name, cfg.url, err)
+                        continue
+
                 # Always provide an explicit httpx client so MCP HTTP transport does not
                 # inherit httpx's default 5s timeout and preempt the higher-level tool timeout.
                 http_client = await stack.enter_async_context(
@@ -189,6 +209,7 @@ async def connect_mcp_servers(
                         headers=cfg.headers or None,
                         follow_redirects=True,
                         timeout=None,
+                        event_hooks={"request": [_verify_request]},
                     )
                 )
                 read, write, _ = await stack.enter_async_context(
