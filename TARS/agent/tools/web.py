@@ -227,6 +227,14 @@ class WebSearchTool(Tool):
             return f"Error: DuckDuckGo search failed ({e})"
 
 
+async def _verify_request(request: httpx.Request) -> None:
+    from TARS.security.network import validate_resolved_url
+
+    ok, err = validate_resolved_url(str(request.url))
+    if not ok:
+        raise RuntimeError(f"SSRF blocked: {err}")
+
+
 class WebFetchTool(Tool):
     """Fetch and extract content from a URL."""
 
@@ -254,14 +262,14 @@ class WebFetchTool(Tool):
 
         # Detect and fetch images directly to avoid Jina's textual image captioning
         try:
-            async with httpx.AsyncClient(proxy=self.proxy, follow_redirects=True, max_redirects=MAX_REDIRECTS, timeout=15.0) as client:
+            async with httpx.AsyncClient(
+                proxy=self.proxy,
+                follow_redirects=True,
+                max_redirects=MAX_REDIRECTS,
+                timeout=15.0,
+                event_hooks={"request": [_verify_request]},
+            ) as client:
                 async with client.stream("GET", url, headers={"User-Agent": USER_AGENT}) as r:
-                    from TARS.security.network import validate_resolved_url
-
-                    redir_ok, redir_err = validate_resolved_url(str(r.url))
-                    if not redir_ok:
-                        return json.dumps({"error": f"Redirect blocked: {redir_err}", "url": url}, ensure_ascii=False)
-
                     ctype = r.headers.get("content-type", "")
                     if ctype.startswith("image/"):
                         r.raise_for_status()
@@ -321,14 +329,10 @@ class WebFetchTool(Tool):
                 max_redirects=MAX_REDIRECTS,
                 timeout=30.0,
                 proxy=self.proxy,
+                event_hooks={"request": [_verify_request]},
             ) as client:
                 r = await client.get(url, headers={"User-Agent": USER_AGENT})
                 r.raise_for_status()
-
-            from TARS.security.network import validate_resolved_url
-            redir_ok, redir_err = validate_resolved_url(str(r.url))
-            if not redir_ok:
-                return json.dumps({"error": f"Redirect blocked: {redir_err}", "url": url}, ensure_ascii=False)
 
             ctype = r.headers.get("content-type", "")
             if ctype.startswith("image/"):
