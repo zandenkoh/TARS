@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/TARS_logo.png" alt="TARS" width="500">
+  <img src="assets/TARS_logo.jpg" alt="TARS" width="500">
   <h1>TARS: Ultra-Lightweight Personal AI Assistant</h1>
   <p>
     <a href="https://pypi.org/project/TARS-ai/"><img src="https://img.shields.io/pypi/v/TARS-ai" alt="PyPI"></a>
