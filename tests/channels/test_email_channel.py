@@ -1,13 +1,12 @@
-from email.message import EmailMessage
-from datetime import date
 import imaplib
+from datetime import date
+from email.message import EmailMessage
 
 import pytest
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
-from TARS.channels.email import EmailChannel
-from TARS.channels.email import EmailConfig
+from TARS.channels.email import EmailChannel, EmailConfig
 
 
 def _make_config() -> EmailConfig:

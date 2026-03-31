@@ -13,11 +13,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from TARS.config.schema import Config
-from TARS.config.paths import get_workspace_path
-from TARS.bus.queue import MessageBus
-from TARS.session.manager import SessionManager
 from TARS.agent.loop import AgentLoop
+from TARS.bus.queue import MessageBus
+from TARS.config.paths import get_workspace_path
+from TARS.session.manager import SessionManager
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parent

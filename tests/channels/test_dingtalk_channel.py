@@ -13,10 +13,9 @@ except ImportError:
 if not DINGTALK_AVAILABLE:
     pytest.skip("DingTalk dependencies not installed (dingtalk-stream)", allow_module_level=True)
 
-from TARS.bus.queue import MessageBus
 import TARS.channels.dingtalk as dingtalk_module
-from TARS.channels.dingtalk import DingTalkChannel, NanobotDingTalkHandler
-from TARS.channels.dingtalk import DingTalkConfig
+from TARS.bus.queue import MessageBus
+from TARS.channels.dingtalk import DingTalkChannel, DingTalkConfig, NanobotDingTalkHandler
 
 
 class _FakeResponse:

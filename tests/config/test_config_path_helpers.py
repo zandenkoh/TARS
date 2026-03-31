@@ -1,5 +1,7 @@
 from pathlib import Path
-from TARS.config.paths import get_cli_history_path, get_bridge_install_dir
+
+from TARS.config.paths import get_bridge_install_dir, get_cli_history_path
+
 
 def test_cli_history_path_uses_config_path(monkeypatch, tmp_path: Path):
     mock_config_path = tmp_path / "config.json"

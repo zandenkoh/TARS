@@ -1,6 +1,6 @@
-import pytest
 
 from TARS.cli.models import format_token_count
+
 
 def test_format_token_count_under_1k():
     """Test format_token_count for values under 1000."""

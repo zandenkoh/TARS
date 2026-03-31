@@ -26,8 +26,8 @@ _LAZY_IMPORTS = {
 if TYPE_CHECKING:
     from TARS.providers.anthropic_provider import AnthropicProvider
     from TARS.providers.azure_openai_provider import AzureOpenAIProvider
-    from TARS.providers.openai_compat_provider import OpenAICompatProvider
     from TARS.providers.openai_codex_provider import OpenAICodexProvider
+    from TARS.providers.openai_compat_provider import OpenAICompatProvider
 
 
 def __getattr__(name: str):

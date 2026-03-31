@@ -52,6 +52,11 @@ async def test_tavily_search(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_searxng_search(monkeypatch):
+    import socket
+
+    def _fake_resolve_public(hostname, port, family=0, type_=0):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("93.184.216.34", 0))]
+
     async def mock_get(self, url, **kw):
         assert "searx.example" in url
         return _response(json={
@@ -59,6 +64,8 @@ async def test_searxng_search(monkeypatch):
         })
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
+    monkeypatch.setattr("TARS.security.network.socket.getaddrinfo", _fake_resolve_public)
+
     tool = _tool(provider="searxng", base_url="https://searx.example")
     result = await tool.execute(query="test")
     assert "Result" in result
@@ -77,7 +84,6 @@ async def test_duckduckgo_search(monkeypatch):
     import TARS.agent.tools.web as web_mod
     monkeypatch.setattr(web_mod, "DDGS", MockDDGS, raising=False)
 
-    from ddgs import DDGS
     monkeypatch.setattr("ddgs.DDGS", MockDDGS)
 
     tool = _tool(provider="duckduckgo")
@@ -160,6 +166,22 @@ async def test_searxng_invalid_url():
     tool = _tool(provider="searxng", base_url="not-a-url")
     result = await tool.execute(query="test")
     assert "Error" in result
+
+
+@pytest.mark.asyncio
+async def test_searxng_ssrf_blocked():
+    import socket
+    from unittest.mock import patch
+
+    def _fake_resolve_private(hostname, port, family=0, type_=0):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("169.254.169.254", 0))]
+
+    tool = _tool(provider="searxng", base_url="http://169.254.169.254")
+    with patch("TARS.security.network.socket.getaddrinfo", _fake_resolve_private):
+        result = await tool.execute(query="test")
+
+    assert "Error: invalid SearXNG URL:" in result
+    assert "resolves to private/internal address" in result
 
 
 def test_format_results_empty():

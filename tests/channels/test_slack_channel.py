@@ -10,8 +10,7 @@ except ImportError:
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
-from TARS.channels.slack import SlackChannel
-from TARS.channels.slack import SlackConfig
+from TARS.channels.slack import SlackChannel, SlackConfig
 
 
 class _FakeAsyncWebClient:

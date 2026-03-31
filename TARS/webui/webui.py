@@ -1,8 +1,9 @@
 # Part of TARS integrated web UI – prepared for HTMX + Tailwind
 
+from typing import Annotated
+
 import typer
 import uvicorn
-from typing import Annotated
 
 app = typer.Typer(
     name="TARS-WebUI",

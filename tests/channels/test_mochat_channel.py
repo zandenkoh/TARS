@@ -1,4 +1,5 @@
-from TARS.channels.mochat import resolve_mochat_target, MochatTarget
+from TARS.channels.mochat import resolve_mochat_target
+
 
 def test_resolve_mochat_target_empty_input():
     # Empty strings and None behavior (type hinted as str but testing robustness)

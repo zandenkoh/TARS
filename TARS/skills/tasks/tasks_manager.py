@@ -20,7 +20,7 @@ class TasksManager:
             self.tasks_dir = Path(workspace_path) / "tasks"
         else:
             self.tasks_dir = Path(os.path.expanduser(DEFAULT_TASKS_DIR))
-        
+
         self.tasks_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_path(self, date_str: str) -> Path:
@@ -31,11 +31,11 @@ class TasksManager:
         """Load tasks for the given date, or today if None."""
         if not date_str:
             date_str = datetime.now().strftime("%Y-%m-%d")
-        
+
         path = self._get_path(date_str)
         if not path.exists():
             return None
-        
+
         try:
             return json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, Exception) as e:
@@ -48,7 +48,7 @@ class TasksManager:
         if not date_str:
             logger.error("Cannot save tasks without a date")
             return False
-        
+
         path = self._get_path(date_str)
         try:
             path.write_text(json.dumps(tasks_data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -62,17 +62,17 @@ class TasksManager:
         data = self.load_tasks(date_str)
         if not data:
             return False
-        
+
         updated = False
         for task in data.get("tasks", []):
             if task.get("id") == task_id:
                 task["status"] = status
                 updated = True
                 break
-        
+
         if updated:
             return self.save_tasks(data)
-        
+
         return False
 
     def render_task_list(self, tasks_data: dict[str, Any]) -> str:
@@ -96,14 +96,14 @@ class TasksManager:
                 status_icon = "✅"
             elif t.get("status") == "skipped":
                 status_icon = "⏭"
-            
+
             title = t.get("title", "No Title")
             priority = t.get("priority", "medium").upper()
-            
+
             lines.append(f"{i}. {status_icon} *{title}* (`{priority}`)")
             if t.get("description"):
                 lines.append(f"   _{t.get('description')}_")
-        
+
         return "\n".join(lines)
 
     def format_telegram_markup(self, tasks_data: dict[str, Any]) -> dict:
@@ -112,9 +112,9 @@ class TasksManager:
 
         date_str = tasks_data.get("date")
         tasks = tasks_data.get("tasks", [])
-        
+
         keyboard = []
-        
+
         # Add buttons for each pending task
         for t in tasks:
             if t.get("status") == "pending":
@@ -123,13 +123,13 @@ class TasksManager:
                 # Truncate title for button if needed
                 if len(title) > 20:
                     title = title[:17] + "..."
-                
+
                 row = [
                     InlineKeyboardButton(f"✅ Done: {title}", callback_data=f"task:done:{date_str}:{task_id}"),
                     InlineKeyboardButton("⏭ Skip", callback_data=f"task:skip:{date_str}:{task_id}")
                 ]
                 keyboard.append(row)
-        
+
         # Bottom row for management
         mgmt_row = [
             InlineKeyboardButton("➕ Add", callback_data=f"task:add:{date_str}"),
@@ -138,7 +138,7 @@ class TasksManager:
             InlineKeyboardButton("⚙️ Time", callback_data=f"task:time_menu:{date_str}")
         ]
         keyboard.append(mgmt_row)
-        
+
         return InlineKeyboardMarkup(keyboard)
 
     def format_time_selection_markup(self, date_str: str) -> dict:
@@ -153,10 +153,10 @@ class TasksManager:
             if i + 1 < len(times):
                 row.append(InlineKeyboardButton(times[i+1], callback_data=f"task:set_time:{times[i+1].replace(':', '-')}"))
             keyboard.append(row)
-        
+
         # Back button
         keyboard.append([InlineKeyboardButton("🔙 Back", callback_data=f"task:refresh:{date_str}")])
-        
+
         return InlineKeyboardMarkup(keyboard)
 
 # Global singleton or instance if needed

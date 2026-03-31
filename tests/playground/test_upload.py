@@ -1,5 +1,3 @@
-from fastapi import FastAPI, UploadFile, File
-import shutil
 from pathlib import Path
 
 target_dir = Path("./workspace")

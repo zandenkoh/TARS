@@ -5,6 +5,7 @@ import re
 from typing import Any
 
 from loguru import logger
+from pydantic import Field
 from slack_sdk.socket_mode.request import SocketModeRequest
 from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_sdk.socket_mode.websockets import SocketModeClient
@@ -13,8 +14,6 @@ from slackify_markdown import slackify_markdown
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
-from pydantic import Field
-
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
 

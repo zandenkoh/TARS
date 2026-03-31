@@ -45,27 +45,27 @@ class FailoverProvider(LLMProvider):
         Keep system message and as much recent history as fits within context window minus buffer.
         """
         from TARS.utils.helpers import estimate_message_tokens
-        
+
         # Reserve buffer for competition tokens and safety headroom
-        buffer = completion_limit + 1024 
+        buffer = completion_limit + 1024
         if context_limit <= buffer:
             return messages # Too small to prune effectively
-            
+
         system_msg = messages[0] if messages and messages[0].get("role") == "system" else None
         last_msg = messages[-1] if messages else None
-        
+
         if not last_msg:
             return messages
 
         fixed_tokens = estimate_message_tokens(last_msg)
         if system_msg:
             fixed_tokens += estimate_message_tokens(system_msg)
-            
+
         budget = context_limit - buffer - fixed_tokens
         if budget < 0:
             # Last message + system is too big? Return them and hope for the best.
             logger.warning(
-                "System+User query exceeds {} budget ({} > {})", 
+                "System+User query exceeds {} budget ({} > {})",
                 provider_name, fixed_tokens, context_limit - buffer
             )
             return [system_msg, last_msg] if system_msg else [last_msg]
@@ -74,7 +74,7 @@ class FailoverProvider(LLMProvider):
         history = messages[1:-1] if system_msg else messages[:-1]
         pruned_history = []
         current_tokens = 0
-        
+
         for msg in reversed(history):
             tokens = estimate_message_tokens(msg)
             if current_tokens + tokens <= budget:
@@ -82,16 +82,16 @@ class FailoverProvider(LLMProvider):
                 current_tokens += tokens
             else:
                 break
-                
+
         result = []
         if system_msg:
             result.append(system_msg)
         result.extend(pruned_history)
         result.append(last_msg)
-        
+
         if len(result) < len(messages):
             logger.info(
-                "Context pruned for {}: {} turns -> {} turns (budget {} prompt tokens reserved)", 
+                "Context pruned for {}: {} turns -> {} turns (budget {} prompt tokens reserved)",
                 provider_name, len(messages), len(result), budget
             )
         return result
@@ -115,7 +115,7 @@ class FailoverProvider(LLMProvider):
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             # Use current provider's model for failover, otherwise stick to original
             target_model = default_model if is_primary_request else model
-            
+
             # Prune context for fallback providers if it exceeds their limit
             call_messages = messages
             if i > 0:
@@ -134,10 +134,10 @@ class FailoverProvider(LLMProvider):
                 if i > 0:
                     logger.info("Failover successful: using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
                 return response
-            
+
             logger.warning("Provider {} ({}) failed: {}. Trying next...", i, provider.__class__.__name__, response.content)
             last_error = response
-            
+
             # Non-primary requests should not failover to a different provider
             if not is_primary_request:
                 break
@@ -162,7 +162,7 @@ class FailoverProvider(LLMProvider):
 
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             target_model = default_model if is_primary_request else model
-            
+
             call_messages = messages
             if i > 0:
                 call_messages = self._prune_messages(messages, context_limit, max_tokens, provider.__class__.__name__)
@@ -181,10 +181,10 @@ class FailoverProvider(LLMProvider):
                 if i > 0:
                     logger.info("Failover successful (streaming): using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
                 return response
-            
+
             logger.warning("Provider {} ({}) failed in streaming: {}. Trying next...", i, provider.__class__.__name__, response.content)
             last_error = response
-            
+
             if not is_primary_request:
                 break
 
@@ -198,25 +198,25 @@ class FailoverProvider(LLMProvider):
         messages = kwargs.get("messages", [])
         primary_model = self.providers[0][1] if self.providers else None
         is_primary_request = (requested_model is None or requested_model == primary_model)
-        
+
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             target_model = default_model if is_primary_request else requested_model
-            
+
             # Set internal model and prune messages for this attempt
             call_kwargs = dict(kwargs)
             call_kwargs["model"] = target_model
             if i > 0:
                 call_kwargs["messages"] = self._prune_messages(messages, context_limit, completion_limit, provider.__class__.__name__)
-            
+
             response = await provider.chat_with_retry(**call_kwargs)
             if response.finish_reason != "error":
                 if i > 0:
                     logger.info("Failover successful (retry): using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
                 return response
-            
+
             logger.warning("Provider {} ({}) exhausting retries. Trying next provider...", i, provider.__class__.__name__)
             last_error = response
-            
+
             if not is_primary_request:
                 break
 
@@ -230,24 +230,24 @@ class FailoverProvider(LLMProvider):
         messages = kwargs.get("messages", [])
         primary_model = self.providers[0][1] if self.providers else None
         is_primary_request = (requested_model is None or requested_model == primary_model)
-        
+
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             target_model = default_model if is_primary_request else requested_model
-            
+
             call_kwargs = dict(kwargs)
             call_kwargs["model"] = target_model
             if i > 0:
                 call_kwargs["messages"] = self._prune_messages(messages, context_limit, completion_limit, provider.__class__.__name__)
-            
+
             response = await provider.chat_stream_with_retry(**call_kwargs)
             if response.finish_reason != "error":
                 if i > 0:
                     logger.info("Failover successful (stream-retry): using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
                 return response
-            
+
             logger.warning("Provider {} ({}) exhausting streaming retries. Trying next provider...", i, provider.__class__.__name__)
             last_error = response
-            
+
             if not is_primary_request:
                 break
 

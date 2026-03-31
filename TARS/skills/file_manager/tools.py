@@ -1,11 +1,12 @@
 """Tools for managing files in the TARS workspace."""
 
 import mimetypes
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 from TARS.agent.tools.filesystem import _FsTool, _is_under
 from TARS.bus.events import OutboundMessage
+
 
 class SendFileToUserTool(_FsTool):
     """Send a file directly to the user as an upload."""
@@ -56,11 +57,11 @@ class SendFileToUserTool(_FsTool):
         try:
             if not self._send_callback:
                 return "Error: Message sending callback not configured."
-            
+
             fp = self._resolve(path)
             if not fp.exists():
                 return f"Error: File not found: {path}"
-            
+
             if not fp.is_file():
                 return f"Error: Only files can be sent, not directories: {path}"
 
@@ -71,7 +72,7 @@ class SendFileToUserTool(_FsTool):
                 media=[str(fp)],
                 metadata={"message_id": self._default_message_id}
             )
-            
+
             await self._send_callback(msg)
             return f"Successfully uploaded '{fp.name}' to the chat."
         except Exception as e:
@@ -112,30 +113,30 @@ class ListWorkspaceFilesTool(_FsTool):
             root = self._workspace
             if not root:
                 return "Error: Workspace path not configured."
-            
+
             target = (root / path).resolve()
             if not _is_under(target, root):
                 return f"Error: Path '{path}' is outside the workspace."
-            
+
             if not target.exists():
                 return f"Error: Path '{path}' does not exist."
-            
+
             if not target.is_dir():
                 return f"Error: Path '{path}' is not a directory."
 
             items = []
             pattern = "**/*" if recursive else "*"
-            
+
             for p in sorted(target.glob(pattern)):
                 # Ignore common noise
                 if any(part.startswith(".") or part == "__pycache__" for part in p.parts):
                     continue
-                
+
                 rel = p.relative_to(root)
                 is_dir = p.is_dir()
                 size = p.stat().st_size if not is_dir else 0
                 icon = "📁" if is_dir else "📄"
-                
+
                 size_str = f" ({size} bytes)" if not is_dir else ""
                 items.append(f"{icon} {rel}{size_str}")
 
@@ -175,11 +176,11 @@ class GetFileInfoTool(_FsTool):
             fp = self._resolve(path)
             if not fp.exists():
                 return f"Error: File not found: {path}"
-            
+
             stat = fp.stat()
             is_dir = fp.is_dir()
             mime, _ = mimetypes.guess_type(str(fp))
-            
+
             info = [
                 f"Path: {fp}",
                 f"Type: {'Directory' if is_dir else 'File'}",
@@ -188,7 +189,7 @@ class GetFileInfoTool(_FsTool):
                 f"Created: {datetime.fromtimestamp(stat.st_ctime).isoformat()}",
                 f"Modified: {datetime.fromtimestamp(stat.st_mtime).isoformat()}",
             ]
-            
+
             # Add a small preview for text files
             if not is_dir and stat.st_size > 0 and (mime and (mime.startswith("text/") or mime == "application/json")):
                 try:
@@ -197,7 +198,7 @@ class GetFileInfoTool(_FsTool):
                         info.append(f"\nPreview:\n---\n{preview}{'...' if stat.st_size > 500 else ''}\n---")
                 except Exception:
                     pass
-            
+
             return "\n".join(info)
         except Exception as e:
             return f"Error getting file info: {e}"

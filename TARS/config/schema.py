@@ -289,7 +289,7 @@ class Config(BaseSettings):
         Returns: list of (ProviderConfig, provider_name, model_name, context_window_tokens).
         """
         default_tokens = self.agents.defaults.context_window_tokens
-        
+
         # If no priority, we use the primary provider
         primary_name = self.get_provider_name()
         if not self.agents.priority:
@@ -328,19 +328,19 @@ class Config(BaseSettings):
                 models = [self.agents.defaults.model]
 
             tokens = p.context_window_tokens or default_tokens
-            
+
             # Parallel (ZIP) logic: for i-th attempt, use i-th key and i-th model.
             num_attempts = max(len(keys), len(models))
             for i in range(num_attempts):
                 api_key = keys[i] if i < len(keys) else (keys[-1] if keys else None)
                 model_name = models[i] if i < len(models) else (models[-1] if models else self.agents.defaults.model)
-                
+
                 # Create a cloned config with specific key/model for instantiation
                 p_clone = p.model_copy()
                 p_clone.api_key = api_key
                 p_clone.model = model_name
                 failover.append((p_clone, snaked_name, model_name, tokens))
-                    
+
         return failover
 
     model_config = ConfigDict(env_prefix="TARS_", env_nested_delimiter="__")

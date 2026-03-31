@@ -7,8 +7,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from loguru import logger
-
 from TARS.agent.tools.base import Tool
 
 
@@ -125,7 +123,7 @@ class ExecTool(Tool):
                         process._transport.close()
                     except Exception:
                         pass
-                
+
                 # Best-effort reap
                 if sys.platform != "win32":
                     try:

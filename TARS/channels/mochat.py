@@ -11,13 +11,13 @@ from typing import Any
 
 import httpx
 from loguru import logger
+from pydantic import Field
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.paths import get_runtime_subdir
 from TARS.config.schema import Base
-from pydantic import Field
 
 try:
     import socketio

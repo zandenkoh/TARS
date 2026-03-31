@@ -38,3 +38,9 @@
 **Vulnerability:** The TARS `mcp.py` client utilized `httpx.AsyncClient` with `follow_redirects=True` for connecting to MCP servers via `sse` and `streamableHttp` transports. However, there was no validation of the target URL before attempting the connection, and no validation of URLs during HTTP redirects. This allowed Server-Side Request Forgery (SSRF) where a malicious server configuration could target or redirect to internal, private IP addresses.
 **Learning:** Like `WebFetchTool`, the MCP client's HTTP transports must validate both the initial connection URL and any subsequent redirects to prevent internal network scanning or interaction.
 **Prevention:** Always validate user-provided URLs using `validate_url_target` before establishing connections, and use event hooks (e.g., `event_hooks={"request": [_verify_request]}`) to validate each URL in the redirect chain before the request is actually sent.
+
+## 2026-04-01 - Prevent SSRF in SearXNG Web Search Provider
+
+**Vulnerability:** The `WebSearchTool` in `TARS/agent/tools/web.py` allowed users to specify a custom `SEARXNG_BASE_URL`. The tool only validated the URL scheme and domain using `_validate_url` before making an HTTP GET request to this endpoint. This allowed Server-Side Request Forgery (SSRF) because an attacker could configure a URL that resolves to an internal/private IP address (e.g., `169.254.169.254` or `127.0.0.1`), bypassing the basic URL validation.
+**Learning:** Basic URL scheme and domain validation is insufficient when dealing with user-configured endpoints. The underlying IP address must be resolved and checked against a list of private/internal networks to prevent SSRF.
+**Prevention:** Always use `validate_url_target` (or wrappers like `_validate_url_safe`) which resolve hostnames and explicitly block private/internal IP addresses before sending HTTP requests to user-controlled endpoints.

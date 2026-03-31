@@ -10,7 +10,6 @@ from typing import Any
 
 import tiktoken
 
-
 # ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead in hot streaming loops
 _THINK_BLOCK_RE = re.compile(r"<think>[\s\S]*?</think>")
 _THINK_TRAILING_RE = re.compile(r"<think>[\s\S]*$")

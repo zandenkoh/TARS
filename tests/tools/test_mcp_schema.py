@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-import pytest
-
 from TARS.agent.tools.mcp import _extract_nullable_branch, _normalize_schema_for_openai
+
 
 def test_extract_nullable_branch_non_list() -> None:
     assert _extract_nullable_branch(None) is None

@@ -1,7 +1,7 @@
 
-import os
 import tempfile
 from pathlib import Path
+
 
 def test_path_traversal_vulnerability():
     with tempfile.TemporaryDirectory() as tmpdir:

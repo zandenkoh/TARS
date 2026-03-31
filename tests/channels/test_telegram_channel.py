@@ -1,5 +1,3 @@
-import asyncio
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -13,8 +11,7 @@ except ImportError:
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
-from TARS.channels.telegram import TELEGRAM_REPLY_CONTEXT_MAX_LEN, TelegramChannel
-from TARS.channels.telegram import TelegramConfig
+from TARS.channels.telegram import TELEGRAM_REPLY_CONTEXT_MAX_LEN, TelegramChannel, TelegramConfig
 
 
 class _FakeHTTPXRequest:

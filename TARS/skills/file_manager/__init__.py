@@ -1,6 +1,7 @@
 """File Manager skill for TARS."""
 
-from .tools import ListWorkspaceFilesTool, GetFileInfoTool, SendFileToUserTool
+from .tools import GetFileInfoTool, ListWorkspaceFilesTool, SendFileToUserTool
+
 
 def get_tools(workspace, send_callback=None, allowed_dir=None, extra_allowed_dirs=None):
     """Factory to create file_manager tools for AgentLoop."""

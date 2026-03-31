@@ -13,7 +13,6 @@ from TARS.channels.base import BaseChannel
 from TARS.channels.manager import ChannelManager
 from TARS.config.schema import ChannelsConfig
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -192,9 +191,10 @@ async def test_manager_loads_plugin_from_dict_config():
 
 
 def test_channels_login_uses_discovered_plugin_class(monkeypatch):
+    from typer.testing import CliRunner
+
     from TARS.cli.commands import app
     from TARS.config.schema import Config
-    from typer.testing import CliRunner
 
     runner = CliRunner()
     seen: dict[str, object] = {}

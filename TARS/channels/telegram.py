@@ -8,26 +8,40 @@ import re
 import time
 import unicodedata
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
 from loguru import logger
 from pydantic import Field
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, ReactionTypeEmoji, ReplyParameters, Update
+from telegram import (
+    BotCommand,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReactionTypeEmoji,
+    ReplyParameters,
+    Update,
+)
 from telegram.error import TimedOut
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 from telegram.request import HTTPXRequest
 
 from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
+from TARS.config.loader import load_config, save_config
 from TARS.config.paths import get_media_dir
 from TARS.config.schema import Base
-from TARS.config.loader import load_config, save_config
-from TARS.skills.tasks.tasks_manager import TasksManager
 from TARS.security.network import validate_url_target
+from TARS.skills.tasks.tasks_manager import TasksManager
 from TARS.utils.helpers import split_message
-from datetime import datetime
 
 TELEGRAM_MAX_MESSAGE_LEN = 4000  # Telegram message character limit
 TELEGRAM_REPLY_CONTEXT_MAX_LEN = TELEGRAM_MAX_MESSAGE_LEN  # Max length for reply context in user message
@@ -412,7 +426,7 @@ class TelegramChannel(BaseChannel):
             # Handle multiple extensions like .tar.gz
             exts = "".join(Path(original_name).suffixes).lower()
             return exts if exts else "." + original_name.rsplit(".", 1)[-1].lower()
-        
+
         # Fall back to mime type
         if mime_type:
             ext_map = {
@@ -431,7 +445,7 @@ class TelegramChannel(BaseChannel):
             # Generic fallback from mime type
             subtype = mime_type.split("/")[-1].split(";")[0]
             return f".{subtype}" if subtype else ""
-        
+
         # Fall back to media type
         type_map = {
             "image": ".jpg",
@@ -521,16 +535,16 @@ class TelegramChannel(BaseChannel):
 
         # Send text content
         reply_markup = msg.metadata.get("reply_markup")
-        
+
         # Convert dict-style reply_markup to Telegram InlineKeyboardMarkup if needed
         if isinstance(reply_markup, (dict, list)):
             try:
                 # If it's a list, wrap it in inline_keyboard for normalization
                 if isinstance(reply_markup, list):
                     reply_markup = {"inline_keyboard": reply_markup}
-                
+
                 rows = reply_markup.get("inline_keyboard", [])
-                
+
                 kb = []
                 for row in rows:
                     kb_row = []
@@ -610,13 +624,14 @@ class TelegramChannel(BaseChannel):
         """Helper to generate and send TTS voice for completed text."""
         if not self.config.tts:
             return
-        
+
         if self.config.tts_engine == "gemini":
             return await self._send_gemini_tts(chat_id, text, reply_params, thread_kwargs)
-            
+
         try:
             import os
             import tempfile
+
             import edge_tts
 
             logger.info(f"Starting TTS generation using edge-tts (voice: {self.config.tts_voice})...")
@@ -626,13 +641,13 @@ class TelegramChannel(BaseChannel):
 
             voice = self.config.tts_voice
             communicate = edge_tts.Communicate(clean_text[:4000], voice, pitch="-10Hz")
-            
+
             temp_fp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
             audio_path = temp_fp.name
             temp_fp.close()
-            
+
             await communicate.save(audio_path)
-            
+
             logger.info(f"Local TTS generated at {audio_path}, sending...")
             with open(audio_path, "rb") as f:
                 await self._call_with_retry(
@@ -650,10 +665,12 @@ class TelegramChannel(BaseChannel):
     async def _send_gemini_tts(self, chat_id: int, text: str, reply_params=None, thread_kwargs=None) -> None:
         """Use Gemini 2.0 Flash (Native Audio) to generate speech for a text string."""
         try:
-            import os
             import base64
-            import httpx
+            import os
             import tempfile
+
+            import httpx
+
             from TARS.config.schema import Config
 
             logger.info("Starting Gemini Native TTS generation...")
@@ -666,7 +683,7 @@ class TelegramChannel(BaseChannel):
             api_key = None
             if bus_config:
                 api_key = bus_config.providers.gemini.api_key
-            
+
             if not api_key:
                 logger.warning("No Gemini API key found for Native TTS, falling back to local")
                 self.config.tts_engine = "local" # Temporary fallback
@@ -675,7 +692,7 @@ class TelegramChannel(BaseChannel):
             # Use Gemini 2.0 Flash for audio generation
             model = "gemini-2.0-flash"
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-            
+
             payload = {
                 "contents": [{
                     "parts": [{"text": f"Output ONLY the audio content for this text: {clean_text}"}]
@@ -684,7 +701,7 @@ class TelegramChannel(BaseChannel):
                     "responseModalities": ["AUDIO"]
                 }
             }
-            
+
             async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(url, json=payload)
                 if resp.status_code != 200:
@@ -697,21 +714,21 @@ class TelegramChannel(BaseChannel):
                 if "inlineData" in part:
                     audio_b64 = part["inlineData"].get("data")
                     break
-            
+
             if not audio_b64:
                 logger.warning("Gemini did not return any audio data in response")
                 return
 
             audio_bytes = base64.b64decode(audio_b64)
-            
+
             temp_fp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
             audio_path = temp_fp.name
             temp_fp.write(audio_bytes)
             temp_fp.close()
-            
+
             logger.info(f"Gemini Native TTS generated at {audio_path}, sending...")
             with open(audio_path, "rb") as f:
-                # Telegram usually wants audio/ogg or .mp3, but but will accept 
+                # Telegram usually wants audio/ogg or .mp3, but but will accept
                 # wav in send_voice and convert it on their end.
                 await self._call_with_retry(
                     self._app.bot.send_voice,
@@ -900,7 +917,7 @@ class TelegramChannel(BaseChannel):
                 mime_type,
                 original_name,
             )
-            
+
             # Use get_media_dir for testability, falling back to workspace if available
             try:
                 upload_dir = get_media_dir(channel=self) / datetime.now().strftime("%Y-%m-%d")
@@ -912,18 +929,18 @@ class TelegramChannel(BaseChannel):
                 else:
                     upload_dir = get_media_dir() / datetime.now().strftime("%Y-%m-%d")
             upload_dir.mkdir(parents=True, exist_ok=True)
-            
+
             unique_id = getattr(media_file, "file_unique_id", media_file.file_id)
             safe_name = original_name if original_name else f"{unique_id}{ext}"
             file_path = upload_dir / safe_name
-            
+
             # If file exists, append unique_id to prevent collision
             if file_path.exists() and original_name:
                 file_path = upload_dir / f"{file_path.stem}_{unique_id[:8]}{file_path.suffix}"
-                
+
             await file.download_to_drive(str(file_path))
             path_str = str(file_path)
-            
+
             from_user = getattr(msg, "from_user", None)
             metadata = {
                 "original_filename": original_name,
@@ -942,7 +959,7 @@ class TelegramChannel(BaseChannel):
                 if transcription:
                     logger.info("Transcribed {}: {}...", media_type, transcription[:50])
                     return [path_str], [f"[file_uploaded: {path_str}]\n[transcription: {transcription}]"]
-            
+
             return [path_str], [f"[file_uploaded: {path_str}]"]
         except Exception as e:
             logger.warning("Failed to download message media: {}", e)
@@ -1188,15 +1205,15 @@ class TelegramChannel(BaseChannel):
         """Handle /tasks command."""
         if not update.message or not update.effective_user:
             return
-        
+
         message = update.message
         user = update.effective_user
         str_chat_id = str(message.chat_id)
-        
+
         manager = TasksManager(self.bus.config.workspace_path)
         date_str = datetime.now().strftime("%Y-%m-%d")
         tasks_data = manager.load_tasks(date_str)
-        
+
         if tasks_data:
             text = manager.render_task_list(tasks_data)
             markup = manager.format_telegram_markup(tasks_data)
@@ -1216,35 +1233,35 @@ class TelegramChannel(BaseChannel):
         query = update.callback_query
         if not query or not query.data:
             return
-        
+
         await query.answer()  # Stop the loading spinner
-        
+
         data = query.data
         data_parts = data.split(":")
-        
+
         # 1. Handle legacy "task:" prefixed callback data
         if data_parts[0] == "task":
             action = data_parts[1]
             manager = TasksManager(self.bus.config.workspace_path)
-            
+
             if action in ("done", "skip"):
                 date_str = data_parts[2]
                 task_id = data_parts[3]
                 status = "done" if action == "done" else "skipped"
-                
+
                 if manager.update_task_status(date_str, task_id, status):
                     # Reload and refresh the message
                     tasks_data = manager.load_tasks(date_str)
                     if tasks_data:
                         text = manager.render_task_list(tasks_data)
                         markup = manager.format_telegram_markup(tasks_data)
-                        
+
                         try:
                             html = _markdown_to_telegram_html(text)
                             await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
                         except Exception:
                             await query.edit_message_text(text=text, reply_markup=markup)
-            
+
             elif action == "refresh":
                 date_str = data_parts[2]
                 tasks_data = manager.load_tasks(date_str)
@@ -1256,7 +1273,7 @@ class TelegramChannel(BaseChannel):
                         await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
                     except Exception:
                         await query.edit_message_text(text=text, reply_markup=markup)
-            
+
             elif action == "add":
                 user = query.from_user
                 await self._handle_message(
@@ -1266,7 +1283,7 @@ class TelegramChannel(BaseChannel):
                     metadata={"message_id": query.message.message_id},
                     session_key=f"telegram:{query.message.chat_id}:tasks",
                 )
-            
+
             elif action == "view_all":
                 date_str = data_parts[2]
                 tasks_data = manager.load_tasks(date_str)
@@ -1288,17 +1305,17 @@ class TelegramChannel(BaseChannel):
                     await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
                 except Exception:
                     await query.edit_message_text(text=text, reply_markup=markup)
-            
+
             elif action == "set_time":
                 new_time = data_parts[2].replace("-", ":")
                 await self._update_task_time_setting(new_time)
-                
+
                 date_str = datetime.now().strftime("%Y-%m-%d")
                 text = f"✅ Daily task generation time updated to *{new_time}*!\n\n_New schedule is active._"
-                
+
                 keyboard = [[InlineKeyboardButton("🔙 Back to Tasks", callback_data=f"task:refresh:{date_str}")]]
                 markup = InlineKeyboardMarkup(keyboard)
-                
+
                 try:
                     html = _markdown_to_telegram_html(text)
                     await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
@@ -1310,14 +1327,14 @@ class TelegramChannel(BaseChannel):
         user = query.from_user
         chat_id = query.message.chat_id
         message_text = query.message.text or query.message.caption or "[No text]"
-        
+
         # Construct a descriptive message for the agent to understand context
         content = f"[User clicked button with callback_data: '{data}' on message: '{message_text}']"
-        
+
         metadata = self._build_message_metadata(query.message, user)
         metadata["callback_query_id"] = query.id
         metadata["callback_data"] = data
-        
+
         logger.info("Forwarding unhandled callback query '{}' to agent", data)
         await self._handle_message(
             sender_id=self._sender_id(user),
@@ -1335,25 +1352,25 @@ class TelegramChannel(BaseChannel):
             config = load_config()
             config.skills.tasks.daily_time = new_time
             save_config(config)
-            
+
             # 2. Update jobs.json for CronService
             cron_jobs_path = self.bus.config.workspace_path / "cron" / "jobs.json"
             if cron_jobs_path.exists():
                 jobs_data = json.loads(cron_jobs_path.read_text(encoding="utf-8"))
                 modified = False
-                
+
                 # Convert "HH:MM" to cron expr
                 h, m = new_time.split(":")
                 expr = f"{int(m)} {int(h)} * * *"
-                
+
                 for job in jobs_data.get("jobs", []):
                     if job.get("name") == "Daily Task Generation":
                         job["schedule"]["expr"] = expr
-                        # Force trigger a reload by updating nextRunAtMs? 
+                        # Force trigger a reload by updating nextRunAtMs?
                         # Actually CronService reloads when file changes.
                         modified = True
                         break
-                
+
                 if modified:
                     cron_jobs_path.write_text(json.dumps(jobs_data, indent=2, ensure_ascii=False), encoding="utf-8")
                     logger.info("Updated Daily Task Generation schedule to {} in jobs.json", expr)

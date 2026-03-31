@@ -6,11 +6,9 @@ import platform
 from pathlib import Path
 from typing import Any
 
-from TARS.utils.helpers import current_time_str
-
 from TARS.agent.memory import MemoryStore
 from TARS.agent.skills import SkillsLoader
-from TARS.utils.helpers import build_assistant_message, detect_image_mime
+from TARS.utils.helpers import build_assistant_message, current_time_str, detect_image_mime
 
 
 class ContextBuilder:

@@ -1,7 +1,9 @@
 import pytest
+
 from TARS.agent.tools.cron import CronTool
 from TARS.cron.service import CronService
-from TARS.cron.types import CronJobState, CronSchedule, CronRunRecord
+from TARS.cron.types import CronJobState, CronSchedule
+
 
 def _make_tool(tmp_path) -> CronTool:
     service = CronService(tmp_path / "cron" / "jobs.json")
