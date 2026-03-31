@@ -101,6 +101,14 @@ async def list_sessions(tars: TARS):
     # Filter for web sessions if needed, but for now show all
     return sessions
 
+@app.get("/api/sessions/search")
+async def search_sessions(tars: TARS, q: str):
+    """Search sessions by query."""
+    if not q:
+        return []
+    sessions = tars.sessions.search_sessions(q)
+    return JSONResponse(sessions)
+
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(tars: TARS, session_id: str):
     """Delete a chat session."""
