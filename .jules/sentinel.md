@@ -44,3 +44,9 @@
 **Vulnerability:** The `WebSearchTool` in `TARS/agent/tools/web.py` allowed users to specify a custom `SEARXNG_BASE_URL`. The tool only validated the URL scheme and domain using `_validate_url` before making an HTTP GET request to this endpoint. This allowed Server-Side Request Forgery (SSRF) because an attacker could configure a URL that resolves to an internal/private IP address (e.g., `169.254.169.254` or `127.0.0.1`), bypassing the basic URL validation.
 **Learning:** Basic URL scheme and domain validation is insufficient when dealing with user-configured endpoints. The underlying IP address must be resolved and checked against a list of private/internal networks to prevent SSRF.
 **Prevention:** Always use `validate_url_target` (or wrappers like `_validate_url_safe`) which resolve hostnames and explicitly block private/internal IP addresses before sending HTTP requests to user-controlled endpoints.
+
+## 2026-04-01 - [Harden WebUI CORS and Security Headers]
+
+**Vulnerability:** The local WebUI (`TARS/webui/api.py`) used `allow_origins=["*"]` along with `allow_credentials=True` in its CORS middleware.
+**Learning:** In a locally hosted web app that allows cross-origin requests globally, any public website visited by the user can make authenticated requests to the local port (e.g., extracting API keys from the configuration endpoint). While Starlette attempts to block `allow_origins=["*"]` with credentials, it dynamically reflects the `Origin` header, creating a severe data exposure vulnerability.
+**Prevention:** Strictly enforce `allow_origins` to known safe local endpoints (e.g., `http://localhost:18790`) and inject secure headers (`X-Frame-Options`, `X-Content-Type-Options`) via custom middleware for all sensitive local-bound UI routes.
