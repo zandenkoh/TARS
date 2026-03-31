@@ -14,13 +14,13 @@
             <div class="flex items-center justify-between gap-4">
                 <label class="text-sm font-medium text-zinc-300">{{ key }}</label>
                 {% if value is boolean %}
-                    <input type="checkbox" name="{{ full_key }}" {% if value %}checked{% endif %} 
+                    <input type="checkbox" name="{{ full_key }}" aria-label="{{ key }}" {% if value %}checked{% endif %}
                            class="w-4 h-4 rounded bg-zinc-900 border-white/10 text-tars-primary focus:ring-tars-primary">
                 {% elif value is number %}
-                    <input type="number" name="{{ full_key }}" value="{{ value }}" 
+                    <input type="number" name="{{ full_key }}" aria-label="{{ key }}" value="{{ value }}"
                            class="bg-zinc-900 border border-white/5 rounded-lg px-3 py-1 text-sm text-white w-32 focus:outline-none focus:border-tars-primary/50">
                 {% else %}
-                    <input type="text" name="{{ full_key }}" value="{{ value or '' }}" 
+                    <input type="text" name="{{ full_key }}" aria-label="{{ key }}" value="{{ value or '' }}"
                            class="bg-zinc-900 border border-white/5 rounded-lg px-3 py-1 text-sm text-white flex-1 max-w-xs focus:outline-none focus:border-tars-primary/50">
                 {% endif %}
             </div>
