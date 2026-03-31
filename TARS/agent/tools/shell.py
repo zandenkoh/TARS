@@ -40,6 +40,8 @@ class ExecTool(Tool):
             r":\(\)\s*\{.*\};\s*:",          # fork bomb
         ]
         self.allow_patterns = allow_patterns or []
+        self._compiled_deny_patterns = [re.compile(p) for p in self.deny_patterns]
+        self._compiled_allow_patterns = [re.compile(p) for p in self.allow_patterns]
         self.restrict_to_workspace = restrict_to_workspace
         self.path_append = path_append
 
@@ -165,12 +167,12 @@ class ExecTool(Tool):
         cmd = command.strip()
         lower = cmd.lower()
 
-        for pattern in self.deny_patterns:
-            if re.search(pattern, lower):
+        for pattern in self._compiled_deny_patterns:
+            if pattern.search(lower):
                 return "Error: Command blocked by safety guard (dangerous pattern detected)"
 
-        if self.allow_patterns:
-            if not any(re.search(p, lower) for p in self.allow_patterns):
+        if self._compiled_allow_patterns:
+            if not any(p.search(lower) for p in self._compiled_allow_patterns):
                 return "Error: Command blocked by safety guard (not in allowlist)"
 
         from TARS.security.network import contains_internal_url
@@ -190,7 +192,7 @@ class ExecTool(Tool):
             if not cwd_path.is_relative_to(ws_path):
                 return "Error: Command blocked by safety guard (working directory outside workspace)"
 
-            for raw in self._extract_absolute_paths(cmd):
+            for raw in self.__class__._extract_absolute_paths(cmd):
                 try:
                     expanded = os.path.expandvars(raw.strip())
                     p = Path(expanded).expanduser().resolve()
@@ -201,9 +203,13 @@ class ExecTool(Tool):
 
         return None
 
-    @staticmethod
-    def _extract_absolute_paths(command: str) -> list[str]:
-        win_paths = re.findall(r"[A-Za-z]:\\[^\s\"'|><;]+", command)   # Windows: C:\...
-        posix_paths = re.findall(r"(?:^|[\s|>'\"])(/[^\s\"'>;|<]+)", command) # POSIX: /absolute only
-        home_paths = re.findall(r"(?:^|[\s|>'\"])(~[^\s\"'>;|<]*)", command) # POSIX/Windows home shortcut: ~
+    _WIN_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"'|><;]+")
+    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|>'\"])(/[^\s\"'>;|<]+)")
+    _HOME_PATH_RE = re.compile(r"(?:^|[\s|>'\"])(~[^\s\"'>;|<]*)")
+
+    @classmethod
+    def _extract_absolute_paths(cls, command: str) -> list[str]:
+        win_paths = cls._WIN_PATH_RE.findall(command)   # Windows: C:\...
+        posix_paths = cls._POSIX_PATH_RE.findall(command) # POSIX: /absolute only
+        home_paths = cls._HOME_PATH_RE.findall(command) # POSIX/Windows home shortcut: ~
         return win_paths + posix_paths + home_paths

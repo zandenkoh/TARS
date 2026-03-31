@@ -434,12 +434,14 @@ class EmailChannel(BaseChannel):
                 return bytes(item[1])
         return None
 
-    @staticmethod
-    def _extract_uid(fetched: list[Any]) -> str:
+    _UID_RE = re.compile(r"UID\s+(\d+)")
+
+    @classmethod
+    def _extract_uid(cls, fetched: list[Any]) -> str:
         for item in fetched:
             if isinstance(item, tuple) and item and isinstance(item[0], (bytes, bytearray)):
                 head = bytes(item[0]).decode("utf-8", errors="ignore")
-                m = re.search(r"UID\s+(\d+)", head)
+                m = cls._UID_RE.search(head)
                 if m:
                     return m.group(1)
         return ""
@@ -493,11 +495,15 @@ class EmailChannel(BaseChannel):
             return cls._html_to_text(payload).strip()
         return payload.strip()
 
-    @staticmethod
-    def _html_to_text(raw_html: str) -> str:
-        text = re.sub(r"<\s*br\s*/?>", "\n", raw_html, flags=re.IGNORECASE)
-        text = re.sub(r"<\s*/\s*p\s*>", "\n", text, flags=re.IGNORECASE)
-        text = re.sub(r"<[^>]+>", "", text)
+    _HTML_BR_RE = re.compile(r"<\s*br\s*/?>", flags=re.IGNORECASE)
+    _HTML_P_RE = re.compile(r"<\s*/\s*p\s*>", flags=re.IGNORECASE)
+    _HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+    @classmethod
+    def _html_to_text(cls, raw_html: str) -> str:
+        text = cls._HTML_BR_RE.sub("\n", raw_html)
+        text = cls._HTML_P_RE.sub("\n", text)
+        text = cls._HTML_TAG_RE.sub("", text)
         return html.unescape(text)
 
     def _reply_subject(self, base_subject: str) -> str:
