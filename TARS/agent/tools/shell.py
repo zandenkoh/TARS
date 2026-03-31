@@ -162,6 +162,9 @@ class ExecTool(Tool):
         except Exception as e:
             return f"Error executing command: {str(e)}"
 
+    # Compile regex once on class initialization for hot-path guards
+    _PATH_TRAVERSAL_RE = re.compile(r'(?:^|[\s"\'|<>&;/\\=()`])\.\.(?:[\s"\'|<>&;/\\=()`]|$)')
+
     def _guard_command(self, command: str, cwd: str) -> str | None:
         """Best-effort safety guard for potentially destructive commands."""
         cmd = command.strip()
@@ -183,7 +186,7 @@ class ExecTool(Tool):
             if not self.workspace_dir:
                 return "Error: Command blocked by safety guard (restrict_to_workspace requires a workspace_dir or working_dir)"
 
-            if re.search(r'(?:^|[\s"\'|<>&;/\\=()`])\.\.(?:[\s"\'|<>&;/\\=()`]|$)', cmd) or "..\\" in cmd or "../" in cmd:
+            if self._PATH_TRAVERSAL_RE.search(cmd) or "..\\" in cmd or "../" in cmd:
                 return "Error: Command blocked by safety guard (path traversal detected)"
 
             ws_path = Path(self.workspace_dir).resolve()

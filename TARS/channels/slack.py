@@ -292,9 +292,10 @@ class SlackChannel(BaseChannel):
     def _strip_bot_mention(self, text: str) -> str:
         if not text or not self._bot_user_id:
             return text
-        if self._bot_mention_re:
-            return self._bot_mention_re.sub("", text).strip()
-        return re.sub(rf"<@{re.escape(self._bot_user_id)}>\s*", "", text).strip()
+        if not self._bot_mention_re:
+            # Recompile lazily once per bot user to avoid runtime regex lookup
+            self._bot_mention_re = re.compile(rf"<@{re.escape(self._bot_user_id)}>\s*")
+        return self._bot_mention_re.sub("", text).strip()
 
     _TABLE_RE = re.compile(r"(?m)^\|.*\|$(?:\n\|[\s:|-]*\|$)(?:\n\|.*\|$)*")
     _CODE_FENCE_RE = re.compile(r"```[\s\S]*?```")
