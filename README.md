@@ -21,7 +21,7 @@
 
 ## 📢 News
 
-- **2026-03-22** ⚡ Bolt: pre-compile regex in hot paths to avoid repeated runtime compilation across tools, channels, and providers.
+- **2026-03-22** 🛡️ Sentinel: [CRITICAL] Harden MCP HTTP clients against SSRF vulnerabilities. ⚡ Bolt: pre-compile regex in hot paths to avoid repeated runtime compilation across tools, channels, and providers.
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 
