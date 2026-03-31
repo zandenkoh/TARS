@@ -63,6 +63,7 @@ class SlackChannel(BaseChannel):
         self._web_client: AsyncWebClient | None = None
         self._socket_client: SocketModeClient | None = None
         self._bot_user_id: str | None = None
+        self._bot_mention_re: re.Pattern | None = None
 
     async def start(self) -> None:
         """Start the Slack Socket Mode client."""
@@ -87,6 +88,8 @@ class SlackChannel(BaseChannel):
         try:
             auth = await self._web_client.auth_test()
             self._bot_user_id = auth.get("user_id")
+            if self._bot_user_id:
+                self._bot_mention_re = re.compile(rf"<@{re.escape(self._bot_user_id)}>\s*")
             logger.info("Slack bot connected as {}", self._bot_user_id)
         except Exception as e:
             logger.warning("Slack auth_test failed: {}", e)
@@ -289,6 +292,8 @@ class SlackChannel(BaseChannel):
     def _strip_bot_mention(self, text: str) -> str:
         if not text or not self._bot_user_id:
             return text
+        if self._bot_mention_re:
+            return self._bot_mention_re.sub("", text).strip()
         return re.sub(rf"<@{re.escape(self._bot_user_id)}>\s*", "", text).strip()
 
     _TABLE_RE = re.compile(r"(?m)^\|.*\|$(?:\n\|[\s:|-]*\|$)(?:\n\|.*\|$)*")
