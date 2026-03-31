@@ -4,10 +4,10 @@
         <div class="flex items-center gap-2">
             <!-- View Toggle -->
             <div class="flex bg-zinc-900 rounded-lg p-1 border border-white/5 mr-4">
-                <button aria-label="Grid View" onclick="setWorkspaceView('grid')" id="view-grid-btn" class="p-1.5 rounded-md bg-white/10 text-white transition-all">
+                <button aria-label="Grid View" onclick="setWorkspaceView('grid')" id="view-grid-btn" class="p-1.5 rounded-md bg-white/10 text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary">
                     <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 </button>
-                <button aria-label="List View" onclick="setWorkspaceView('list')" id="view-list-btn" class="p-1.5 rounded-md text-zinc-500 hover:text-white transition-all">
+                <button aria-label="List View" onclick="setWorkspaceView('list')" id="view-list-btn" class="p-1.5 rounded-md text-zinc-500 hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary">
                     <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
             </div>
@@ -20,7 +20,7 @@
     <!-- Breadcrumbs (Drop Target) -->
     <div class="flex items-center gap-2 mb-6 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-sm drop-target" 
          ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '.')">
-        <button hx-get="/api/workspace?path=." hx-target="#chat-messages" class="text-tars-primary hover:underline">root</button>
+        <button hx-get="/api/workspace?path=." hx-target="#chat-messages" class="text-tars-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary rounded px-1">root</button>
         {% if current_path != "." %}
             {% set parts = current_path.split('/') %}
             {% set current_acc = [] %}
@@ -29,7 +29,7 @@
                 {% set full_path = current_acc|join('/') %}
                 <span class="text-zinc-700">/</span>
                 <button hx-get="/api/workspace?path={{ full_path }}" hx-target="#chat-messages" 
-                        class="text-zinc-300 hover:text-white drop-target"
+                        class="text-zinc-300 hover:text-white drop-target focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary rounded px-1"
                         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ full_path }}')">
                     {{ part }}
                 </button>
@@ -39,8 +39,8 @@
 
     <div id="explorer-items" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {% if parent_path is not none %}
-        <div hx-get="/api/workspace?path={{ parent_path }}" hx-target="#chat-messages" 
-             class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer flex items-center gap-4 group drop-target"
+        <div hx-get="/api/workspace?path={{ parent_path }}" hx-target="#chat-messages" hx-trigger="click, keyup[key=='Enter']" tabindex="0" role="button"
+             class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer flex items-center gap-4 group drop-target focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary"
              ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ parent_path }}')">
             <div class="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:scale-110 transition-transform">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
@@ -53,8 +53,8 @@
         {% endif %}
 
         {% for item in items %}
-        <div {% if item.is_dir %}hx-get="/api/workspace?path={{ item.path }}" hx-target="#chat-messages"{% endif %} 
-             class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer flex items-center gap-4 group draggable relative {% if item.is_dir %}drop-target{% endif %}"
+        <div {% if item.is_dir %}hx-get="/api/workspace?path={{ item.path }}" hx-target="#chat-messages" hx-trigger="click, keyup[key=='Enter']" tabindex="0" role="button"{% endif %}
+             class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer flex items-center gap-4 group draggable relative {% if item.is_dir %}drop-target focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary{% endif %}"
              draggable="true" ondragstart="handleDragStart(event, '{{ item.path }}')"
              {% if item.is_dir %}ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ item.path }}')"{% endif %}>
             
@@ -72,7 +72,7 @@
             </div>
             
             <!-- Context Action -->
-            <button aria-label="Item Options" class="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-white transition-opacity">
+            <button aria-label="Item Options" class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-2 text-zinc-500 hover:text-white transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary rounded-lg">
                 <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
             </button>
         </div>
