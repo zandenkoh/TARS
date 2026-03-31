@@ -30,7 +30,7 @@
         transition: height 0.2s ease-out;
     }
 </style>
-<meta id="tars-config-data" data-config='{{ config.model_dump() | tojson | safe }}'>
+<meta id="tars-config-data" data-config='{{ config.model_dump(by_alias=True) | tojson | safe }}'>
 <div class="flex h-screen overflow-hidden bg-tars-black text-zinc-300 font-inter">
     <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden opacity-0 pointer-events-none transition-opacity duration-300"></div>
