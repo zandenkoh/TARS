@@ -44,6 +44,7 @@
 <summary>Earlier news</summary>
 
 - **2026-03-05** ⚡️ Telegram draft streaming, MCP SSE support, and broader channel reliability fixes.
+- **2025-03-31** 🛡️ Sentinel: [CRITICAL] Fixed ExecTool directory traversal sandbox escape vulnerability.
 - **2026-03-04** 🛠️ Dependency cleanup, safer file reads, and another round of test and Cron fixes.
 - **2026-03-03** 🧠 Cleaner user-message merging, safer multimodal saves, and stronger Cron guards.
 - **2026-03-02** 🛡️ Safer default access control, sturdier Cron reloads, and cleaner Matrix media handling.
