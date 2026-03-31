@@ -1,6 +1,6 @@
 {% macro render_config_item(key, value, prefix='') %}
     {% set full_key = (prefix + '.' + key) if prefix else key %}
-    <div class="px-4 py-3 border-b border-white/[0.04] last:border-0">
+    <div class="px-6 py-3 border-b border-white/[0.04] last:border-0">
         {% if value is mapping %}
             <div class="mb-2">
                 <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">{{ key }}</span>
