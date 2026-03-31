@@ -21,6 +21,11 @@
 1. Always securely initialize bounding directories (`workspace_dir`) directly from the system configuration (`agent/loop.py`) instead of relying on tool execution arguments.
 2. Use strict `Path.is_relative_to()` to validate all resolved paths (both `cwd` and command targets) against the definitive `workspace_dir`.
 3. Ensure security checks do not fail-open: if `restrict_to_workspace` is active but `workspace_dir` is undefined, the guard must explicitly block execution.
+## 2026-04-01 - Prevent SSRF via HTTP Redirects in WebFetchTool
+
+**Vulnerability:** The `WebFetchTool` used `httpx.AsyncClient` with `follow_redirects=True` and only validated the final resolved URL after the request had been fully processed. This allowed Server-Side Request Forgery (SSRF) where an attacker-controlled external URL could redirect the agent to fetch internal, private IP addresses (e.g., `127.0.0.1` or AWS metadata endpoints).
+**Learning:** Validating a URL *after* a request has been made provides no security against SSRF when redirects are followed automatically by the HTTP client. The request to the private IP has already occurred.
+**Prevention:** When following HTTP redirects, use event hooks (e.g., `event_hooks={"request": [...]}` in `httpx`) to validate each URL in the redirect chain *before* the request is actually sent.
 ## 2025-03-31 - [ExecTool Directory Traversal Bypass]
 
 **Vulnerability:** The `ExecTool` safety guard `_guard_command` relies on simple substring matching (`"../"` or `".."`) to enforce `restrict_to_workspace`. This check is easily bypassed by subshell commands using `cd ..`, allowing execution outside the restricted workspace (e.g. `cd .. && cat /etc/passwd`).
