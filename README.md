@@ -1,6 +1,7 @@
 <div align="center">
   <img src="assets/TARS_logo.png" alt="TARS" width="500">
   <h1>TARS: Ultra-Lightweight Personal AI Assistant</h1>
+- 🎨 Palette: Improve context menu button layout and settings modal width
   <p>
     <a href="https://pypi.org/project/TARS-ai/"><img src="https://img.shields.io/pypi/v/TARS-ai" alt="PyPI"></a>
     <a href="https://pepy.tech/project/TARS-ai"><img src="https://static.pepy.tech/badge/TARS-ai" alt="Downloads"></a>
