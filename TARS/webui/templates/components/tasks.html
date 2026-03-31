@@ -9,17 +9,16 @@
         </div>
     </div>
 
+
     <!-- Quick Add Task -->
-    <div class="mb-6 p-4 rounded-2xl bg-white/5 border border-white/5">
-        <form hx-post="/api/tasks" hx-target="#tasks-root" hx-on::after-request="this.reset(); htmx.ajax('GET', '/api/tasks/today', {target:'#chat-messages'})" class="flex gap-2">
-            <label for="new-task-content" class="sr-only">New task content</label>
-            <input type="text" id="new-task-content" name="content" aria-label="New task content" placeholder="Add a new task..." required
-                   class="flex-1 bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-tars-primary transition-all">
-            <button type="submit" aria-label="Add Task" class="px-4 py-2 bg-tars-primary text-black font-bold text-xs rounded-xl hover:bg-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                ADD TASK
-            </button>
-        </form>
+    <div class="mb-6 p-4 rounded-2xl bg-white/5 border border-white/5 flex gap-2">
+        <input type="text" onclick="openTaskModal()" readonly placeholder="Add a new task..."
+               class="flex-1 bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 text-sm text-zinc-500 cursor-pointer hover:bg-zinc-800 transition-all focus:outline-none">
+        <button onclick="openTaskModal()" aria-label="Add Task" class="px-4 py-2 bg-tars-primary text-black font-bold text-xs rounded-xl hover:bg-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            ADD TASK
+        </button>
     </div>
+
 
     <!-- Utility Bar -->
     <div class="flex flex-col sm:flex-row gap-4 mb-6 items-center">
@@ -70,23 +69,24 @@
                         <th scope="col" class="px-6 py-4 text-right">Due Date</th>
                     </tr>
                 </thead>
+
                 <tbody class="divide-y divide-white/5">
                     {% if tasks %}
-                        {% for task_file in tasks %}
-                        <tr class="hover:bg-white/5 transition-colors group">
+                        {% for task in tasks %}
+                        <tr class="hover:bg-white/5 transition-colors group cursor-pointer" onclick='openTaskModal("{{ task.id }}", {{ task | tojson | safe }})'>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 shrink-0">
                                         <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     </div>
                                     <div>
-                                        <div class="font-medium text-white">{{ task_file.date }} Routine</div>
-                                        <div class="text-[10px] text-zinc-500 mt-0.5">{{ task_file.count }} Tasks</div>
+                                        <div class="font-medium text-white truncate max-w-[200px]">{{ task.content }}</div>
+                                        <div class="text-[10px] text-zinc-500 mt-0.5">{% if task.schedule and task.schedule.frequency %}{{ task.schedule.frequency }}{% else %}Routine{% endif %}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs">Routine</span>
+                                <span class="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs">{% if task.schedule and task.schedule.frequency %}{{ task.schedule.frequency }}{% else %}Routine{% endif %}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
@@ -96,12 +96,12 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-1.5">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                    <span class="text-xs text-emerald-400">Active</span>
+                                    <div class="w-1.5 h-1.5 rounded-full {% if task.status == 'completed' %}bg-zinc-500{% else %}bg-emerald-500{% endif %}"></div>
+                                    <span class="text-xs {% if task.status == 'completed' %}text-zinc-400{% else %}text-emerald-400{% endif %} capitalize">{{ task.status | default('Active') }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <span class="text-xs font-medium text-zinc-300">{{ task_file.date }}</span>
+                                <span class="text-xs font-medium text-zinc-300">{{ task.date }}</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -115,7 +115,207 @@
                         </tr>
                     {% endif %}
                 </tbody>
+
             </table>
         </div>
     </div>
 </div>
+
+
+<!-- Task Modal -->
+<div id="task-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] items-center justify-center p-4 hidden flex">
+    <div class="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-fade-in relative">
+        <div class="flex items-center justify-between p-6 border-b border-white/5">
+            <h3 class="text-xl font-bold text-white tracking-tight" id="task-modal-title">Task</h3>
+            <button onclick="closeTaskModal()" class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <form id="task-form" onsubmit="submitTaskForm(event)" class="p-6 space-y-6">
+            <input type="hidden" id="task-id" name="id">
+            <input type="hidden" id="task-date" name="date">
+
+            <div>
+                <label for="task-name" class="block text-sm font-medium text-zinc-300 mb-2">Name</label>
+                <input type="text" id="task-name" name="content" required
+                       class="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-tars-primary transition-all">
+            </div>
+
+            <div>
+                <label for="task-instructions" class="block text-sm font-medium text-zinc-300 mb-2">Instructions</label>
+                <textarea id="task-instructions" name="instructions" rows="3"
+                          class="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-tars-primary transition-all resize-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-zinc-300 mb-2">Schedule</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="relative">
+                        <select id="task-freq" name="frequency" class="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-tars-primary transition-all appearance-none cursor-pointer">
+                            <option value="Daily">Daily</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Monthly">Monthly</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-zinc-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <select id="task-day" name="day" class="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-tars-primary transition-all appearance-none cursor-pointer">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-zinc-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <select id="task-time" name="time" class="w-full bg-zinc-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-tars-primary transition-all appearance-none cursor-pointer">
+                            <option value="8:00 AM">8:00 AM</option>
+                            <option value="8:30 PM">8:30 PM</option>
+                            <option value="9:00 PM">9:00 PM</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-zinc-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <label class="block text-sm font-medium text-zinc-300 mb-4">Notifications</label>
+                <div class="flex items-center justify-between">
+                    <div class="flex gap-2">
+                        <button type="button" id="btn-pause" onclick="toggleTaskPause()" class="px-4 py-2 bg-zinc-800 border border-white/10 text-white text-sm rounded-xl hover:bg-zinc-700 transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-white">
+                            Pause
+                        </button>
+                        <button type="button" id="btn-delete" onclick="deleteTask()" class="px-4 py-2 bg-zinc-800 border border-white/10 text-white text-sm rounded-xl hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 hidden">
+                            Delete
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeTaskModal()" class="px-4 py-2 bg-zinc-800 border border-white/10 text-white text-sm rounded-xl hover:bg-zinc-700 transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-white">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-zinc-500 text-white text-sm font-medium rounded-xl hover:bg-zinc-400 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openTaskModal(taskId = null, taskData = null) {
+        const modal = document.getElementById('task-modal');
+        const form = document.getElementById('task-form');
+        const title = document.getElementById('task-modal-title');
+        const deleteBtn = document.getElementById('btn-delete');
+
+        form.reset();
+
+        if (taskId && taskData) {
+            title.textContent = 'Edit Task';
+            document.getElementById('task-id').value = taskId;
+            document.getElementById('task-date').value = taskData.date || '';
+            document.getElementById('task-name').value = taskData.content || '';
+            document.getElementById('task-instructions').value = taskData.instructions || '';
+
+            if (taskData.schedule) {
+                if(taskData.schedule.frequency) document.getElementById('task-freq').value = taskData.schedule.frequency;
+                if(taskData.schedule.day) document.getElementById('task-day').value = taskData.schedule.day;
+                if(taskData.schedule.time) document.getElementById('task-time').value = taskData.schedule.time;
+            }
+            deleteBtn.classList.remove('hidden');
+        } else {
+            title.textContent = 'New Task';
+            document.getElementById('task-id').value = '';
+            document.getElementById('task-date').value = '';
+            deleteBtn.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeTaskModal() {
+        document.getElementById('task-modal').classList.add('hidden');
+    }
+
+    async function submitTaskForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const taskId = formData.get('id');
+
+        // Assemble schedule object
+        const schedule = {
+            frequency: formData.get('frequency'),
+            day: formData.get('day'),
+            time: formData.get('time')
+        };
+        formData.append('schedule', JSON.stringify(schedule));
+
+        const url = taskId ? `/api/tasks/${taskId}` : '/api/tasks';
+        const method = taskId ? 'PUT' : 'POST';
+
+        try {
+            const resp = await fetch(url, {
+                method: method,
+                body: formData
+            });
+
+            if (resp.ok) {
+                closeTaskModal();
+                htmx.ajax('GET', '/api/tasks/today', {target:'#chat-messages'});
+            } else {
+                alert('Failed to save task.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error saving task.');
+        }
+    }
+
+    async function deleteTask() {
+        const taskId = document.getElementById('task-id').value;
+        const taskDate = document.getElementById('task-date').value;
+        if (!taskId) return;
+
+        if (confirm('Are you sure you want to delete this task?')) {
+            try {
+                const resp = await fetch(`/api/tasks/${taskId}?date=${taskDate}`, { method: 'DELETE' });
+                if (resp.ok) {
+                    closeTaskModal();
+                    htmx.ajax('GET', '/api/tasks/today', {target:'#chat-messages'});
+                } else {
+                    alert('Failed to delete task.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error deleting task.');
+            }
+        }
+    }
+
+    function toggleTaskPause() {
+        // Implement pause toggle logic if needed, or visually indicate
+        const btn = document.getElementById('btn-pause');
+        if (btn.innerText === 'Pause') {
+            btn.innerText = 'Resume';
+            btn.classList.add('bg-amber-500/20', 'text-amber-400', 'border-amber-500/30');
+            btn.classList.remove('bg-zinc-800', 'text-white', 'border-white/10');
+        } else {
+            btn.innerText = 'Pause';
+            btn.classList.remove('bg-amber-500/20', 'text-amber-400', 'border-amber-500/30');
+            btn.classList.add('bg-zinc-800', 'text-white', 'border-white/10');
+        }
+    }
+</script>

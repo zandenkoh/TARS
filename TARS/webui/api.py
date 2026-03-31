@@ -248,21 +248,27 @@ async def get_config_ui(request: Request, tars: TARS):
 @app.get("/api/tasks/today", response_class=HTMLResponse)
 async def get_tasks_ui(request: Request, tars: TARS):
     """Render the tasks and routine dashboard."""
-    # Simplified logic to find daily task files
     tasks_dir = tars.workspace / "tasks"
     tasks = []
     if tasks_dir.exists():
+        # Load up to 5 days, extract all tasks
         for p in sorted(tasks_dir.glob("daily_*.json"), reverse=True)[:5]:
             try:
                 with open(p, "r") as f:
                     data = json.load(f)
-                    tasks.append({"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))})
-            except: continue
+                    date_str = data.get("date", p.stem.replace("daily_", ""))
+                    for t in data.get("tasks", []):
+                        t["date"] = date_str
+                        tasks.append(t)
+            except Exception:
+                continue
 
     return templates.TemplateResponse(request, "components/tasks.html", {
         "tasks": tasks,
         "tasks_path": str(tasks_dir)
     })
+
+
 
 @app.get("/api/channels", response_class=HTMLResponse)
 async def get_channels_ui(request: Request, tars: TARS):
@@ -368,10 +374,15 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 @app.post("/api/tasks")
-async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] = Form(None)):
+async def create_task(tars: TARS,
+                      content: str = Form(...),
+                      instructions: Optional[str] = Form(None),
+                      schedule: Optional[str] = Form(None),
+                      date: Optional[str] = Form(None)):
     """Manually create a task."""
     try:
         from datetime import datetime
+        import uuid
         target_date = date or datetime.now().strftime("%Y-%m-%d")
         tasks_dir = tars.workspace / "tasks"
         tasks_dir.mkdir(exist_ok=True)
@@ -386,9 +397,16 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
             with open(file_path, "r") as f:
                 tasks_data = json.load(f)
 
+        schedule_dict = {}
+        if schedule:
+            try: schedule_dict = json.loads(schedule)
+            except Exception: pass
+
         tasks_data["tasks"].append({
             "id": uuid.uuid4().hex[:8],
             "content": content,
+            "instructions": instructions,
+            "schedule": schedule_dict,
             "status": "pending",
             "created_at": datetime.now().isoformat()
         })
@@ -399,6 +417,77 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
         return JSONResponse({"status": "success", "message": "Task created"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.put("/api/tasks/{task_id}")
+async def update_task(task_id: str,
+                      tars: TARS,
+                      content: str = Form(...),
+                      instructions: Optional[str] = Form(None),
+                      schedule: Optional[str] = Form(None),
+                      date: Optional[str] = Form(None)):
+    """Update an existing task."""
+    try:
+        from datetime import datetime
+        target_date = date or datetime.now().strftime("%Y-%m-%d")
+        tasks_dir = tars.workspace / "tasks"
+        file_path = (tasks_dir / f"daily_{target_date}.json").resolve()
+
+        if not file_path.is_relative_to(tasks_dir.resolve()) or not file_path.exists():
+            return JSONResponse({"status": "error", "message": "Task file not found"}, status_code=404)
+
+        with open(file_path, "r") as f:
+            tasks_data = json.load(f)
+
+        updated = False
+        schedule_dict = {}
+        if schedule:
+            try: schedule_dict = json.loads(schedule)
+            except Exception: pass
+
+        for t in tasks_data.get("tasks", []):
+            if t.get("id") == task_id:
+                t["content"] = content
+                if instructions is not None: t["instructions"] = instructions
+                if schedule_dict: t["schedule"] = schedule_dict
+                updated = True
+                break
+
+        if not updated:
+            return JSONResponse({"status": "error", "message": "Task not found in the file"}, status_code=404)
+
+        with open(file_path, "w") as f:
+            json.dump(tasks_data, f, indent=2)
+
+        return JSONResponse({"status": "success", "message": "Task updated"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.delete("/api/tasks/{task_id}")
+async def delete_task(task_id: str, tars: TARS, date: str):
+    """Delete an existing task."""
+    try:
+        tasks_dir = tars.workspace / "tasks"
+        file_path = (tasks_dir / f"daily_{date}.json").resolve()
+
+        if not file_path.is_relative_to(tasks_dir.resolve()) or not file_path.exists():
+            return JSONResponse({"status": "error", "message": "Task file not found"}, status_code=404)
+
+        with open(file_path, "r") as f:
+            tasks_data = json.load(f)
+
+        original_len = len(tasks_data.get("tasks", []))
+        tasks_data["tasks"] = [t for t in tasks_data.get("tasks", []) if t.get("id") != task_id]
+
+        if len(tasks_data["tasks"]) == original_len:
+            return JSONResponse({"status": "error", "message": "Task not found in the file"}, status_code=404)
+
+        with open(file_path, "w") as f:
+            json.dump(tasks_data, f, indent=2)
+
+        return JSONResponse({"status": "success", "message": "Task deleted"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
 
 @app.post("/api/config")
 async def update_config(tars: TARS, config_json: str = Form(...)):
