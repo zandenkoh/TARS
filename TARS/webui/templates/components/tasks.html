@@ -12,7 +12,7 @@
     <!-- Quick Add Task -->
     <div class="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5">
         <form hx-post="/api/tasks" hx-target="#tasks-root" hx-on::after-request="this.reset(); htmx.ajax('GET', '/api/tasks/today', {target:'#chat-messages'})" class="flex gap-2">
-            <input type="text" name="content" placeholder="Add a new task..." required
+            <input type="text" name="content" aria-label="New task content" placeholder="Add a new task..." required
                    class="flex-1 bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-tars-primary/50 transition-all">
             <button type="submit" class="px-4 py-2 bg-tars-primary text-black font-bold text-xs rounded-xl hover:bg-white transition-all">
                 ADD TASK
