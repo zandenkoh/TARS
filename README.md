@@ -23,6 +23,7 @@
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 
+- **2026-03-31** 🎨 Updated WebUI profile context menu to match the new design with dynamic user avatars and working features only.
 - **2026-03-21** 🔒 Replace `litellm` with native `openai` + `anthropic` SDKs. Please see [commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 - **2026-03-20** 🧙 Interactive setup wizard — pick your provider, model autocomplete, and you're good to go.
 - **2026-03-19** 💬 Telegram gets more resilient under load; Feishu now renders code blocks properly.
