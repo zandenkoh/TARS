@@ -163,8 +163,8 @@
                 </div>
             </div>
 
-            <div onclick="toggleProfileMenu()"
-                class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.05] transition-colors cursor-pointer group">
+            <div onclick="toggleProfileMenu()" onkeydown="if(event.key==='Enter') toggleProfileMenu()" tabindex="0" role="button"
+                class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.05] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 transition-colors cursor-pointer group">
                 <div
                     class="w-8 h-8 rounded-full bg-[#c55b5b] flex items-center justify-center text-[10px] font-bold text-white border border-[#c55b5b]/10 user-avatar-display shrink-0">
                     U
@@ -1180,7 +1180,7 @@ async function saveConfig() {
                     const title = s.metadata?.title || s.key.split(':').pop();
                     const date = s.updated_at ? new Date(s.updated_at).toLocaleDateString() : '';
                     return `
-                        <div onclick="closeSearchModal(); loadSession('${s.key}')" class="flex items-center gap-4 p-3 bg-transparent hover:bg-white/5 rounded-xl transition-all cursor-pointer group">
+                        <div onclick="closeSearchModal(); loadSession('${s.key}')" onkeydown="if(event.key==='Enter') { closeSearchModal(); loadSession('${s.key}'); }" tabindex="0" role="button" class="flex items-center gap-4 p-3 bg-transparent hover:bg-white/5 focus-visible:bg-white/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded-xl transition-all cursor-pointer group">
                              <div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-white transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                              </div>
@@ -1294,7 +1294,7 @@ async function saveConfig() {
                     if (title.length > 20) title = title.substring(0, 20) + '...';
                     const active = s.key === currentSessionId ? 'bg-white/[0.08] text-white' : 'text-zinc-500 hover:bg-white/[0.03] hover:text-zinc-300';
                     return `
-                    <div onclick="loadSession('${s.key}')" class="relative flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group ${active}">
+                    <div onclick="loadSession('${s.key}')" onkeydown="if(event.key==='Enter') loadSession('${s.key}')" tabindex="0" role="button" class="relative flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 ${active}">
                         <span class="truncate flex-1 font-medium">${title}</span>
                         <div class="relative session-menu-trigger">
                             <button aria-label="Session Options" aria-haspopup="true" onclick="toggleSessionMenu(event, '${s.key}')" class="p-1 hover:bg-white/10 rounded-md transition-colors opacity-0 group-hover:opacity-100">
