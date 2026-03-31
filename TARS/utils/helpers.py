@@ -10,10 +10,20 @@ from typing import Any
 
 import tiktoken
 
-
 # ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead in hot streaming loops
 _THINK_BLOCK_RE = re.compile(r"<think>[\s\S]*?</think>")
 _THINK_TRAILING_RE = re.compile(r"<think>[\s\S]*$")
+
+# ⚡ Bolt: Cache tiktoken encoding to avoid expensive redundant initializations
+_TIKTOKEN_ENCODING: Any = None
+
+def _get_encoding() -> Any:
+    """Lazy-load and cache the tiktoken encoding."""
+    global _TIKTOKEN_ENCODING
+    if _TIKTOKEN_ENCODING is None:
+        _TIKTOKEN_ENCODING = tiktoken.get_encoding("cl100k_base")
+    return _TIKTOKEN_ENCODING
+
 
 def strip_think(text: str) -> str:
     """Remove <think>…</think> blocks and any unclosed trailing <think> tag."""
@@ -145,7 +155,7 @@ def estimate_prompt_tokens(
     reasoning_content, tool_call_id, name, plus per-message framing overhead.
     """
     try:
-        enc = tiktoken.get_encoding("cl100k_base")
+        enc = _get_encoding()
         parts: list[str] = []
         for msg in messages:
             content = msg.get("content")
@@ -212,7 +222,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     if not payload:
         return 4
     try:
-        enc = tiktoken.get_encoding("cl100k_base")
+        enc = _get_encoding()
         return max(4, len(enc.encode(payload)) + 4)
     except Exception:
         return max(4, len(payload) // 4 + 4)
