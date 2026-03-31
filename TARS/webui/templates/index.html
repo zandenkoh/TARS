@@ -88,14 +88,9 @@
                 </svg>
                 Search chats
             </button>
-            <button onclick="showExplorer('Projects'); closeSidebarOnMobile()"
-                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                </svg>
-                Projects
-            </button>
+            <div id="sidebar-projects-container" class="mt-1">
+                <!-- Dynamically populated by renderProjectsSidebar() -->
+            </div>
 
         </nav>
 
@@ -315,6 +310,42 @@
                 </div>
             </div>
 
+            <!-- Project View -->
+            <div id="project-view" class="hidden w-full max-w-3xl px-6 pt-12 animate-fade-in flex flex-col items-center">
+                <div class="flex flex-col w-full max-w-2xl mb-12">
+                    <h2 id="project-title" class="text-[28px] font-medium text-white mb-6 flex items-center gap-3 justify-center text-center w-full">
+                        <span id="project-icon" class="text-blue-500">🎓</span> <span id="project-name-display">Homework</span>
+                    </h2>
+
+                    <div class="w-full relative mb-6">
+                        <div class="flex items-center gap-3 p-1.5 rounded-full bg-white/5 border border-white/5 focus-within:border-white/20 transition-all">
+                            <svg class="w-5 h-5 text-zinc-500 ml-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                            <input type="text" aria-label="Project chat input" placeholder="why" class="flex-1 bg-transparent text-white py-3 px-2 outline-none placeholder:text-zinc-600 text-[16px]">
+                            <button aria-label="Voice Input" type="button" class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors" title="Voice Input">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"></path>
+                                </svg>
+                            </button>
+                            <button aria-label="Send" type="button" class="flex items-center justify-center w-[34px] h-[34px] bg-white text-black rounded-full hover:bg-zinc-200 transition-all shadow-sm mr-1">
+                                <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 3v18M8 7v10M16 7v10M4 10v4M20 10v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-6 border-b border-white/[0.04] mb-8 justify-center w-full">
+                        <button class="px-1 py-2 text-sm font-medium text-white border-b-2 border-white -mb-[1px]">Chats</button>
+                        <button class="px-1 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent -mb-[1px] transition-colors">Sources</button>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center text-center py-20">
+                        <p class="text-[15px] font-medium text-zinc-200 mb-1">No chats yet</p>
+                        <p class="text-[13px] text-zinc-500">Chats in <span id="project-empty-name">Homework</span> will live here</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Explorer View (Search, etc) -->
             <div id="explorer-view" class="hidden w-full max-w-3xl px-6 pt-12 animate-fade-in flex flex-col items-center">
                 <h2 id="explorer-title" class="text-3xl font-heading font-bold text-white mb-8">Search</h2>
@@ -436,8 +467,10 @@
         const welcome = document.getElementById('welcome-view');
         const chatMessages = document.getElementById('chat-messages');
         const footer = document.getElementById('active-chat-footer');
+        const projectView = document.getElementById('project-view');
 
         isTabMode = false;
+        if (projectView) projectView.classList.add('hidden');
         chatMessages.innerHTML = '';
         welcome.classList.remove('hidden');
         welcome.style.display = 'flex';
@@ -475,6 +508,8 @@
     function prepareTabContent() {
         const explorer = document.getElementById('explorer-view');
         if (explorer) explorer.classList.add('hidden');
+        const projectView = document.getElementById('project-view');
+        if (projectView) projectView.classList.add('hidden');
         const chatMessages = document.getElementById('chat-messages');
         if (chatMessages) {
             chatMessages.classList.remove('hidden');
@@ -484,6 +519,25 @@
                 </div>
             `;
         }
+    }
+
+    function showProject(name, icon) {
+        isTabMode = true;
+        hideWelcome(true);
+        const explorer = document.getElementById('explorer-view');
+        const chatMessages = document.getElementById('chat-messages');
+        const activeFooter = document.getElementById('active-chat-footer');
+        const projectView = document.getElementById('project-view');
+
+        if (explorer) explorer.classList.add('hidden');
+        if (chatMessages) chatMessages.classList.add('hidden');
+        if (activeFooter) activeFooter.classList.add('translate-y-full', 'opacity-0');
+
+        document.getElementById('project-name-display').innerText = name;
+        document.getElementById('project-empty-name').innerText = name;
+        document.getElementById('project-icon').innerText = icon || '📁';
+
+        projectView.classList.remove('hidden');
     }
 
     function toggleProfileMenu() {
@@ -757,7 +811,47 @@
                     </div>
                 </div>
             `;
-        } else if (title === 'Search' || title === 'Projects') {
+        } else if (title === 'Create project') {
+            contentEl.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <div>
+                        <label for="create-project-name" class="block text-[13px] font-medium text-zinc-300 mb-2">Project name</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4l2 2m4-2l-2 2"></path>
+                                </svg>
+                            </span>
+                            <input type="text" id="create-project-name" placeholder="Copenhagen Trip" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white outline-none focus:border-white/30 transition-all text-sm" oninput="toggleCreateProjectBtn()">
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="document.getElementById('create-project-name').value='Investing'; toggleCreateProjectBtn()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-zinc-300 hover:bg-white/5 transition-colors flex items-center gap-2">
+                            <span class="text-emerald-500">$</span> Investing
+                        </button>
+                        <button onclick="document.getElementById('create-project-name').value='Homework'; toggleCreateProjectBtn()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-zinc-300 hover:bg-white/5 transition-colors flex items-center gap-2">
+                            <span class="text-blue-500">🎓</span> Homework
+                        </button>
+                        <button onclick="document.getElementById('create-project-name').value='Writing'; toggleCreateProjectBtn()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-zinc-300 hover:bg-white/5 transition-colors flex items-center gap-2">
+                            <span class="text-purple-500">🖊️</span> Writing
+                        </button>
+                        <button onclick="document.getElementById('create-project-name').value='Travel'; toggleCreateProjectBtn()" class="px-3 py-1.5 rounded-full border border-white/10 text-xs font-medium text-zinc-300 hover:bg-white/5 transition-colors flex items-center gap-2">
+                            <span class="text-amber-500">✈️</span> Travel
+                        </button>
+                    </div>
+                    <div class="p-4 rounded-xl bg-white/5 border border-white/5 flex gap-3 text-zinc-400">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        <p class="text-[12px] leading-relaxed">Projects keep chats, files, and custom instructions in one place. Use them for ongoing work, or just to keep things tidy.</p>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button id="submit-create-project-btn" disabled onclick="createProject()" class="px-5 py-2.5 bg-white/10 text-zinc-400 font-semibold rounded-full hover:bg-white hover:text-black transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-zinc-400">Create project</button>
+                    </div>
+                </div>
+            `;
+        } else if (title === 'Search') {
             contentEl.innerHTML = `
                 <div class="py-12 flex flex-col items-center justify-center text-center animate-fade-in">
                     <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
@@ -814,8 +908,10 @@
         const chatMessages = document.getElementById('chat-messages');
         const activeFooter = document.getElementById('active-chat-footer');
         const explorer = document.getElementById('explorer-view');
+        const projectView = document.getElementById('project-view');
         const title = document.getElementById('explorer-title');
         
+        if (projectView) projectView.classList.add('hidden');
         chatMessages.classList.add('hidden');
         welcome.classList.add('hidden');
         activeFooter.classList.add('translate-y-full', 'opacity-0');
@@ -880,8 +976,11 @@
         document.querySelectorAll('.session_id_field').forEach(el => el.value = sessionId);
 
         hideWelcome(false);
+        const projectView = document.getElementById('project-view');
+        if (projectView) projectView.classList.add('hidden');
 
         const chatMessages = document.getElementById('chat-messages');
+        chatMessages.classList.remove('hidden');
         chatMessages.innerHTML = `
             <div class="flex flex-col items-center justify-center py-20 space-y-4">
                 <div class="w-8 h-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin"></div>
@@ -1035,7 +1134,92 @@
     window.onload = () => {
         refreshSessions();
         checkOnboarding();
+        renderProjectsSidebar();
     };
+
+    let userProjects = [];
+
+    function escapeHtmlAndQuotes(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function toggleCreateProjectBtn() {
+        const input = document.getElementById('create-project-name');
+        const btn = document.getElementById('submit-create-project-btn');
+        if (input && btn) {
+            btn.disabled = input.value.trim() === '';
+        }
+    }
+
+    function createProject() {
+        const input = document.getElementById('create-project-name');
+        const name = input.value.trim();
+        if (name) {
+            let icon = '📁';
+            if (name === 'Investing') icon = '💵';
+            else if (name === 'Homework') icon = '🎓';
+            else if (name === 'Writing') icon = '🖊️';
+            else if (name === 'Travel') icon = '✈️';
+
+            userProjects.push({ name, icon });
+            renderProjectsSidebar();
+            closeModal();
+            showProject(name, icon);
+        }
+    }
+
+    function renderProjectsSidebar() {
+        const container = document.getElementById('sidebar-projects-container');
+        if (!container) return;
+
+        if (userProjects.length === 0) {
+            container.innerHTML = `
+                <button onclick="openModal('Create project'); closeSidebarOnMobile()"
+                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                    Projects
+                </button>
+            `;
+        } else {
+            let projectsHtml = userProjects.map(p => {
+                const safeName = escapeHtmlAndQuotes(p.name);
+                const safeIcon = escapeHtmlAndQuotes(p.icon || '📁');
+                return `
+                <button onclick="showProject('${safeName}', '${safeIcon}'); closeSidebarOnMobile()"
+                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                    <span class="w-4 h-4 text-center text-[12px] leading-tight flex items-center justify-center">${safeIcon}</span>
+                    ${safeName}
+                </button>
+            `}).join('');
+
+            container.innerHTML = `
+                <div class="px-3 pt-3 pb-1 flex items-center gap-2 group cursor-pointer hover:text-zinc-200 text-zinc-400 transition-colors">
+                    <span class="text-[10px] font-bold uppercase tracking-widest flex-1">Projects</span>
+                    <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <button onclick="openModal('Create project'); closeSidebarOnMobile()"
+                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                    </svg>
+                    New project
+                </button>
+                ${projectsHtml}
+            `;
+        }
+    }
 
     // Keyboard Shortcuts (Esc to close)
     document.addEventListener('keydown', (e) => {
