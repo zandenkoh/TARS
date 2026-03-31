@@ -110,8 +110,8 @@
         <div class="relative p-3 border-t border-white/[0.04] mt-auto">
             <!-- Context Menu (hidden by default) -->
             <div id="profile-context-menu" 
-                class="absolute bottom-[calc(100%+8px)] left-2 right-2 bg-[#2f2f2f] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden hidden animate-slide-up z-[60]">
-                <div class="p-1.5 flex flex-col">
+                class="absolute bottom-[calc(100%+8px)] left-0 right-0 bg-[#2f2f2f] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden hidden animate-slide-up z-[60]">
+                <div class="flex flex-col">
                     <div class="flex items-center gap-3 px-3 py-2 mb-1">
                         <div class="w-8 h-8 rounded-full bg-[#c55b5b] flex items-center justify-center text-[10px] font-bold text-white border border-[#c55b5b]/10 user-avatar-display shrink-0">
                             U
@@ -664,7 +664,7 @@
     function openSettings() {
         const title = "Settings";
         const content = `
-            <div class="flex h-[600px] -m-6 overflow-hidden bg-[#202123] text-zinc-200 font-sans sm:w-[800px] w-full max-w-full">
+            <div class="flex h-[600px] -m-6 overflow-hidden bg-[#202123] text-zinc-200 font-sans w-full max-w-full">
                 <!-- Sidebar -->
                 <div class="w-[260px] shrink-0 bg-[#202123] p-3 space-y-1 overflow-y-auto custom-scrollbar border-r border-white/5">
 
@@ -766,7 +766,7 @@
         if (tab === 'general') {
             const username = tarsConfig.user ? tarsConfig.user.username : '';
             pane.innerHTML = `
-                <div class="max-w-2xl text-[14px] mx-auto w-full">
+                <div class="text-[14px] w-full">
                     <h2 class="text-xl font-semibold text-white mb-6">General</h2>
 
                     <!-- Username (Core feature integration) -->
@@ -884,14 +884,14 @@
                 `;
             }
             pane.innerHTML = `
-                <div class="max-w-2xl text-[14px] mx-auto w-full space-y-6 pb-12">
+                <div class="text-[14px] w-full space-y-6 pb-12">
                     <h2 class="text-xl font-semibold text-white mb-6">Connect AI Providers</h2>
                     ${providersHtml}
                 </div>
             `;
         } else {
             pane.innerHTML = `
-                <div class="max-w-2xl text-[14px] mx-auto w-full">
+                <div class="text-[14px] w-full">
                     <h2 class="text-xl font-semibold text-white mb-6 capitalize">${tab.replace('_', ' ')}</h2>
                     <div class="py-20 text-center text-zinc-500 border border-white/10 rounded-2xl bg-white/5">This section is currently under construction.</div>
                 </div>
