@@ -1,3 +1,4 @@
+import os
 import time
 from playwright.sync_api import sync_playwright
 
@@ -31,7 +32,7 @@ def run_cuj(page):
     page.wait_for_timeout(2000)
 
     # Take screenshot at the key moment showing search modal
-    page.screenshot(path="/home/jules/verification/screenshots/search_modal_with_button.png")
+    page.screenshot(path="tests/e2e/screenshots/search_modal_with_button.png")
     page.wait_for_timeout(1000)
 
     # Close it and try Projects
@@ -43,17 +44,16 @@ def run_cuj(page):
     projects_button = page.get_by_text("Projects").first
     projects_button.click()
     page.wait_for_timeout(2000)
-    page.screenshot(path="/home/jules/verification/screenshots/projects_modal.png")
+    page.screenshot(path="tests/e2e/screenshots/projects_modal.png")
     page.wait_for_timeout(1000)
 
 if __name__ == "__main__":
-    import os
-    os.makedirs("/home/jules/verification/screenshots", exist_ok=True)
-    os.makedirs("/home/jules/verification/videos", exist_ok=True)
+    os.makedirs("tests/e2e/screenshots", exist_ok=True)
+    os.makedirs("tests/e2e/videos", exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
-            record_video_dir="/home/jules/verification/videos",
+            record_video_dir="tests/e2e/videos",
             viewport={'width': 1280, 'height': 800}
         )
         page = context.new_page()

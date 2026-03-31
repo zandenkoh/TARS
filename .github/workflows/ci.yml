@@ -27,11 +27,14 @@ jobs:
     - name: Install system dependencies
       run: sudo apt-get update && sudo apt-get install -y libolm-dev build-essential
 
+    - name: Prepare configuration
+      run: cp config.example.json config.json
+
     - name: Install all dependencies
       run: uv sync --all-extras
 
     - name: Install Playwright browsers
-      run: uv run playwright install chromium
+      run: uv run playwright install chromium --with-deps
 
     - name: Run tests
       run: uv run pytest tests/
