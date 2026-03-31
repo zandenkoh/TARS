@@ -31,6 +31,7 @@ from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.paths import get_media_dir, get_runtime_subdir
 from TARS.config.schema import Base
+from TARS.security.network import validate_resolved_url
 from TARS.utils.helpers import split_message
 
 # ---------------------------------------------------------------------------
@@ -90,6 +91,12 @@ class WeixinConfig(Base):
     state_dir: str = ""  # Default: ~/.TARS/weixin/
     poll_timeout: int = DEFAULT_LONG_POLL_TIMEOUT_S  # seconds for long-poll
 
+
+
+async def _verify_request(request: httpx.Request) -> None:
+    ok, err = validate_resolved_url(str(request.url))
+    if not ok:
+        raise RuntimeError(f"SSRF blocked: {err}")
 
 class WeixinChannel(BaseChannel):
     """
@@ -358,6 +365,7 @@ class WeixinChannel(BaseChannel):
         self._client = httpx.AsyncClient(
             timeout=httpx.Timeout(60, connect=30),
             follow_redirects=True,
+            event_hooks={"request": [_verify_request]},
         )
         self._running = True  # Enable polling loop in _qr_login()
         try:
@@ -374,6 +382,7 @@ class WeixinChannel(BaseChannel):
         self._client = httpx.AsyncClient(
             timeout=httpx.Timeout(self._next_poll_timeout_s + 10, connect=30),
             follow_redirects=True,
+            event_hooks={"request": [_verify_request]},
         )
 
         if self.config.token:

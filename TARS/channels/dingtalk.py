@@ -17,6 +17,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from dingtalk_stream import (
@@ -155,6 +156,12 @@ class DingTalkConfig(Base):
     allow_from: list[str] = Field(default_factory=list)
 
 
+
+async def _verify_request(request: httpx.Request) -> None:
+    ok, err = validate_resolved_url(str(request.url))
+    if not ok:
+        raise RuntimeError(f"SSRF blocked: {err}")
+
 class DingTalkChannel(BaseChannel):
     """
     DingTalk channel using Stream Mode.
@@ -205,7 +212,7 @@ class DingTalkChannel(BaseChannel):
                 return
 
             self._running = True
-            self._http = httpx.AsyncClient()
+            self._http = httpx.AsyncClient(event_hooks={"request": [_verify_request]})
 
             logger.info(
                 "Initializing DingTalk Stream Client with Client ID: {}...",
@@ -296,6 +303,10 @@ class DingTalkChannel(BaseChannel):
 
         if self._is_http_url(media_ref):
             if not self._http:
+                return None, None, None
+            is_valid, err_msg = validate_url_target(media_ref)
+            if not is_valid:
+                logger.warning("DingTalk media blocked by SSRF check ref={} err={}", media_ref, err_msg)
                 return None, None, None
             try:
                 resp = await self._http.get(media_ref, follow_redirects=True)
