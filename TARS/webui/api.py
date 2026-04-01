@@ -36,8 +36,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             origin = request.headers.get("origin") or request.headers.get("referer")
             if origin:
                 from urllib.parse import urlparse
-                host = urlparse(origin).netloc
-                if host not in ("localhost:18790", "127.0.0.1:18790"):
+                hostname = urlparse(origin).hostname
+                if hostname not in ("localhost", "127.0.0.1"):
                     from fastapi.responses import JSONResponse
                     return JSONResponse({"status": "error", "message": "CSRF validation failed"}, status_code=403)
             else:
