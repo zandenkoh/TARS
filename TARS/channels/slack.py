@@ -302,6 +302,7 @@ class SlackChannel(BaseChannel):
     _LEFTOVER_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
     _LEFTOVER_HEADER_RE = re.compile(r"^#{1,6}\s+(.+)$", re.MULTILINE)
     _BARE_URL_RE = re.compile(r"(?<![|<])(https?://\S+)")
+    _TABLE_SEP_RE = re.compile(r"[|\s:\-]+")
 
     @classmethod
     def _to_mrkdwn(cls, text: str) -> str:
@@ -330,14 +331,15 @@ class SlackChannel(BaseChannel):
             text = text.replace(f"\x00CB{i}\x00", block)
         return text
 
-    @staticmethod
-    def _convert_table(match: re.Match) -> str:
+    @classmethod
+    def _convert_table(cls, match: re.Match) -> str:
         """Convert a Markdown table to a Slack-readable list."""
         lines = [ln.strip() for ln in match.group(0).strip().splitlines() if ln.strip()]
         if len(lines) < 2:
             return match.group(0)
         headers = [h.strip() for h in lines[0].strip("|").split("|")]
-        start = 2 if re.fullmatch(r"[|\s:\-]+", lines[1]) else 1
+        # ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead in hot formatting loops
+        start = 2 if cls._TABLE_SEP_RE.fullmatch(lines[1]) else 1
         rows: list[str] = []
         for line in lines[start:]:
             cells = [c.strip() for c in line.strip("|").split("|")]

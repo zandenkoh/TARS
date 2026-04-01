@@ -7,3 +7,9 @@
 ## 2026-04-01 - Avoid Heavy JSON Parsing for Content Search
 **Learning:** In the `SessionManager.search_sessions` method, loading the entire chat history for every session into memory via `self._load(key)` (which invokes `json.loads` on every line) was a severe bottleneck for users with long histories performing searches. This caused large memory allocations and CPU spikes when we only needed to perform a simple substring match to find a specific keyword.
 **Action:** When searching or filtering large structured text files like JSONL logs or chat histories, stream the file line-by-line using `open()` and perform a raw string substring match (`query in line`) *before* invoking the expensive `json.loads()`. Only parse the line if the raw string check succeeds to confirm field constraints.
+## 2026-04-01 - [Pre-compile regex inside formatting hot paths]
+**Learning:** Re-evaluating `re.fullmatch(pattern)` inside a text replacement hook (e.g. `_convert_table`) incurs redundant regex compilation on each match. While individual table conversions are fast, they block the event loop in `asyncio` if processing heavily markdown-formatted chat histories.
+**Action:** Replace dynamically compiled regex with class-level pre-compiled regex objects (`cls._TABLE_SEP_RE.fullmatch`) to avoid recompilation overhead in hot loops.
+## 2026-04-01 - Global Cache for Heavy Initialization Tasks
+**Learning:** Calling initialization methods like `tiktoken.get_encoding("cl100k_base")` repeatedly inside highly-frequent utility functions (such as token estimators for messages) adds significant and measurable overhead to execution times, especially when generating stream chunks or processing histories.
+**Action:** When a static dependency like a token encoder is needed across multiple frequent function calls, declare a module-level variable to cache the result lazily (e.g., via a helper `_get_tiktoken_encoding()`) instead of retrieving it each time.

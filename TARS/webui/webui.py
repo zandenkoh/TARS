@@ -14,7 +14,7 @@ app = typer.Typer(
 @app.command()
 def start(
     host: Annotated[str, typer.Option(help="Binding host")] = "0.0.0.0",
-    port: Annotated[int, typer.Option(help="Binding port")] = 18780,
+    port: Annotated[int, typer.Option(help="Binding port")] = 18790,
     reload: Annotated[bool, typer.Option(help="Enable hot reload (dev mode)")] = True,
 ):
     """Start the TARS Web UI server (FastAPI + Uvicorn)."""
