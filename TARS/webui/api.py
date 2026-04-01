@@ -225,7 +225,7 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
 
         async def run_agent():
             try:
-                await tars.agent.process_direct(
+                outbound = await tars.agent.process_direct(
                     content,
                     session_key=session_id,
                     channel="web",
@@ -233,6 +233,12 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
                     on_stream=on_stream,
                     on_progress=on_progress
                 )
+                if outbound and first:
+                    await on_stream(outbound.content or "")
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                await on_stream(f"\n\nError: {e}")
             finally:
                 await queue.put(None)
 
