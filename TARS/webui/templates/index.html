@@ -1320,6 +1320,25 @@
             `;
         }
     }
+    function toggleSessionMenu(event, sessionId) {
+        if (event) {
+            event.stopPropagation();
+        }
+
+        // Hide all other session menus
+        document.querySelectorAll('[id^="session-menu-"]').forEach(m => {
+            if (m.id !== `session-menu-${sessionId}`) {
+                m.classList.add('hidden');
+            }
+        });
+
+        // Toggle the target session menu
+        const menu = document.getElementById(`session-menu-${sessionId}`);
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+    }
+
     async function deleteSession(sessionId) {
         if (!confirm('Are you sure you want to delete this chat?')) return;
         try {
