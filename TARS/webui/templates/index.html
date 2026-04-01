@@ -1837,7 +1837,7 @@
         renderProjectsSidebar();
     };
 
-    let userProjects = [];
+    let userProjects = JSON.parse(localStorage.getItem('tars_projects') || '[]');
 
     function escapeHtmlAndQuotes(str) {
         if (!str) return '';
@@ -1868,6 +1868,11 @@
             else if (name === 'Travel') icon = '✈️';
 
             userProjects.push({ name, icon });
+            try {
+                localStorage.setItem('tars_projects', JSON.stringify(userProjects));
+            } catch (e) {
+                console.warn('Failed to save project to localStorage', e);
+            }
             renderProjectsSidebar();
             closeModal();
             showProject(name, icon);
