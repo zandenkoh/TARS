@@ -10,9 +10,21 @@ from typing import Any
 
 import tiktoken
 
+_TIKTOKEN_ENC = None
+
+
+def _get_tiktoken_encoding():
+    """Lazily load and cache tiktoken encoding."""
+    global _TIKTOKEN_ENC
+    if _TIKTOKEN_ENC is None:
+        _TIKTOKEN_ENC = tiktoken.get_encoding("cl100k_base")
+    return _TIKTOKEN_ENC
+
+
 # ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead in hot streaming loops
 _THINK_BLOCK_RE = re.compile(r"<think>[\s\S]*?</think>")
 _THINK_TRAILING_RE = re.compile(r"<think>[\s\S]*$")
+
 
 def strip_think(text: str) -> str:
     """Remove <think>…</think> blocks and any unclosed trailing <think> tag."""
@@ -34,7 +46,9 @@ def detect_image_mime(data: bytes) -> str | None:
     return None
 
 
-def build_image_content_blocks(raw: bytes, mime: str, path: str, label: str) -> list[dict[str, Any]]:
+def build_image_content_blocks(
+    raw: bytes, mime: str, path: str, label: str
+) -> list[dict[str, Any]]:
     """Build native image blocks plus a short text label."""
     b64 = base64.b64encode(raw).decode()
     return [
@@ -80,6 +94,7 @@ def current_time_str(timezone: str | None = None) -> str:
 
 _UNSAFE_CHARS = re.compile(r'[<>:"/\\|?*]')
 
+
 def safe_filename(name: str) -> str:
     """Replace unsafe path characters with underscores."""
     return _UNSAFE_CHARS.sub("_", name).strip()
@@ -107,9 +122,9 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
             break
         cut = content[:max_len]
         # Try to break at newline first, then space, then hard break
-        pos = cut.rfind('\n')
+        pos = cut.rfind("\n")
         if pos <= 0:
-            pos = cut.rfind(' ')
+            pos = cut.rfind(" ")
         if pos <= 0:
             pos = max_len
         chunks.append(content[:pos])
@@ -144,7 +159,7 @@ def estimate_prompt_tokens(
     reasoning_content, tool_call_id, name, plus per-message framing overhead.
     """
     try:
-        enc = tiktoken.get_encoding("cl100k_base")
+        enc = _get_tiktoken_encoding()
         parts: list[str] = []
         for msg in messages:
             content = msg.get("content")
@@ -211,7 +226,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     if not payload:
         return 4
     try:
-        enc = tiktoken.get_encoding("cl100k_base")
+        enc = _get_tiktoken_encoding()
         return max(4, len(enc.encode(payload)) + 4)
     except Exception:
         return max(4, len(payload) // 4 + 4)
@@ -260,21 +275,28 @@ def build_status_content(
     last_out = last_usage.get("completion_tokens", 0)
     ctx_total = max(context_window_tokens, 0)
     ctx_pct = int((context_tokens_estimate / ctx_total) * 100) if ctx_total > 0 else 0
-    ctx_used_str = f"{context_tokens_estimate // 1000}k" if context_tokens_estimate >= 1000 else str(context_tokens_estimate)
+    ctx_used_str = (
+        f"{context_tokens_estimate // 1000}k"
+        if context_tokens_estimate >= 1000
+        else str(context_tokens_estimate)
+    )
     ctx_total_str = f"{ctx_total // 1024}k" if ctx_total > 0 else "n/a"
-    return "\n".join([
-        f"\U0001f408 TARS v{version}",
-        f"\U0001f9e0 Model: {model}",
-        f"\U0001f4ca Tokens: {last_in} in / {last_out} out",
-        f"\U0001f4da Context: {ctx_used_str}/{ctx_total_str} ({ctx_pct}%)",
-        f"\U0001f4ac Session: {session_msg_count} messages",
-        f"\u23f1 Uptime: {uptime}",
-    ])
+    return "\n".join(
+        [
+            f"\U0001f408 TARS v{version}",
+            f"\U0001f9e0 Model: {model}",
+            f"\U0001f4ca Tokens: {last_in} in / {last_out} out",
+            f"\U0001f4da Context: {ctx_used_str}/{ctx_total_str} ({ctx_pct}%)",
+            f"\U0001f4ac Session: {session_msg_count} messages",
+            f"\u23f1 Uptime: {uptime}",
+        ]
+    )
 
 
 def sync_workspace_templates(workspace: Path, silent: bool = False) -> list[str]:
     """Sync bundled templates to workspace. Only creates missing files."""
     from importlib.resources import files as pkg_files
+
     try:
         tpl = pkg_files("TARS") / "templates"
     except Exception:
@@ -300,6 +322,7 @@ def sync_workspace_templates(workspace: Path, silent: bool = False) -> list[str]
 
     if added and not silent:
         from rich.console import Console
+
         for name in added:
             Console().print(f"  [dim]Created {name}[/dim]")
     return added
