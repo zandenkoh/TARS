@@ -32,6 +32,18 @@ app = FastAPI(
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            origin = request.headers.get("origin") or request.headers.get("referer")
+            if origin:
+                from urllib.parse import urlparse
+                host = urlparse(origin).netloc
+                if host not in ("localhost:18790", "127.0.0.1:18790"):
+                    from fastapi.responses import JSONResponse
+                    return JSONResponse({"status": "error", "message": "CSRF validation failed"}, status_code=403)
+            else:
+                from fastapi.responses import JSONResponse
+                return JSONResponse({"status": "error", "message": "Missing Origin or Referer header for CSRF protection"}, status_code=403)
+
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
