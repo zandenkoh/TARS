@@ -142,6 +142,13 @@
         class="fixed md:relative inset-y-0 left-0 w-[260px] flex flex-col bg-[#181818] border-r border-white/[0.04] transition-transform duration-300 ease-in-out z-50 -translate-x-full md:translate-x-0">
         <!-- Sidebar Header -->
         <div class="px-4 py-4 flex items-center justify-between">
+            <button aria-label="New Chat" onclick="newChat(); closeSidebarOnMobile()"
+                class="p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-300 hover:text-white flex items-center gap-2 group">
+                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M12 4.5v15m7.5-7.5h-15"></path>
+                </svg>
+            </button>
             <button aria-label="Toggle Sidebar" onclick="toggleSidebar()"
                 class="md:hidden p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-500 hover:text-white ml-2">
                 <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
