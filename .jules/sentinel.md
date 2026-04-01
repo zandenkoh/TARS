@@ -1,3 +1,8 @@
+## 2026-04-01 - Path Traversal Bypass in ExecTool
+
+**Vulnerability:** The regular expressions `_POSIX_PATH_RE`, `_HOME_PATH_RE`, and `_WIN_PATH_RE` used by `ExecTool` in `TARS/agent/tools/shell.py` to extract absolute paths for validation failed to account for paths immediately following shell operators like `<`, `&`, `(`, or `)` without spaces. This allowed command injection/path traversal bypasses when `restrict_to_workspace` was enabled (e.g., `cat</etc/passwd`).
+**Learning:** Shell syntax is complex and allows paths to immediately follow operators. Boundary checks for path extraction must include all valid shell operator characters (`<`, `>`, `&`, `;`, `|`, `(`, `)`, `'`, `"`) to ensure comprehensive detection.
+**Prevention:** Update regex boundary conditions to explicitly include `[\s|<>&;\(\)'"]` rather than relying only on whitespace or a subset of quotes, ensuring absolute paths are reliably captured regardless of their adjacent syntax in the shell command.
 ## YYYY-MM-DD - Path Traversal in WebUI Uploads and Moves
 
 **Vulnerability:** The `/api/workspace/upload` and `/api/workspace/move` endpoints in the TARS web UI dashboard did not adequately validate that the resulting file path, after combining `target_dir` with the attacker-controlled `file.filename` or `src_path.name`, remained within the bounds of the workspace directory. This could lead to an arbitrary file write out of the workspace sandbox.
