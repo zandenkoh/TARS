@@ -26,18 +26,22 @@ def strip_think(text: str) -> str:
     if "<think>" not in text:
         return text.strip()
 
+    parts: list[str] = []
+    start = 0
     while True:
-        start_idx = text.find("<think>")
+        start_idx = text.find("<think>", start)
         if start_idx == -1:
+            parts.append(text[start:])
             break
+
+        parts.append(text[start:start_idx])
         end_idx = text.find("</think>", start_idx + 7)
         if end_idx == -1:
             # Unclosed trailing <think>
-            text = text[:start_idx]
             break
-        text = text[:start_idx] + text[end_idx + 8:]
+        start = end_idx + 8
 
-    return text.strip()
+    return "".join(parts).strip()
 
 
 def detect_image_mime(data: bytes) -> str | None:
