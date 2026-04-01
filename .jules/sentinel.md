@@ -45,6 +45,10 @@
 **Learning:** Basic URL scheme and domain validation is insufficient when dealing with user-configured endpoints. The underlying IP address must be resolved and checked against a list of private/internal networks to prevent SSRF.
 **Prevention:** Always use `validate_url_target` (or wrappers like `_validate_url_safe`) which resolve hostnames and explicitly block private/internal IP addresses before sending HTTP requests to user-controlled endpoints.
 
+## 2026-04-01 - [Prevent SSRF in DingTalk and WeChat media fetching]
+**Vulnerability:** The DingTalk and WeChat channels downloaded user-supplied media URLs using `httpx.AsyncClient` configured with `follow_redirects=True`, but did not validate the initial or redirected URLs against internal private IP boundaries. This allowed Server-Side Request Forgery (SSRF) vulnerabilities where an attacker could provide a malicious URL or redirect the client to fetch internal AWS metadata endpoints or private network resources.
+**Learning:** Even when URL schemes are restricted to `http`/`https`, HTTP libraries with `follow_redirects=True` will blindly follow redirects to any IP. SSRF protection must be enforced not just on the initial URL, but during the request redirect lifecycle using library-specific hook mechanisms (e.g., `event_hooks` in `httpx`).
+**Prevention:** Always pair `follow_redirects=True` in `httpx.AsyncClient` with a request-level `event_hook` (like `validate_resolved_url`) to check the resolved IP of every request in the chain. Furthermore, enforce domain and schema validations on the initial URL prior to sending the HTTP request.
 ## 2026-04-01 - [Harden WebUI CORS and Security Headers]
 
 **Vulnerability:** The local WebUI (`TARS/webui/api.py`) used `allow_origins=["*"]` along with `allow_credentials=True` in its CORS middleware.
