@@ -168,33 +168,46 @@ def estimate_prompt_tokens(
     """
     try:
         enc = _get_tiktoken_encoding()
+
+        # Fast path
+        if not tools:
+            try:
+                # EAFP approach: Try building list assuming string content & exactly two keys
+                fast_parts = [m["content"] for m in messages if len(m) == 2 and isinstance(m["content"], str)]
+                if len(fast_parts) == len(messages):
+                    return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
+            except Exception:
+                pass
+
         parts: list[str] = []
+        append = parts.append
+        dumps = json.dumps
         for msg in messages:
             content = msg.get("content")
             if isinstance(content, str):
-                parts.append(content)
+                append(content)
             elif isinstance(content, list):
                 for part in content:
                     if isinstance(part, dict) and part.get("type") == "text":
                         txt = part.get("text", "")
                         if txt:
-                            parts.append(txt)
+                            append(txt)
 
             tc = msg.get("tool_calls")
             if tc:
-                parts.append(json.dumps(tc, ensure_ascii=False))
+                append(dumps(tc, ensure_ascii=False))
 
             rc = msg.get("reasoning_content")
             if isinstance(rc, str) and rc:
-                parts.append(rc)
+                append(rc)
 
             for key in ("name", "tool_call_id"):
                 value = msg.get(key)
                 if isinstance(value, str) and value:
-                    parts.append(value)
+                    append(value)
 
         if tools:
-            parts.append(json.dumps(tools, ensure_ascii=False))
+            append(dumps(tools, ensure_ascii=False))
 
         per_message_overhead = len(messages) * 4
         return len(enc.encode("\n".join(parts))) + per_message_overhead
