@@ -13,3 +13,6 @@
 ## 2026-04-01 - Global Cache for Heavy Initialization Tasks
 **Learning:** Calling initialization methods like `tiktoken.get_encoding("cl100k_base")` repeatedly inside highly-frequent utility functions (such as token estimators for messages) adds significant and measurable overhead to execution times, especially when generating stream chunks or processing histories.
 **Action:** When a static dependency like a token encoder is needed across multiple frequent function calls, declare a module-level variable to cache the result lazily (e.g., via a helper `_get_tiktoken_encoding()`) instead of retrieving it each time.
+## 2026-04-01 - O(N^2) String Slicing in chunking loops
+**Learning:** `split_message` previously relied on repeatedly making copies of large strings via `content = content[pos:].lstrip()` inside a `while` loop, resulting in a performance bottleneck (O(n²) time complexity for large texts) due to heavy memory allocation.
+**Action:** When iterating over a long string to yield pieces (e.g. for chunked pagination or length-splitting), do not mutate or reassign slices of the large string to the same variable. Instead, use an integer pointer index (e.g. `start`) to track progress and only slice out the necessary sub-string piece at each step (`content[start:pos]`), keeping processing complexity to O(N).
