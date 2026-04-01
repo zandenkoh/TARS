@@ -612,6 +612,9 @@
 </div>
 
 <script>
+    let currentSessionId = 'new';
+    let isTabMode = false;
+
     function switchView(tabId) {
         const views = {
             'welcome': document.getElementById('welcome-view'),
