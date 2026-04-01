@@ -24,6 +24,8 @@ def _resolve_path(
         all_dirs = [allowed_dir] + (extra_allowed_dirs or [])
         if not any(_is_under(resolved, d) for d in all_dirs):
             raise PermissionError(f"Path {path} is outside allowed directory {allowed_dir}")
+    elif workspace and not _is_under(resolved, workspace):
+        raise PermissionError(f"Path {path} is outside the allowed workspace {workspace}")
     return resolved
 
 
