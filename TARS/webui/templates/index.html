@@ -886,8 +886,9 @@
     // Reusable UI Helpers
     function renderToggle(id, isOn = false) {
         const state = isOn ? 'on' : 'off';
+        const checked = isOn ? 'true' : 'false';
         return `
-            <div id="toggle-${id}" class="tars-toggle" data-state="${state}" onclick="toggleTarsElement('${id}')">
+            <div id="toggle-${id}" class="tars-toggle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20" data-state="${state}" role="switch" aria-checked="${checked}" tabindex="0" onclick="toggleTarsElement('${id}')" onkeydown="if(event.key==='Enter' || event.key===' ') { event.preventDefault(); toggleTarsElement('${id}'); }">
                 <div class="tars-toggle-dot"></div>
             </div>
         `;
@@ -899,6 +900,7 @@
         const currentState = el.getAttribute('data-state');
         const newState = currentState === 'on' ? 'off' : 'on';
         el.setAttribute('data-state', newState);
+        el.setAttribute('aria-checked', newState === 'on' ? 'true' : 'false');
         
         // Trigger generic change event for integrations
         el.dispatchEvent(new CustomEvent('tars-change', { detail: { state: newState }}));

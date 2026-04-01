@@ -6,3 +6,6 @@
 ## 2024-03-31 - [Workspace Explorer A11y]
 **Learning:** HTMX-powered `<div>` elements used for navigation (`hx-get`) lack native keyboard accessibility by default. Users cannot tab to them or activate them with the Enter key, and hover-only CSS classes hide contextual actions from keyboard users.
 **Action:** When using `div` elements as interactive buttons with HTMX, explicitly add `tabindex="0"`, `role="button"`, and handle keyboard events (e.g., `hx-trigger="click, keyup[key=='Enter']"`). Ensure contextual actions use `focus-visible` variants instead of relying solely on `group-hover`.
+## 2024-05-24 - [Adding A11y to Custom Toggles]
+**Learning:** Custom interactive components (like divs used as switches) are completely invisible to keyboard-only users by default. To make them accessible and navigable, they need `tabindex="0"`, a proper semantic `role="switch"`, an `aria-checked` attribute that updates dynamically, an `onkeydown` handler mapping `Enter` and `Space` to click actions, and a visible focus ring using Tailwind utility classes (`focus-visible:ring-1 focus-visible:ring-white/20`).
+**Action:** Always add `tabindex="0"`, `role`, `aria-*` attributes, keyboard event handlers (`onkeydown`), and `focus-visible:` classes whenever constructing custom interactive form controls like toggles instead of relying only on native input elements.
