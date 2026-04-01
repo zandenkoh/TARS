@@ -523,7 +523,7 @@
 
             <div class="relative border-b border-white/[0.05] shrink-0 p-3">
                 <div class="relative flex items-center">
-                    <input type="text" id="search-modal-input" placeholder="Search chats..." autocomplete="off"
+                    <input type="text" id="search-modal-input" aria-label="Search chats" placeholder="Search chats..." autocomplete="off"
                         oninput="executeSearch()"
                         class="w-full bg-transparent text-white py-3 pl-4 pr-12 outline-none placeholder:text-zinc-500 text-[16px] font-medium">
                     <button aria-label="Close Search" onclick="closeSearchModal()" class="absolute right-2 p-2 text-zinc-500 hover:text-white transition-colors">
@@ -571,7 +571,7 @@
             <div id="modal-sidebar" class="hidden w-full md:w-[260px] shrink-0 bg-[#1c1c1e] border-r border-white/5 flex-col p-4">
                 <div class="flex items-center justify-between mb-6 px-2">
                     <button aria-label="Close Modal" onclick="closeModal()" class="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
@@ -1032,7 +1032,7 @@
                                 <p class="text-[15px] font-medium text-white">Username</p>
                                 <p class="text-[13px] text-zinc-500">How TARS addresses you</p>
                             </div>
-                            <input type="text" value="${username}" placeholder="Maverick" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm outline-none focus:border-white/30 transition-all w-48 text-right font-medium">
+                            <input type="text" value="${username}" aria-label="Username" placeholder="Maverick" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm outline-none focus:border-white/30 transition-all w-48 text-right font-medium">
                         </div>
                         <div class="h-[1px] w-full bg-white/[0.04]"></div>
 
@@ -1101,8 +1101,8 @@
                         </div>
                         <div class="relative">
                             <input type="password" value="${keyVal}" aria-label="${name} API Key" placeholder="sk-..." class="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-zinc-300 text-sm outline-none focus:border-white/20 transition-all font-mono">
-                            <button onclick="this.previousElementSibling.type = (this.previousElementSibling.type === 'password' ? 'text' : 'password')" class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-white transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            <button aria-label="Toggle password visibility" onclick="this.previousElementSibling.type = (this.previousElementSibling.type === 'password' ? 'text' : 'password')" class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-zinc-500 hover:text-white transition-colors">
+                                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                             </button>
                         </div>
                     </div>
@@ -1213,8 +1213,8 @@
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-[14px] font-medium text-white mb-3">System Instructions</label>
-                            <textarea placeholder="You are TARS, a helpful AI assistant..." class="w-full h-48 bg-black/40 border border-white/5 rounded-2xl px-4 py-4 text-zinc-300 text-sm outline-none focus:border-white/20 transition-all resize-none font-inter leading-relaxed">You are TARS, a helpful AI assistant. You are concise, intelligent, and helpful. You prefer technical accuracy and clean code.</textarea>
+                            <label for="system-instructions" class="block text-[14px] font-medium text-white mb-3">System Instructions</label>
+                            <textarea id="system-instructions" placeholder="You are TARS, a helpful AI assistant..." class="w-full h-48 bg-black/40 border border-white/5 rounded-2xl px-4 py-4 text-zinc-300 text-sm outline-none focus:border-white/20 transition-all resize-none font-inter leading-relaxed">You are TARS, a helpful AI assistant. You are concise, intelligent, and helpful. You prefer technical accuracy and clean code.</textarea>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
                              <div>
