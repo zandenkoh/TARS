@@ -21,15 +21,22 @@ def _get_tiktoken_encoding():
     return _TIKTOKEN_ENC
 
 
-# ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead in hot streaming loops
-_THINK_BLOCK_RE = re.compile(r"<think>[\s\S]*?</think>")
-_THINK_TRAILING_RE = re.compile(r"<think>[\s\S]*$")
-
-
 def strip_think(text: str) -> str:
     """Remove <think>…</think> blocks and any unclosed trailing <think> tag."""
-    text = _THINK_BLOCK_RE.sub("", text)
-    text = _THINK_TRAILING_RE.sub("", text)
+    if "<think>" not in text:
+        return text.strip()
+
+    while True:
+        start_idx = text.find("<think>")
+        if start_idx == -1:
+            break
+        end_idx = text.find("</think>", start_idx + 7)
+        if end_idx == -1:
+            # Unclosed trailing <think>
+            text = text[:start_idx]
+            break
+        text = text[:start_idx] + text[end_idx + 8:]
+
     return text.strip()
 
 
