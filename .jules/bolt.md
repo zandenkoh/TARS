@@ -16,3 +16,7 @@
 ## 2026-04-01 - O(N^2) String Slicing in chunking loops
 **Learning:** `split_message` previously relied on repeatedly making copies of large strings via `content = content[pos:].lstrip()` inside a `while` loop, resulting in a performance bottleneck (O(n²) time complexity for large texts) due to heavy memory allocation.
 **Action:** When iterating over a long string to yield pieces (e.g. for chunked pagination or length-splitting), do not mutate or reassign slices of the large string to the same variable. Instead, use an integer pointer index (e.g. `start`) to track progress and only slice out the necessary sub-string piece at each step (`content[start:pos]`), keeping processing complexity to O(N).
+
+## 2025-04-01 - [Fast-Path Token Estimation Optimization]
+**Learning:** Using EAFP (Easier to Ask for Forgiveness than Permission) list comprehensions combined with localized variable lookups (e.g. `append = parts.append`, `json.dumps = dumps`) can massively speed up heavy text string construction pipelines like Tiktoken message compilation, bypassing slow generic loop parsing loops when plain strings are common.
+**Action:** Always look for 'fast path' scenarios in extremely frequent utility functions where standard iterations can be bypassed entirely using conditional shortcuts.
