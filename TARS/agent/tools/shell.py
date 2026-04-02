@@ -204,9 +204,9 @@ class ExecTool(Tool):
 
         return None
 
-    _WIN_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"'|<>&;\(\)=\`]+")
-    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=\`])(/[^\s|<>&;\(\)'\"=\`]+)")
-    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=\`])(~[^\s|<>&;\(\)'\"=\`]*)")
+    _WIN_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"'|<>&;\(\)=`]+")
+    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`])(/[^\s|<>&;\(\)'\"=`]+)")
+    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`])(~[^\s|<>&;\(\)'\"=`]*)")
 
     @classmethod
     def _extract_absolute_paths(cls, command: str) -> list[str]:
