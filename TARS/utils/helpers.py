@@ -224,6 +224,16 @@ def estimate_prompt_tokens(
 
 def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
+    try:
+        # Fast path for simple messages (e.g. role + content string)
+        if len(message) == 2 and isinstance(content := message.get("content"), str):
+            if not content:
+                return 4
+            enc = _get_tiktoken_encoding()
+            return max(4, len(enc.encode(content)) + 4)
+    except Exception:
+        pass
+
     content = message.get("content")
     parts: list[str] = []
     if isinstance(content, str):
