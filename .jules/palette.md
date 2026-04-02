@@ -17,3 +17,7 @@
 ## 2025-05-01 - Connected Setting Labels to Inputs
 **Learning:** Settings forms in TARS were generated programmatically and missed `for` attributes on their `<label>`s, and the inputs lacked matching `id`s. This meant clicking the label text didn't focus or toggle the input, reducing the clickable area and negatively impacting usability and accessibility.
 **Action:** When dynamically generating forms or using templates (like Jinja's `render_config_item`), always dynamically generate `id` and `for` attributes to properly associate labels with their respective inputs.
+
+## 2026-04-02 - Standardizing Dynamic Empty States
+**Learning:** Empty states should never replace or rename core creation actions. In TARS, the "Projects" sidebar empty state previously hid the main category header and replaced the "New project" button with a mislabeled "Projects" button that functioned identically but broke consistency. This confused users who didn't expect a navigation-like label to act as a creation action.
+**Action:** Unify empty and filled states to consistently display core structural elements (headers, creation buttons). Use a dedicated, clearly labeled empty state placeholder instead of co-opting existing actions. Additionally, always remember to add `focus-visible` styling to dynamically generated interactive elements to preserve keyboard accessibility.
