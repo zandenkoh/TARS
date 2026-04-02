@@ -28,3 +28,7 @@
 ## 2026-04-01 - [String Concatenation Performance]
 **Learning:** Native python string methods are extremely fast, but iterating and overwriting a local string variable with string slices via `+` operator scales O(n^2) and becomes a severe bottleneck in data processing loops for text blocks like `strip_think`.
 **Action:** Always prefer appending slices to a `list` and `"".join()`ing them at the end rather than re-allocating a new string inside hot `while` or `for` loops.
+
+## 2026-04-02 - O(N*M) Method Calls in Sliding Windows
+**Learning:** In the `_find_match` utility inside `TARS/agent/tools/filesystem.py`, checking a sliding window for line-trimmed equality involved calling `[l.strip() for l in window]` on each iteration. For long files where the text wasn't an exact match, this caused O(N*M) redundant string `.strip()` allocations and method calls, causing severe performance issues.
+**Action:** When performing sliding window checks involving text or list transformations, always pre-compute the transformations on the entire dataset outside the loop.
