@@ -1,3 +1,8 @@
+## 2026-04-01 - SSRF Vulnerability in Discord Attachment Download
+**Vulnerability:** The Discord channel implementation in `TARS/channels/discord.py` downloaded file attachments from user messages without validating the URL against SSRF using `validate_url_target`.
+**Learning:** Even though Discord attachment URLs are generally from Discord's CDN, depending on how Discord Gateway provides it or if an attacker manipulates the payload, it could potentially inject a malicious URL, leading to SSRF.
+**Prevention:** Always validate all external URLs, including those originating from external service APIs like Discord, using `validate_url_target` before downloading or interacting with them via HTTP clients.
+
 ## 2026-04-01 - SSRF Vulnerability in DingTalk Media Download
 **Vulnerability:** The DingTalk channel implementation in `TARS/channels/dingtalk.py` blindly fetched files from a user-supplied URL (`downloadUrl` from the API) via `httpx.get(..., follow_redirects=True)` without validating the domain or IP target.
 **Learning:** Even if the URL originally comes from an API response (like DingTalk's `getDownloadUrl` endpoint), if that API is proxying or reflecting user-controlled inputs (or is vulnerable to manipulation), it can lead to SSRF. This is specifically dangerous with `follow_redirects=True`, allowing an attacker to bypass initial URL checks or force the bot to access internal network services or cloud metadata endpoints.

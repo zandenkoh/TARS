@@ -15,6 +15,7 @@ from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.paths import get_media_dir
 from TARS.config.schema import Base
+from TARS.security.network import validate_url_target
 from TARS.utils.helpers import split_message
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
@@ -317,6 +318,13 @@ class DiscordChannel(BaseChannel):
             size = attachment.get("size") or 0
             if not url or not self._http:
                 continue
+
+            is_valid, err_msg = validate_url_target(url)
+            if not is_valid:
+                logger.warning("Discord media blocked by SSRF check url={} err={}", url, err_msg)
+                content_parts.append(f"[attachment: {filename} - blocked by security policy]")
+                continue
+
             if size and size > MAX_ATTACHMENT_BYTES:
                 content_parts.append(f"[attachment: {filename} - too large]")
                 continue
