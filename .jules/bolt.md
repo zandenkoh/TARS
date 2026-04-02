@@ -24,3 +24,7 @@
 ## 2026-04-01 - Avoid Regex for Simple Substring Manipulations
 **Learning:** In frequently called text processing functions (like `strip_think` handling continuous streaming of large thought blocks from models like deepseek-r1), compiling and using regex to remove specific tag blocks (e.g., `<think>...</think>`) causes measurable CPU overhead compared to simple native string methods. Specifically, using the `.find()` method within a `while` loop combined with string slicing avoids the regex compilation and engine overhead entirely, while providing a fast-path skip via a simple `in` check. Benchmarks show a 3x speedup when tags aren't present and 2x when they are.
 **Action:** Always favor native Python string operations (`in`, `.find()`, string slicing) over regular expressions when the search patterns are predictable sub-strings (e.g. static tag bounds) in performance-sensitive hot paths.
+
+## 2026-04-01 - [String Concatenation Performance]
+**Learning:** Native python string methods are extremely fast, but iterating and overwriting a local string variable with string slices via `+` operator scales O(n^2) and becomes a severe bottleneck in data processing loops for text blocks like `strip_think`.
+**Action:** Always prefer appending slices to a `list` and `"".join()`ing them at the end rather than re-allocating a new string inside hot `while` or `for` loops.
