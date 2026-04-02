@@ -161,7 +161,7 @@ class ExecTool(Tool):
             return f"Error executing command: {str(e)}"
 
     # Compile regex once on class initialization for hot-path guards
-    _PATH_TRAVERSAL_RE = re.compile(r'(?:^|[\s"\'|<>&;/\\=()`])\.\.(?:[\s"\'|<>&;/\\=()`]|$)')
+    _PATH_TRAVERSAL_RE = re.compile(r'(?:^|[\s"\'|<>&;/\\=()`,\[\]{}])\.\.(?:[\s"\'|<>&;/\\=()`,\[\]{}]|$)')
 
     def _guard_command(self, command: str, cwd: str) -> str | None:
         """Best-effort safety guard for potentially destructive commands."""
@@ -204,9 +204,9 @@ class ExecTool(Tool):
 
         return None
 
-    _WIN_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"'|<>&;\(\)=`]+")
-    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`])(/[^\s|<>&;\(\)'\"=`]+)")
-    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`])(~[^\s|<>&;\(\)'\"=`]*)")
+    _WIN_PATH_RE = re.compile(r"[A-Za-z]:\\[^\s\"'|<>&;\(\)=`,\[\]{}]+")
+    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])(/[^\s|<>&;\(\)'\"=`,\[\]{}]+)")
+    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])(~[^\s|<>&;\(\)'\"=`,\[\]{}]*)")
 
     @classmethod
     def _extract_absolute_paths(cls, command: str) -> list[str]:

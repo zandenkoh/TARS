@@ -1890,47 +1890,38 @@
         const container = document.getElementById('sidebar-projects-container');
         if (!container) return;
 
-        if (userProjects.length === 0) {
-            container.innerHTML = `
-                <button onclick="openModal('Create project'); closeSidebarOnMobile()"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                    </svg>
-                    Projects
-                </button>
-            `;
-        } else {
-            let projectsHtml = userProjects.map(p => {
-                const safeName = escapeHtmlAndQuotes(p.name);
-                const safeIcon = escapeHtmlAndQuotes(p.icon || '📁');
-                return `
-                <button onclick="showProject('${safeName}', '${safeIcon}'); closeSidebarOnMobile()"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                    <span class="w-4 h-4 text-center text-[12px] leading-tight flex items-center justify-center">${safeIcon}</span>
-                    ${safeName}
-                </button>
-            `}).join('');
+        let projectsHtml = userProjects.map(p => {
+            const safeName = escapeHtmlAndQuotes(p.name);
+            const safeIcon = escapeHtmlAndQuotes(p.icon || '📁');
+            return `
+            <button onclick="showProject('${safeName}', '${safeIcon}'); closeSidebarOnMobile()"
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                <span class="w-4 h-4 text-center text-[12px] leading-tight flex items-center justify-center">${safeIcon}</span>
+                ${safeName}
+            </button>
+        `}).join('');
 
-            container.innerHTML = `
-                <div class="px-3 pt-3 pb-1 flex items-center gap-2 group cursor-pointer hover:text-zinc-200 text-zinc-400 transition-colors">
-                    <span class="text-[10px] font-bold uppercase tracking-widest flex-1">Projects</span>
-                    <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </div>
-                <button onclick="openModal('Create project'); closeSidebarOnMobile()"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
-                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
-                    </svg>
-                    New project
-                </button>
-                ${projectsHtml}
-            `;
-        }
+        container.innerHTML = `
+            <div class="px-3 pt-3 pb-1 flex items-center gap-2 group cursor-pointer hover:text-zinc-200 text-zinc-400 transition-colors">
+                <span class="text-[10px] font-bold uppercase tracking-widest flex-1">Projects</span>
+                <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+            <button onclick="openModal('Create project'); closeSidebarOnMobile()"
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                </svg>
+                New project
+            </button>
+            ${userProjects.length === 0 ? `
+            <div class="px-3 py-3 mt-1 mx-2 text-center border border-dashed border-white/10 rounded-xl bg-white/[0.02]">
+                <p class="text-[11px] text-zinc-500">No projects yet</p>
+            </div>
+            ` : projectsHtml}
+        `;
     }
 
     // Keyboard Shortcuts (Esc to close)
