@@ -573,6 +573,11 @@ class DingTalkChannel(BaseChannel):
                 logger.error("DingTalk download URL not found in response: {}", result)
                 return None
 
+            is_valid, err_msg = validate_url_target(download_url)
+            if not is_valid:
+                logger.warning("DingTalk file download blocked by SSRF check url={} err={}", download_url, err_msg)
+                return None
+
             # Step 2: Download the file content
             file_resp = await self._http.get(download_url, follow_redirects=True)
             if file_resp.status_code != 200:

@@ -26,18 +26,22 @@ def strip_think(text: str) -> str:
     if "<think>" not in text:
         return text.strip()
 
+    parts: list[str] = []
+    start = 0
     while True:
-        start_idx = text.find("<think>")
+        start_idx = text.find("<think>", start)
         if start_idx == -1:
+            parts.append(text[start:])
             break
+
+        parts.append(text[start:start_idx])
         end_idx = text.find("</think>", start_idx + 7)
         if end_idx == -1:
             # Unclosed trailing <think>
-            text = text[:start_idx]
             break
-        text = text[:start_idx] + text[end_idx + 8:]
+        start = end_idx + 8
 
-    return text.strip()
+    return "".join(parts).strip()
 
 
 def detect_image_mime(data: bytes) -> str | None:
@@ -179,9 +183,16 @@ def estimate_prompt_tokens(
         # Fast path
         if not tools:
             try:
-                # EAFP approach: Try building list assuming string content & exactly two keys
-                fast_parts = [m["content"] for m in messages if len(m) == 2 and isinstance(m["content"], str)]
-                if len(fast_parts) == len(messages):
+                fast_parts = []
+                append_fast = fast_parts.append
+                for m in messages:
+                    content = m.get("content")
+                    if len(m) == 2 and isinstance(content, str):
+                        append_fast(content)
+                    else:
+                        fast_parts = None
+                        break
+                if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
                 pass
@@ -224,6 +235,16 @@ def estimate_prompt_tokens(
 
 def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
+    try:
+        # Fast path for simple messages (e.g. role + content string)
+        if len(message) == 2 and isinstance(content := message.get("content"), str):
+            if not content:
+                return 4
+            enc = _get_tiktoken_encoding()
+            return max(4, len(enc.encode(content)) + 4)
+    except Exception:
+        pass
+
     content = message.get("content")
     parts: list[str] = []
     if isinstance(content, str):
