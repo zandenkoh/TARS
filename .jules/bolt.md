@@ -28,3 +28,6 @@
 ## 2026-04-01 - [String Concatenation Performance]
 **Learning:** Native python string methods are extremely fast, but iterating and overwriting a local string variable with string slices via `+` operator scales O(n^2) and becomes a severe bottleneck in data processing loops for text blocks like `strip_think`.
 **Action:** Always prefer appending slices to a `list` and `"".join()`ing them at the end rather than re-allocating a new string inside hot `while` or `for` loops.
+## 2025-04-02 - [Precompute String Operations in Sliding Window]
+**Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
+**Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
