@@ -96,8 +96,17 @@ class ExecTool(Tool):
             env["PATH"] = env.get("PATH", "") + os.pathsep + self.path_append
 
         try:
-            process = await asyncio.create_subprocess_shell(
-                command,
+            import shlex
+            try:
+                args = shlex.split(command)
+            except ValueError as e:
+                return f"Error parsing command: {e}"
+
+            if not args:
+                return "Error: Empty command"
+
+            process = await asyncio.create_subprocess_exec(
+                *args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=cwd,
