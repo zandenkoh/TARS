@@ -215,11 +215,15 @@ def _find_match(content: str, old_text: str) -> tuple[str | None, int]:
     stripped_old = [l.strip() for l in old_lines]
     content_lines = content.splitlines()
 
+    # ⚡ Bolt: Precompute the stripped lines array outside the loop
+    # to avoid O(N*M) redundant strip method calls during window sliding
+    stripped_content = [l.strip() for l in content_lines]
+
     candidates = []
-    for i in range(len(content_lines) - len(stripped_old) + 1):
-        window = content_lines[i : i + len(stripped_old)]
-        if [l.strip() for l in window] == stripped_old:
-            candidates.append("\n".join(window))
+    window_len = len(stripped_old)
+    for i in range(len(content_lines) - window_len + 1):
+        if stripped_content[i : i + window_len] == stripped_old:
+            candidates.append("\n".join(content_lines[i : i + window_len]))
 
     if candidates:
         return candidates[0], len(candidates)
