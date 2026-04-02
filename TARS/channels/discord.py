@@ -15,8 +15,14 @@ from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.paths import get_media_dir
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 from TARS.utils.helpers import split_message
+
+
+async def _verify_request(request: httpx.Request) -> None:
+    ok, err = validate_resolved_url(str(request.url))
+    if not ok:
+        raise RuntimeError(f"SSRF blocked: {err}")
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
 MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024  # 20MB
@@ -63,7 +69,11 @@ class DiscordChannel(BaseChannel):
             return
 
         self._running = True
-        self._http = httpx.AsyncClient(timeout=30.0)
+        self._http = httpx.AsyncClient(
+            timeout=30.0,
+            follow_redirects=True,
+            event_hooks={"request": [_verify_request]}
+        )
 
         while self._running:
             try:
@@ -331,7 +341,7 @@ class DiscordChannel(BaseChannel):
             try:
                 media_dir.mkdir(parents=True, exist_ok=True)
                 file_path = media_dir / f"{attachment.get('id', 'file')}_{filename.replace('/', '_')}"
-                resp = await self._http.get(url)
+                resp = await self._http.get(url, follow_redirects=True)
                 resp.raise_for_status()
                 file_path.write_bytes(resp.content)
                 media_paths.append(str(file_path))
