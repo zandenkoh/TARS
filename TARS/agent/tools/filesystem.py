@@ -214,6 +214,7 @@ def _find_match(content: str, old_text: str) -> tuple[str | None, int]:
         return None, 0
     stripped_old = [line.strip() for line in old_lines]
     content_lines = content.splitlines()
+    stripped_content = [l.strip() for l in content_lines]
 
     # ⚡ Bolt: Pre-strip all content lines once to avoid O(N*M) string allocations in the sliding window loop
     stripped_content = [line.strip() for line in content_lines]
