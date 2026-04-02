@@ -32,3 +32,6 @@
 ## 2026-04-02 - O(N*M) Method Calls in Sliding Windows
 **Learning:** In the `_find_match` utility inside `TARS/agent/tools/filesystem.py`, checking a sliding window for line-trimmed equality involved calling `[l.strip() for l in window]` on each iteration. For long files where the text wasn't an exact match, this caused O(N*M) redundant string `.strip()` allocations and method calls, causing severe performance issues.
 **Action:** When performing sliding window checks involving text or list transformations, always pre-compute the transformations on the entire dataset outside the loop.
+## 2025-04-02 - [Precompute String Operations in Sliding Window]
+**Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
+**Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
