@@ -9,3 +9,7 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+
+## 2024-05-22 - [Accessibility: Contextual Actions & Keyboard Traps]
+**Learning:** Found contextual actions (like the Session Options button) that were visually hidden by default and only revealed on hover using `opacity-0 group-hover:opacity-100`. This creates a keyboard trap because the buttons are reachable via tab, but remain invisible to keyboard-only users who cannot hover over the group container.
+**Action:** Always pair `group-hover:opacity-100` with `focus-visible:opacity-100` (and explicit focus outlines) to ensure contextual actions become visible when focused via keyboard.
