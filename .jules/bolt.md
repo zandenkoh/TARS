@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-01 - [Fast-Path Token Extraction]
+**Learning:** Using a standard `for` loop with localized `append` lookups inside highly frequent iteration paths (like `estimate_prompt_tokens` string extraction) adds measurable execution overhead. Standard C-speed list comprehensions significantly outperform these loops, particularly when combined with post-generation length checks.
+**Action:** Replace iterative extraction loops on dictionaries with pure list comprehensions (e.g., `fast_parts = [m["content"] for m in messages if isinstance(m.get("content"), str)]`) in fast-paths to reduce latency in heavy text generation.

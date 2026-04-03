@@ -183,16 +183,9 @@ def estimate_prompt_tokens(
         # Fast path
         if not tools:
             try:
-                fast_parts = []
-                append_fast = fast_parts.append
-                for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
-                        fast_parts = None
-                        break
-                if fast_parts is not None:
+                # ⚡ Bolt: Fast path using list comprehension to avoid string loop allocation
+                fast_parts = [m["content"] for m in messages if len(m) == 2 and isinstance(m.get("content"), str)]
+                if len(fast_parts) == len(messages):
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
                 pass
