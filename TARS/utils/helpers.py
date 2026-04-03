@@ -186,8 +186,7 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
+                    if len(m) == 2 and isinstance(content := m.get("content"), str):
                         append_fast(content)
                     else:
                         fast_parts = None
@@ -207,21 +206,17 @@ def estimate_prompt_tokens(
             elif isinstance(content, list):
                 for part in content:
                     if isinstance(part, dict) and part.get("type") == "text":
-                        txt = part.get("text", "")
-                        if txt:
+                        if txt := part.get("text", ""):
                             append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
-            rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if isinstance(rc := msg.get("reasoning_content"), str) and rc:
                 append(rc)
 
             for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
+                if isinstance(value := msg.get(key), str) and value:
                     append(value)
 
         if tools:
@@ -252,8 +247,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     elif isinstance(content, list):
         for part in content:
             if isinstance(part, dict) and part.get("type") == "text":
-                text = part.get("text", "")
-                if text:
+                if text := part.get("text", ""):
                     parts.append(text)
             else:
                 parts.append(json.dumps(part, ensure_ascii=False))
@@ -261,14 +255,13 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
         parts.append(json.dumps(content, ensure_ascii=False))
 
     for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
+        if type(value := message.get(key)) is str and value:
             parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
 
-    rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
+    if tc := message.get("tool_calls"):
+        parts.append(json.dumps(tc, ensure_ascii=False))
+
+    if type(rc := message.get("reasoning_content")) is str and rc:
         parts.append(rc)
 
     payload = "\n".join(parts)
