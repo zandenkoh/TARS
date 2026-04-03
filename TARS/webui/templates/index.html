@@ -143,14 +143,14 @@
         <!-- Sidebar Header -->
         <div class="px-4 py-4 flex items-center justify-between">
             <button aria-label="New Chat" onclick="newChat(); closeSidebarOnMobile()"
-                class="p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-300 hover:text-white flex items-center gap-2 group">
+                class="p-2 hover:bg-white/5 focus-visible:bg-white/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded-lg transition-all text-zinc-300 hover:text-white flex items-center gap-2 group">
                 <svg class="w-5 h-5 group-hover:scale-110 transition-transform" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M12 4.5v15m7.5-7.5h-15"></path>
                 </svg>
             </button>
             <button aria-label="Toggle Sidebar" onclick="toggleSidebar()"
-                class="md:hidden p-2 hover:bg-white/5 rounded-lg transition-all text-zinc-500 hover:text-white ml-2">
+                class="md:hidden p-2 hover:bg-white/5 focus-visible:bg-white/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded-lg transition-all text-zinc-500 hover:text-white ml-2">
                 <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
@@ -161,7 +161,7 @@
         <!-- Navigation Tabs -->
         <nav class="px-2 space-y-0.5">
             <button hx-get="/api/workspace" hx-target="#chat-messages" onclick="switchView('workspace')"
-                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
@@ -169,7 +169,7 @@
                 Workspace
             </button>
             <button hx-get="/api/tasks/today" hx-target="#chat-messages" onclick="switchView('tasks')"
-                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
@@ -178,7 +178,7 @@
                 Tasks
             </button>
             <button onclick="openSearchModal()"
-                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
+                class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-white/[0.05] focus-visible:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 hover:cursor-pointer transition-all text-zinc-400 hover:text-zinc-200 group">
                 <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -1729,7 +1729,7 @@
                     <div onclick="loadSession('${s.key}')" onkeydown="if(event.key==='Enter') loadSession('${s.key}')" tabindex="0" role="button" class="relative flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 ${active}">
                         <span class="truncate flex-1 font-medium">${safeTitle}</span>
                         <div class="relative session-menu-trigger">
-                            <button aria-label="Session Options" aria-haspopup="true" onclick="toggleSessionMenu(event, '${s.key}')" class="p-1 hover:bg-white/10 rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                            <button aria-label="Session Options" aria-haspopup="true" onclick="toggleSessionMenu(event, '${s.key}')" class="p-1 hover:bg-white/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20">
                                 <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
                             </button>
                             <div id="session-menu-${s.key}" class="absolute right-0 top-full mt-1 w-32 bg-[#252528] rounded-lg border border-white/10 shadow-xl overflow-hidden hidden z-50">
