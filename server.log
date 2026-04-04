@@ -1,15 +1,33 @@
 INFO:     Will watch for changes in these directories: ['/app']
 INFO:     Uvicorn running on http://0.0.0.0:18790 (Press CTRL+C to quit)
-INFO:     Started reloader process [56089] using WatchFiles
+INFO:     Started reloader process [78980] using WatchFiles
 🚀 Starting TARS Web UI at http://0.0.0.0:18790
-INFO:     Started server process [56091]
+INFO:     Started server process [79044]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:39582 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39582 - "GET /static/icon-192.png HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39582 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60954 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60954 - "GET /static/icon-192.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60954 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET /static/icon-192.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "POST /api/config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34170 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55096 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55096 - "GET /static/icon-192.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55096 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58276 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58276 - "GET /static/icon-192.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58276 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36358 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36358 - "GET /static/icon-192.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36358 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54176 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54176 - "GET /static/icon-192.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54176 - "GET /api/sessions HTTP/1.1" 200 OK
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [56091]
-INFO:     Stopping reloader process [56089]
+INFO:     Finished server process [79044]
+INFO:     Stopping reloader process [78980]
