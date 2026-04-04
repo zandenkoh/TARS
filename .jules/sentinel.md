@@ -1,3 +1,8 @@
+## 2026-04-01 - Command Injection via System Shell in ExecTool
+**Vulnerability:** The `ExecTool` in `TARS/agent/tools/shell.py` previously used `asyncio.create_subprocess_shell` (which sets `shell=True`) to execute user-provided commands. This allowed shell operators (e.g. quotes, backslashes, variables) to be evaluated by the system shell, bypassing the regex-based blocklists and leading to Command Injection.
+**Learning:** Using `shell=True` delegates command parsing to the system shell. In a lightweight agent tool architecture that relies on static input validation, this is fatal because the shell evaluates strings dynamically in ways the regex cannot predict or protect against.
+**Prevention:** To prevent command injection and ensure execution safety, parse raw command strings securely using `shlex.split()` and execute them via `asyncio.create_subprocess_exec` (`shell=False`). This trade-off disables standard shell features (like pipes and redirection) but guarantees the arguments are passed as exact tokens without arbitrary shell interpretation.
+
 ## 2026-04-01 - SSRF Vulnerability in Discord Attachment Download
 **Vulnerability:** The Discord channel implementation in `TARS/channels/discord.py` downloaded file attachments from user messages without validating the URL against SSRF using `validate_url_target`.
 **Learning:** Even though Discord attachment URLs are generally from Discord's CDN, depending on how Discord Gateway provides it or if an attacker manipulates the payload, it could potentially inject a malicious URL, leading to SSRF.
