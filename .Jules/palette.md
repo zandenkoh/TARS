@@ -9,3 +9,6 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+## 2024-04-04 - Keyboard Accessibility for Hover-Only Actions
+**Learning:** Contextual buttons hidden by default with `opacity-0 group-hover:opacity-100` become completely inaccessible to keyboard users unless explicitly styled for focus states. They remain focusable but invisible, creating a keyboard trap.
+**Action:** Always pair `group-hover:opacity-100` on hidden toolbars with `focus-within:opacity-100` on the parent container, and add `focus-visible:opacity-100 focus-visible:ring-1 focus-visible:outline-none` explicitly to the action buttons.
