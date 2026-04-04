@@ -9,3 +9,6 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+## 2026-04-04 - Add focus-visible to UI components
+**Learning:** In Tailwind-based apps like TARS, buttons designed for visual hover states (like contextual menu triggers or settings tabs) often lack corresponding focus rings, making them invisible or unclear to keyboard-only users navigating via Tab.
+**Action:** Always pair interactive elements with explicit `focus-visible:ring-2` (and potentially `focus-visible:outline-none` and `focus-visible:ring-white/20`) to ensure accessibility is maintained without disrupting standard mouse hover aesthetics.
