@@ -3,6 +3,7 @@
 import asyncio
 import os
 import re
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -96,8 +97,13 @@ class ExecTool(Tool):
             env["PATH"] = env.get("PATH", "") + os.pathsep + self.path_append
 
         try:
-            process = await asyncio.create_subprocess_shell(
-                command,
+            try:
+                cmd_args = shlex.split(command)
+            except ValueError:
+                return "Error: Malformed command (e.g., unclosed quotes)"
+
+            process = await asyncio.create_subprocess_exec(
+                *cmd_args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=cwd,
