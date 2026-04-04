@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-02 - Fast-path string presence checks for Regex formatting
+**Learning:** In highly-frequented text rendering pathways (like `_strip_md` in `TARS/channels/telegram.py` or Feishu's equivalent), running multiple pre-compiled regex operations (`re.sub`) on plain text that doesn't contain any formatting markers still incurs engine overhead.
+**Action:** Always add a fast-path native string presence check (e.g., `if '*' not in text and '_' not in text...: return text`) before executing a suite of regex replacements. This allows plain text messages (which make up the majority of chat messages) to bypass the regex engine entirely, yielding significant speedups.

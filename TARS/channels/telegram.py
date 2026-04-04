@@ -55,6 +55,8 @@ _STRIP_MD_RE_CODE = re.compile(r'`([^`]+)`')
 
 def _strip_md(s: str) -> str:
     """Strip markdown inline formatting from text."""
+    if '*' not in s and '_' not in s and '~' not in s and '`' not in s:
+        return s
     s = _STRIP_MD_RE_BOLD.sub(r'\1', s)
     s = _STRIP_MD_RE_UNDERLINE.sub(r'\1', s)
     s = _STRIP_MD_RE_STRIKE.sub(r'\1', s)
