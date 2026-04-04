@@ -3,6 +3,7 @@
 import asyncio
 import os
 import re
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -89,6 +90,13 @@ class ExecTool(Tool):
         if guard_error:
             return guard_error
 
+        try:
+            parsed_args = shlex.split(command)
+            if not parsed_args:
+                return "Error: Empty command after parsing"
+        except ValueError as e:
+            return f"Error parsing command: {str(e)}"
+
         effective_timeout = min(timeout or self.timeout, self._MAX_TIMEOUT)
 
         env = os.environ.copy()
@@ -96,8 +104,8 @@ class ExecTool(Tool):
             env["PATH"] = env.get("PATH", "") + os.pathsep + self.path_append
 
         try:
-            process = await asyncio.create_subprocess_shell(
-                command,
+            process = await asyncio.create_subprocess_exec(
+                *parsed_args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=cwd,
