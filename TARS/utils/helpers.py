@@ -186,8 +186,7 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
+                    if len(m) == 2 and isinstance((content := m.get("content")), str):
                         append_fast(content)
                     else:
                         fast_parts = None
@@ -201,27 +200,21 @@ def estimate_prompt_tokens(
         append = parts.append
         dumps = json.dumps
         for msg in messages:
-            content = msg.get("content")
-            if isinstance(content, str):
+            if isinstance((content := msg.get("content")), str):
                 append(content)
             elif isinstance(content, list):
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
-                        txt = part.get("text", "")
-                        if txt:
-                            append(txt)
+                    if isinstance(part, dict) and (txt := part.get("text")) and part.get("type") == "text":
+                        append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
-            rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if isinstance((rc := msg.get("reasoning_content")), str) and rc:
                 append(rc)
 
             for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
+                if isinstance((value := msg.get(key)), str) and value:
                     append(value)
 
         if tools:
