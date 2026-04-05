@@ -1704,7 +1704,7 @@
                 chatMessages.innerHTML = '<div class="text-zinc-500 p-12 text-center text-sm">Failed to load history</div>';
             }
         } catch (err) {
-            chatMessages.innerHTML = `<div class="text-red-400/60 p-12 text-center text-sm">Error: ${err.message}</div>`;
+            chatMessages.innerHTML = `<div class="text-red-400/60 p-12 text-center text-sm">Error: ${escapeHtmlAndQuotes(err.message)}</div>`;
         }
     }
 
