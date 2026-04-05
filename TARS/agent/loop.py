@@ -556,23 +556,24 @@ class AgentLoop:
                 filtered.append(block)
                 continue
 
+            btype = block.get("type")
+
             if (
                 drop_runtime
-                and block.get("type") == "text"
-                and isinstance(block.get("text"), str)
-                and block["text"].startswith(ContextBuilder._RUNTIME_CONTEXT_TAG)
+                and btype == "text"
+                and isinstance(text := block.get("text"), str)
+                and text.startswith(ContextBuilder._RUNTIME_CONTEXT_TAG)
             ):
                 continue
 
             if (
-                block.get("type") == "image_url"
+                btype == "image_url"
                 and block.get("image_url", {}).get("url", "").startswith("data:image/")
             ):
                 filtered.append(self._image_placeholder(block))
                 continue
 
-            if block.get("type") == "text" and isinstance(block.get("text"), str):
-                text = block["text"]
+            if btype == "text" and isinstance(text := block.get("text"), str):
                 if truncate_text and len(text) > self._TOOL_RESULT_MAX_CHARS:
                     text = text[:self._TOOL_RESULT_MAX_CHARS] + "\n... (truncated)"
                 filtered.append({**block, "text": text})
