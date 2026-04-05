@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2025-04-05 - Optimize Dictionary Lookups in Hot Paths
+**Learning:** In Python hot loops (e.g., inside TARS token estimation or loop message sanitization functions), performing redundant dictionary `.get()` lookups adds measurable CPU overhead. Repeatedly looking up keys (e.g., `block.get("type")` or `block.get("text")`) can be expensive when executed frequently.
+**Action:** Use walrus operators (`:=`) in combination with short-circuiting logical `and` conditions to only evaluate dictionary `.get()` lookups when prior conditions are met, and cache values that are needed multiple times to eliminate redundant operations.
