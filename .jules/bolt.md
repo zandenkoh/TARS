@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2025-04-03 - [Fast-Path Dictionary Lookups]
+**Learning:** In fast-path token estimation loops, retrieving a dictionary key (e.g., `.get("content")`) before checking conditions (e.g., `len(m) == 2`) incurs unnecessary lookup overhead.
+**Action:** Use walrus operators (`:=`) within the condition evaluation order so the `.get()` lookup is bypassed entirely if earlier fast conditions fail, preserving `break` logic and speeding up iterations.
