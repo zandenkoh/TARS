@@ -186,8 +186,7 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
+                    if len(m) == 2 and isinstance(content := m.get("content"), str):
                         append_fast(content)
                     else:
                         fast_parts = None
