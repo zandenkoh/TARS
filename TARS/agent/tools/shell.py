@@ -204,13 +204,15 @@ class ExecTool(Tool):
 
         return None
 
-    _WIN_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])([A-Za-z]:\\[^\s\"'|<>&;\(\)=`,\[\]{}]+)")
-    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])(/[^\s|<>&;\(\)'\"=`,\[\]{}]+)")
-    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])(~[^\s|<>&;\(\)'\"=`,\[\]{}]*)")
+    _ABS_PATH_RE = re.compile(
+        r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])"
+        r"("
+        r"[A-Za-z]:\\[^\s\"'|<>&;\(\)=`,\[\]{}]+"  # Windows: C:\...
+        r"|/[^\s|<>&;\(\)'\"=`,\[\]{}]+"           # POSIX: /absolute only
+        r"|~[^\s|<>&;\(\)'\"=`,\[\]{}]*"           # POSIX/Windows home shortcut: ~
+        r")"
+    )
 
     @classmethod
     def _extract_absolute_paths(cls, command: str) -> list[str]:
-        win_paths = cls._WIN_PATH_RE.findall(command)   # Windows: C:\...
-        posix_paths = cls._POSIX_PATH_RE.findall(command) # POSIX: /absolute only
-        home_paths = cls._HOME_PATH_RE.findall(command) # POSIX/Windows home shortcut: ~
-        return win_paths + posix_paths + home_paths
+        return cls._ABS_PATH_RE.findall(command)
