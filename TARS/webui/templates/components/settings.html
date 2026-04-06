@@ -55,14 +55,24 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
-                SAVE CONFIGURATION
+            <button type="button" id="save-config-btn" onclick="saveConfig(this)" class="flex items-center gap-2 px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-75 disabled:cursor-not-allowed">
+                <svg class="w-4 h-4 hidden animate-spin" id="save-spinner" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span id="save-text">SAVE CONFIGURATION</span>
             </button>
         </div>
     </form>
 
     <script>
-        async function saveConfig() {
+        async function saveConfig(btn) {
+            btn = btn || document.querySelector('#save-config-btn');
+            const spinner = btn.querySelector('#save-spinner');
+            const textSpan = btn.querySelector('#save-text');
+            const originalText = textSpan.innerText;
+
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            textSpan.innerText = 'SAVING...';
+
             const form = document.getElementById('config-form');
             const data = new FormData(form);
             const obj = {};
@@ -97,12 +107,25 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    textSpan.innerText = 'SAVED!';
+                    spinner.classList.add('hidden');
+                    btn.classList.add('!bg-emerald-500', '!text-white');
+                    setTimeout(() => {
+                        textSpan.innerText = originalText;
+                        btn.disabled = false;
+                        btn.classList.remove('!bg-emerald-500', '!text-white');
+                    }, 2000);
                 } else {
                     alert('Error: ' + result.message);
+                    textSpan.innerText = originalText;
+                    spinner.classList.add('hidden');
+                    btn.disabled = false;
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                textSpan.innerText = originalText;
+                spinner.classList.add('hidden');
+                btn.disabled = false;
             }
         }
     </script>
