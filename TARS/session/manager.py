@@ -84,12 +84,16 @@ class Session:
             sliced = sliced[start:]
 
         out: list[dict[str, Any]] = []
+        append = out.append
         for message in sliced:
             entry: dict[str, Any] = {"role": message["role"], "content": message.get("content", "")}
-            for key in ("tool_calls", "tool_call_id", "name"):
-                if key in message:
-                    entry[key] = message[key]
-            out.append(entry)
+            if "tool_calls" in message:
+                entry["tool_calls"] = message["tool_calls"]
+            if "tool_call_id" in message:
+                entry["tool_call_id"] = message["tool_call_id"]
+            if "name" in message:
+                entry["name"] = message["name"]
+            append(entry)
         return out
 
     def clear(self) -> None:
