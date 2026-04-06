@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-03 - Fast-path List Comprehension and Type Checking in Token Estimation
+**Learning:** Using `type(obj) is type` is faster than `isinstance` for primitive types. Replacing manual loops and `.append()` with C-optimized list comprehensions combined with walrus operators (`[c for m in messages if len(m) == 2 and type(c := m.get("content")) is str]`) significantly reduces interpreter overhead in frequent utility functions like token estimation. Using `str.split` and iterating to `.find` is faster than manual while loops for extracting non-nested substring blocks.
+**Action:** Always favor `type(obj) is type` for primitive type checks, and utilize C-optimized list comprehensions and `str.split` for faster execution in hot paths.
