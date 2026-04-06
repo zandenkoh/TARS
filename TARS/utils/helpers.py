@@ -26,22 +26,13 @@ def strip_think(text: str) -> str:
     if "<think>" not in text:
         return text.strip()
 
-    parts: list[str] = []
-    start = 0
-    while True:
-        start_idx = text.find("<think>", start)
-        if start_idx == -1:
-            parts.append(text[start:])
-            break
-
-        parts.append(text[start:start_idx])
-        end_idx = text.find("</think>", start_idx + 7)
-        if end_idx == -1:
-            # Unclosed trailing <think>
-            break
-        start = end_idx + 8
-
-    return "".join(parts).strip()
+    parts = text.split("<think>")
+    out = [parts[0]]
+    for p in parts[1:]:
+        end_idx = p.find("</think>")
+        if end_idx != -1:
+            out.append(p[end_idx + 8:])
+    return "".join(out).strip()
 
 
 def detect_image_mime(data: bytes) -> str | None:
@@ -183,16 +174,11 @@ def estimate_prompt_tokens(
         # Fast path
         if not tools:
             try:
-                fast_parts = []
-                append_fast = fast_parts.append
-                for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
-                        fast_parts = None
-                        break
-                if fast_parts is not None:
+                fast_parts = [
+                    c for m in messages
+                    if len(m) == 2 and type(c := m.get("content")) is str
+                ]
+                if len(fast_parts) == len(messages):
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
                 pass
@@ -237,7 +223,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
@@ -247,29 +233,30 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     content = message.get("content")
     parts: list[str] = []
-    if isinstance(content, str):
-        parts.append(content)
-    elif isinstance(content, list):
+    append = parts.append
+    if type(content) is str:
+        append(content)
+    elif type(content) is list:
         for part in content:
-            if isinstance(part, dict) and part.get("type") == "text":
+            if type(part) is dict and part.get("type") == "text":
                 text = part.get("text", "")
                 if text:
-                    parts.append(text)
+                    append(text)
             else:
-                parts.append(json.dumps(part, ensure_ascii=False))
+                append(json.dumps(part, ensure_ascii=False))
     elif content is not None:
-        parts.append(json.dumps(content, ensure_ascii=False))
+        append(json.dumps(content, ensure_ascii=False))
 
     for key in ("name", "tool_call_id"):
         value = message.get(key)
-        if isinstance(value, str) and value:
-            parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
+        if type(value) is str and value:
+            append(value)
+    if tc := message.get("tool_calls"):
+        append(json.dumps(tc, ensure_ascii=False))
 
     rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
-        parts.append(rc)
+    if type(rc) is str and rc:
+        append(rc)
 
     payload = "\n".join(parts)
     if not payload:
