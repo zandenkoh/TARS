@@ -25,9 +25,10 @@ import os
 import re
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +38,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -362,6 +363,41 @@ class QQChannel(BaseChannel):
             logger.error("QQ send media failed filename={} err={}", filename, e)
             return False
 
+
+    @asynccontextmanager
+    async def _safe_get_media(self, url: str):
+        if not self._http:
+            self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
+
+        current_url = url
+        redirects = 0
+        resp = None
+        try:
+            while redirects < 5:
+                resp = await self._http.get(current_url, allow_redirects=False)
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    if not location:
+                        resp.close()
+                        yield None
+                        return
+                    current_url = urljoin(current_url, location)
+                    ok, _ = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning("QQ media SSRF attempt blocked on redirect to {}", current_url)
+                        resp.close()
+                        yield None
+                        return
+                    resp.close()
+                    redirects += 1
+                    continue
+                yield resp
+                return
+            yield None
+        finally:
+            if resp is not None:
+                resp.close()
+
     async def _read_media_bytes(self, media_ref: str) -> tuple[bytes | None, str | None]:
         """Read bytes from http(s) or local file path; return (data, filename)."""
         media_ref = (media_ref or "").strip()
@@ -395,14 +431,12 @@ class QQChannel(BaseChannel):
             logger.warning("QQ outbound media URL validation failed url={} err={}", media_ref, err)
             return None, None
 
-        if not self._http:
-            self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
-                if resp.status >= 400:
+            async with self._safe_get_media(media_ref) as resp:
+                if not resp or resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
-                        resp.status,
+                        resp.status if resp else "None",
                         media_ref,
                     )
                     return None, None
@@ -543,21 +577,14 @@ class QQChannel(BaseChannel):
         Enforces a max download size and writes to a .part temp file
         that is atomically renamed on success.
         """
-        if not self._http:
-            self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
-
         safe = _sanitize_filename(filename_hint)
         ts = int(time.time() * 1000)
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
-                if resp.status != 200:
-                    logger.warning("QQ download failed: status={} url={}", resp.status, url)
+            async with self._safe_get_media(url) as resp:
+                if not resp or resp.status != 200:
+                    logger.warning("QQ download failed: status={} url={}", resp.status if resp else "None", url)
                     return None
 
                 ctype = (resp.headers.get("Content-Type") or "").lower()
