@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-01 - Fast-Path Token Estimation Optimization
+**Learning:** Using EAFP (Easier to Ask for Forgiveness than Permission) list comprehensions combined with localized variable lookups (e.g. `[c for m in messages if len(m) == 2 and type(c := m.get("content")) is str]`) can significantly speed up heavy text string construction pipelines like Tiktoken message compilation, bypassing slow generic loop parsing loops when plain strings are common. Additionally, `type(obj) is str` is measurably faster than `isinstance(obj, str)` for primitive type checking.
+**Action:** Always look for 'fast path' scenarios in extremely frequent utility functions where standard iterations can be bypassed entirely using conditional shortcuts, and prefer `type(obj) is type` over `isinstance` for primitive types in hot paths.
