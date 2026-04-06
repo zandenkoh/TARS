@@ -1729,7 +1729,7 @@
                     <div onclick="loadSession('${s.key}')" onkeydown="if(event.key==='Enter') loadSession('${s.key}')" tabindex="0" role="button" class="relative flex items-center gap-3 px-3 py-2 text-[13px] rounded-lg cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20 ${active}">
                         <span class="truncate flex-1 font-medium">${safeTitle}</span>
                         <div class="relative session-menu-trigger">
-                            <button aria-label="Session Options" aria-haspopup="true" onclick="toggleSessionMenu(event, '${s.key}')" class="p-1 hover:bg-white/10 rounded-md transition-colors opacity-0 group-hover:opacity-100">
+                            <button aria-label="Session Options" aria-haspopup="true" onclick="toggleSessionMenu(event, '${s.key}')" class="p-1 hover:bg-white/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20">
                                 <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
                             </button>
                             <div id="session-menu-${s.key}" class="absolute right-0 top-full mt-1 w-32 bg-[#252528] rounded-lg border border-white/10 shadow-xl overflow-hidden hidden z-50">
