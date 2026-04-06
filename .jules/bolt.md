@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-03 - Combine Regular Expressions for Execution Hot Paths
+**Learning:** In string parsing functions such as `_extract_absolute_paths` within `ExecTool`, compiling and evaluating multiple regex patterns individually (e.g. searching for Windows paths, POSIX paths, and Home shortcuts separately using `findall`) causes unnecessary Python execution overhead. In a benchmark, executing a single unified regex with logically OR'd groups was over 3x faster than running three individual queries on the same string.
+**Action:** When multiple regular expression patterns need to be executed over the same string to collect different kinds of matches, logically combine them using the OR (`|`) operator in a single pre-compiled regex object and execute one `.findall()` call instead of several.
