@@ -21,3 +21,7 @@
 ## 2026-04-02 - Standardizing Dynamic Empty States
 **Learning:** Empty states should never replace or rename core creation actions. In TARS, the "Projects" sidebar empty state previously hid the main category header and replaced the "New project" button with a mislabeled "Projects" button that functioned identically but broke consistency. This confused users who didn't expect a navigation-like label to act as a creation action.
 **Action:** Unify empty and filled states to consistently display core structural elements (headers, creation buttons). Use a dedicated, clearly labeled empty state placeholder instead of co-opting existing actions. Additionally, always remember to add `focus-visible` styling to dynamically generated interactive elements to preserve keyboard accessibility.
+
+## 2025-05-24 - [Inline Feedback for Async Actions]
+**Learning:** Using native browser `alert()` dialogues for success messages on forms is jarring, blocks the UI thread, and requires an extra click from the user. It breaks the flow of a modern web application.
+**Action:** Replace blocking `alert()` calls with inline visual feedback on the triggering button itself (e.g., changing text to "SAVING...", disabling the button, and then showing "SAVED!" temporarily on success). This provides clear, non-intrusive feedback and prevents double submissions.
