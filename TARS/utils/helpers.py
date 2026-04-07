@@ -187,7 +187,7 @@ def estimate_prompt_tokens(
                 append_fast = fast_parts.append
                 for m in messages:
                     content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
+                    if len(m) == 2 and type(content) is str:
                         append_fast(content)
                     else:
                         fast_parts = None
@@ -202,11 +202,11 @@ def estimate_prompt_tokens(
         dumps = json.dumps
         for msg in messages:
             content = msg.get("content")
-            if isinstance(content, str):
+            if type(content) is str:
                 append(content)
-            elif isinstance(content, list):
+            elif type(content) is list:
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
+                    if type(part) is dict and part.get("type") == "text":
                         txt = part.get("text", "")
                         if txt:
                             append(txt)
@@ -216,12 +216,12 @@ def estimate_prompt_tokens(
                 append(dumps(tc, ensure_ascii=False))
 
             rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if type(rc) is str and rc:
                 append(rc)
 
             for key in ("name", "tool_call_id"):
                 value = msg.get(key)
-                if isinstance(value, str) and value:
+                if type(value) is str and value:
                     append(value)
 
         if tools:
@@ -237,7 +237,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
@@ -247,11 +247,11 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     content = message.get("content")
     parts: list[str] = []
-    if isinstance(content, str):
+    if type(content) is str:
         parts.append(content)
-    elif isinstance(content, list):
+    elif type(content) is list:
         for part in content:
-            if isinstance(part, dict) and part.get("type") == "text":
+            if type(part) is dict and part.get("type") == "text":
                 text = part.get("text", "")
                 if text:
                     parts.append(text)
@@ -262,13 +262,13 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     for key in ("name", "tool_call_id"):
         value = message.get(key)
-        if isinstance(value, str) and value:
+        if type(value) is str and value:
             parts.append(value)
     if message.get("tool_calls"):
         parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
 
     rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
+    if type(rc) is str and rc:
         parts.append(rc)
 
     payload = "\n".join(parts)
@@ -292,7 +292,7 @@ def estimate_prompt_tokens_chain(
     if callable(provider_counter):
         try:
             tokens, source = provider_counter(messages, tools, model)
-            if isinstance(tokens, (int, float)) and tokens > 0:
+            if type(tokens) in (int, float) and tokens > 0:
                 return int(tokens), str(source or "provider_counter")
         except Exception:
             pass
