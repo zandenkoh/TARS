@@ -585,11 +585,16 @@ class AgentLoop:
     def _save_turn(self, session: Session, messages: list[dict], skip: int) -> None:
         """Save new-turn messages into session, truncating large tool results."""
         from datetime import datetime
+
+        append = session.messages.append
+        get_now = datetime.now
+
         for m in messages[skip:]:
-            entry = dict(m)
-            role, content = entry.get("role"), entry.get("content")
-            if role == "assistant" and not content and not entry.get("tool_calls"):
+            role, content = m.get("role"), m.get("content")
+            if role == "assistant" and not content and not m.get("tool_calls"):
                 continue  # skip empty assistant messages — they poison session context
+
+            entry = m.copy()
             if role == "tool":
                 if isinstance(content, str) and len(content) > self._TOOL_RESULT_MAX_CHARS:
                     entry["content"] = content[:self._TOOL_RESULT_MAX_CHARS] + "\n... (truncated)"
@@ -611,8 +616,10 @@ class AgentLoop:
                     if not filtered:
                         continue
                     entry["content"] = filtered
-            entry.setdefault("timestamp", datetime.now().isoformat())
-            session.messages.append(entry)
+
+            if "timestamp" not in entry:
+                entry["timestamp"] = get_now().isoformat()
+            append(entry)
         session.updated_at = datetime.now()
 
     async def process_direct(
