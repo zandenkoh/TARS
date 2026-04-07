@@ -54,8 +54,9 @@
             </div>
         </div>
 
-        <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
+        <div class="flex items-center justify-end gap-4">
+            <span id="save-feedback" class="text-xs font-medium opacity-0 transition-opacity"></span>
+            <button type="button" id="save-config-btn" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black">
                 SAVE CONFIGURATION
             </button>
         </div>
@@ -63,6 +64,15 @@
 
     <script>
         async function saveConfig() {
+            const btn = document.getElementById('save-config-btn');
+            const feedback = document.getElementById('save-feedback');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'SAVING...';
+
+            // Clear old feedback
+            feedback.className = "text-xs font-medium opacity-0 transition-opacity";
+
             const form = document.getElementById('config-form');
             const data = new FormData(form);
             const obj = {};
@@ -90,6 +100,18 @@
             const formData = new FormData();
             formData.append('config_json', JSON.stringify(obj, null, 2));
 
+            const showFeedback = (msg, isError) => {
+                feedback.textContent = msg;
+                feedback.className = `text-xs font-medium transition-opacity opacity-100 ${isError ? 'text-red-400' : 'text-emerald-400'}`;
+                btn.innerText = isError ? 'ERROR!' : 'SAVED!';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    feedback.classList.remove('opacity-100');
+                    feedback.classList.add('opacity-0');
+                }, 3000);
+            };
+
             try {
                 const resp = await fetch('/api/config', {
                     method: 'POST',
@@ -97,12 +119,13 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    showFeedback('Configuration saved successfully!', false);
                 } else {
-                    alert('Error: ' + result.message);
+                    showFeedback('Error: ' + result.message, true);
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                showFeedback('Error saving configuration.', true);
             }
         }
     </script>

@@ -1,15 +1,283 @@
 INFO:     Will watch for changes in these directories: ['/app']
 INFO:     Uvicorn running on http://0.0.0.0:18790 (Press CTRL+C to quit)
-INFO:     Started reloader process [56089] using WatchFiles
+INFO:     Started reloader process [120254] using WatchFiles
 🚀 Starting TARS Web UI at http://0.0.0.0:18790
-INFO:     Started server process [56091]
+INFO:     Started server process [120257]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     127.0.0.1:39582 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39582 - "GET /static/icon-192.png HTTP/1.1" 200 OK
-INFO:     127.0.0.1:39582 - "GET /api/sessions HTTP/1.1" 200 OK
-INFO:     Shutting down
+INFO:     127.0.0.1:36024 - "GET /api/config HTTP/1.1" 200 OK
+2026-04-07 12:27:47.559 | WARNING  | TARS.config.loader:load_config:47 - Failed to load config from /home/jules/.TARS/config.json: 89 validation errors for Config
+user.age
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.custom.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.custom.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.custom.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.custom.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.azureOpenai.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.azureOpenai.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.azureOpenai.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.azureOpenai.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.anthropic.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.anthropic.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.anthropic.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.anthropic.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.openai.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.openai.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.openai.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.openai.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.openrouter.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.openrouter.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.openrouter.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.openrouter.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.deepseek.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.deepseek.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.deepseek.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.deepseek.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.groq.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.groq.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.groq.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.groq.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.zhipu.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.zhipu.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.zhipu.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.zhipu.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.dashscope.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.dashscope.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.dashscope.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.dashscope.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.vllm.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.vllm.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.vllm.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.vllm.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.ollama.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.ollama.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.ollama.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.ollama.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.ovms.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.ovms.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.ovms.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.ovms.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.gemini.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.gemini.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.gemini.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.gemini.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.moonshot.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.moonshot.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.moonshot.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.moonshot.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.minimax.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.minimax.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.minimax.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.minimax.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.mistral.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.mistral.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.mistral.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.mistral.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.aihubmix.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.aihubmix.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.aihubmix.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.aihubmix.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.siliconflow.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.siliconflow.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.siliconflow.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.siliconflow.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.volcengine.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.volcengine.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.volcengine.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.volcengine.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.volcengineCodingPlan.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.volcengineCodingPlan.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.volcengineCodingPlan.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.volcengineCodingPlan.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.byteplus.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.byteplus.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.byteplus.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.byteplus.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+providers.byteplusCodingPlan.apiKeys
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.byteplusCodingPlan.extraHeaders
+  Input should be a valid dictionary [type=dict_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/dict_type
+providers.byteplusCodingPlan.models
+  Input should be a valid list [type=list_type, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+providers.byteplusCodingPlan.contextWindowTokens
+  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/int_parsing
+2026-04-07 12:27:47.559 | WARNING  | TARS.config.loader:load_config:48 - Using default configuration.
+INFO:     127.0.0.1:36024 - "POST /api/config HTTP/1.1" 200 OK
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [56091]
-INFO:     Stopping reloader process [56089]
+INFO:     Finished server process [104722]
+INFO:     Stopping reloader process [104719]
