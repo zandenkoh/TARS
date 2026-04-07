@@ -37,7 +37,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -551,11 +551,33 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
+            is_valid, err_msg = validate_url_target(url)
+            if not is_valid:
+                logger.warning("QQ file download blocked by SSRF check url={} err={}", url, err_msg)
+                return None
+
+            current_url = url
+            for _ in range(5): # MAX_REDIRECTS
+                resp = await self._http.get(
+                    current_url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                )
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    resp.release()
+                    if not location:
+                        break
+                    from urllib.parse import urljoin
+                    current_url = urljoin(current_url, location)
+                    is_valid, err_msg = validate_resolved_url(current_url)
+                    if not is_valid:
+                        logger.warning("QQ file download redirect blocked by SSRF check url={} err={}", current_url, err_msg)
+                        return None
+                    continue
+                break
+
+            async with resp:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)
                     return None
