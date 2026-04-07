@@ -183,16 +183,11 @@ def estimate_prompt_tokens(
         # Fast path
         if not tools:
             try:
-                fast_parts = []
-                append_fast = fast_parts.append
-                for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
-                        fast_parts = None
-                        break
-                if fast_parts is not None:
+                fast_parts = [
+                    c for m in messages
+                    if len(m) == 2 and type(c := m.get("content")) is str
+                ]
+                if len(fast_parts) == len(messages):
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
                 pass
@@ -237,7 +232,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
