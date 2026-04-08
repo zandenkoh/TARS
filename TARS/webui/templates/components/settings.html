@@ -55,7 +55,7 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
+            <button type="button" id="save-config-btn" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed">
                 SAVE CONFIGURATION
             </button>
         </div>
@@ -64,9 +64,14 @@
     <script>
         async function saveConfig() {
             const form = document.getElementById('config-form');
-            const data = new FormData(form);
-            const obj = {};
+            const btn = document.getElementById('save-config-btn');
+
+            // Set loading state
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'SAVING...';
             
+            const obj = {};
             const setNested = (target, path, value) => {
                 const keys = path.split('.');
                 const lastKey = keys.pop();
@@ -74,12 +79,6 @@
                 lastObj[lastKey] = value;
             };
 
-            // Process all form data
-            // Note: checkboxes that are not checked don't appear in FormData
-            // We need to handle this if we want to support toggling false.
-            // For now, let's just use the entries present.
-            
-            // Re-read form to include all fields including unchecked checkboxes
             const inputs = form.querySelectorAll('input');
             inputs.forEach(input => {
                 let value = input.type === 'checkbox' ? input.checked : input.value;
@@ -96,13 +95,34 @@
                     body: formData
                 });
                 const result = await resp.json();
+
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    btn.innerHTML = 'SAVED!';
+                    btn.classList.add('!bg-emerald-500', '!text-white');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('!bg-emerald-500', '!text-white');
+                        btn.disabled = false;
+                    }, 2000);
                 } else {
-                    alert('Error: ' + result.message);
+                    btn.innerHTML = 'ERROR';
+                    btn.classList.add('!bg-red-500', '!text-white');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('!bg-red-500', '!text-white');
+                        btn.disabled = false;
+                    }, 2000);
+                    console.error("Save failed:", result.message);
                 }
             } catch (err) {
-                console.error("Save failed", err);
+                console.error("Save request failed", err);
+                btn.innerHTML = 'ERROR';
+                btn.classList.add('!bg-red-500', '!text-white');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('!bg-red-500', '!text-white');
+                    btn.disabled = false;
+                }, 2000);
             }
         }
     </script>
