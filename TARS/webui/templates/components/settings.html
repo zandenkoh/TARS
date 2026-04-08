@@ -55,16 +55,27 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
-                SAVE CONFIGURATION
+            <button type="button" id="save-config-btn" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-tars-primary">
+                <div class="flex items-center justify-center gap-2">
+                    <svg id="save-config-spinner" class="w-4 h-4 hidden animate-spin" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span id="save-config-text">SAVE CONFIGURATION</span>
+                </div>
             </button>
         </div>
     </form>
 
     <script>
         async function saveConfig() {
+            const btn = document.getElementById('save-config-btn');
+            const btnText = document.getElementById('save-config-text');
+            const spinner = document.getElementById('save-config-spinner');
+
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            const originalText = btnText.innerText;
+            btnText.innerText = 'SAVING...';
+
             const form = document.getElementById('config-form');
-            const data = new FormData(form);
             const obj = {};
             
             const setNested = (target, path, value) => {
@@ -74,11 +85,6 @@
                 lastObj[lastKey] = value;
             };
 
-            // Process all form data
-            // Note: checkboxes that are not checked don't appear in FormData
-            // We need to handle this if we want to support toggling false.
-            // For now, let's just use the entries present.
-            
             // Re-read form to include all fields including unchecked checkboxes
             const inputs = form.querySelectorAll('input');
             inputs.forEach(input => {
@@ -97,12 +103,29 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    btnText.innerText = 'SAVED!';
+                    spinner.classList.add('hidden');
+                    setTimeout(() => {
+                        btnText.innerText = originalText;
+                        btn.disabled = false;
+                    }, 2000);
                 } else {
-                    alert('Error: ' + result.message);
+                    console.error('Error: ' + result.message);
+                    btnText.innerText = 'ERROR!';
+                    spinner.classList.add('hidden');
+                    setTimeout(() => {
+                        btnText.innerText = originalText;
+                        btn.disabled = false;
+                    }, 2000);
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                btnText.innerText = 'ERROR!';
+                spinner.classList.add('hidden');
+                setTimeout(() => {
+                    btnText.innerText = originalText;
+                    btn.disabled = false;
+                }, 2000);
             }
         }
     </script>
