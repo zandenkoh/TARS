@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-02 - Optimize Token Estimation Hot Paths
+**Learning:** In highly-frequented functions like `estimate_message_tokens` and `estimate_prompt_tokens`, using explicit lookup assignments prior to multiple operations and effectively chaining assignments via walrus operators (`:=`) in explicit loop conditionals optimizes fast-paths measurably without breaking early rejections (unlike generator comprehensions). Furthermore, caching redundant method lookups like `append = list.append` within functions heavily reduces attribute lookup overhead during looping.
+**Action:** Streamline fast paths by explicitly assigning variables prior to evaluation or using walrus operators directly within explicit `for` loop constructs for speed and early exits, and cache list operation methods (`append`) locally.
