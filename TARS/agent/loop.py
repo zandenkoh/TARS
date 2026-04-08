@@ -551,34 +551,36 @@ class AgentLoop:
     ) -> list[dict[str, Any]]:
         """Strip volatile multimodal payloads before writing session history."""
         filtered: list[dict[str, Any]] = []
+        append = filtered.append
         for block in content:
             if not isinstance(block, dict):
-                filtered.append(block)
+                append(block)
                 continue
 
+            b_type = block.get("type")
             if (
                 drop_runtime
-                and block.get("type") == "text"
-                and isinstance(block.get("text"), str)
-                and block["text"].startswith(ContextBuilder._RUNTIME_CONTEXT_TAG)
+                and b_type == "text"
+                and isinstance(text := block.get("text"), str)
+                and text.startswith(ContextBuilder._RUNTIME_CONTEXT_TAG)
             ):
                 continue
 
             if (
-                block.get("type") == "image_url"
-                and block.get("image_url", {}).get("url", "").startswith("data:image/")
+                b_type == "image_url"
+                and isinstance(img_url := block.get("image_url"), dict)
+                and img_url.get("url", "").startswith("data:image/")
             ):
-                filtered.append(self._image_placeholder(block))
+                append(self._image_placeholder(block))
                 continue
 
-            if block.get("type") == "text" and isinstance(block.get("text"), str):
-                text = block["text"]
+            if b_type == "text" and isinstance(text := block.get("text"), str):
                 if truncate_text and len(text) > self._TOOL_RESULT_MAX_CHARS:
                     text = text[:self._TOOL_RESULT_MAX_CHARS] + "\n... (truncated)"
-                filtered.append({**block, "text": text})
+                append({**block, "text": text})
                 continue
 
-            filtered.append(block)
+            append(block)
 
         return filtered
 
