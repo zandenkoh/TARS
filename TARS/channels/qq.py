@@ -25,9 +25,10 @@ import os
 import re
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +38,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -124,6 +125,31 @@ def _make_bot_class(channel: QQChannel) -> type[botpy.Client]:
             await channel._on_message(message, is_group=False)
 
     return _Bot
+
+
+
+@asynccontextmanager
+async def _safe_get(session: aiohttp.ClientSession, url: str, **kwargs):
+    max_redirects = 5
+    current_url = url
+    for _ in range(max_redirects):
+        resp = await session.get(current_url, allow_redirects=False, **kwargs)
+        if resp.status in (301, 302, 303, 307, 308):
+            loc = resp.headers.get("Location")
+            await resp.release()
+            if not loc:
+                raise ValueError("Redirect with no Location header")
+            current_url = urljoin(current_url, loc)
+            ok, err = validate_resolved_url(current_url)
+            if not ok:
+                raise ValueError(f"SSRF blocked: {err}")
+        else:
+            try:
+                yield resp
+            finally:
+                await resp.release()
+            return
+    raise ValueError("Too many redirects")
 
 
 class QQConfig(Base):
@@ -398,7 +424,7 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
+            async with _safe_get(self._http, media_ref) as resp:
                 if resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
@@ -551,10 +577,10 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
+            async with _safe_get(
+                self._http,
                 url,
                 timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
             ) as resp:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)
