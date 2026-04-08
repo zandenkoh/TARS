@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-02 - Cache method lookups in message token estimation
+**Learning:** Caching instance method lookups to local variables (like `append = parts.append`) before executing extensive branching or loops reduces overhead in Python hot paths.
+**Action:** Apply method caching to frequent utility functions like `estimate_message_tokens` that construct large strings via repeated appends and JSON dumps.
