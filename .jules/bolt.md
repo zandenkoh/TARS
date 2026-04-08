@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-01 - Avoid duplicate dictionary lookups in hot loops
+**Learning:** In frequently called message parsing loops (like token estimation and block sanitization), repeating `block.get("type")` or making separate variable assignments for `content = msg.get("content")` without checking conditions first adds `O(N)` loop dictionary lookup overhead.
+**Action:** Use walrus operators (`:=`) in combination with short-circuiting logical `and` conditions to only evaluate dictionary `.get()` lookups when prior conditions are met, eliminating redundant operations.
