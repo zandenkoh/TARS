@@ -27,15 +27,17 @@ def strip_think(text: str) -> str:
         return text.strip()
 
     parts: list[str] = []
+    append = parts.append
+    find = text.find
     start = 0
     while True:
-        start_idx = text.find("<think>", start)
+        start_idx = find("<think>", start)
         if start_idx == -1:
-            parts.append(text[start:])
+            append(text[start:])
             break
 
-        parts.append(text[start:start_idx])
-        end_idx = text.find("</think>", start_idx + 7)
+        append(text[start:start_idx])
+        end_idx = find("</think>", start_idx + 7)
         if end_idx == -1:
             # Unclosed trailing <think>
             break
@@ -124,25 +126,27 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
     """
     if not content:
         return []
-    if len(content) <= max_len:
+    total_len = len(content)
+    if total_len <= max_len:
         return [content]
     chunks: list[str] = []
+    append = chunks.append
+    rfind = content.rfind
     start = 0
-    total_len = len(content)
     while start < total_len:
         if total_len - start <= max_len:
-            chunks.append(content[start:])
+            append(content[start:])
             break
 
         cut_end = start + max_len
         # Try to break at newline first, then space, then hard break
-        pos = content.rfind("\n", start, cut_end)
+        pos = rfind("\n", start, cut_end)
         if pos <= start:
-            pos = content.rfind(" ", start, cut_end)
-        if pos <= start:
-            pos = cut_end
+            pos = rfind(" ", start, cut_end)
+            if pos <= start:
+                pos = cut_end
 
-        chunks.append(content[start:pos])
+        append(content[start:pos])
 
         start = pos
         while start < total_len and content[start].isspace():
@@ -183,16 +187,8 @@ def estimate_prompt_tokens(
         # Fast path
         if not tools:
             try:
-                fast_parts = []
-                append_fast = fast_parts.append
-                for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
-                        fast_parts = None
-                        break
-                if fast_parts is not None:
+                fast_parts = [c for m in messages if len(m) == 2 and type(c := m.get("content")) is str]
+                if len(fast_parts) == len(messages):
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
                 pass
@@ -202,26 +198,25 @@ def estimate_prompt_tokens(
         dumps = json.dumps
         for msg in messages:
             content = msg.get("content")
-            if isinstance(content, str):
+            if type(content) is str:
                 append(content)
-            elif isinstance(content, list):
+            elif type(content) is list:
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
+                    if type(part) is dict and part.get("type") == "text":
                         txt = part.get("text", "")
                         if txt:
                             append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
-            rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
-                append(rc)
+            if rc := msg.get("reasoning_content"):
+                if type(rc) is str:
+                    append(rc)
 
             for key in ("name", "tool_call_id"):
                 value = msg.get(key)
-                if isinstance(value, str) and value:
+                if type(value) is str and value:
                     append(value)
 
         if tools:
@@ -237,7 +232,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
@@ -247,11 +242,11 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     content = message.get("content")
     parts: list[str] = []
-    if isinstance(content, str):
+    if type(content) is str:
         parts.append(content)
-    elif isinstance(content, list):
+    elif type(content) is list:
         for part in content:
-            if isinstance(part, dict) and part.get("type") == "text":
+            if type(part) is dict and part.get("type") == "text":
                 text = part.get("text", "")
                 if text:
                     parts.append(text)
@@ -262,14 +257,15 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     for key in ("name", "tool_call_id"):
         value = message.get(key)
-        if isinstance(value, str) and value:
+        if type(value) is str and value:
             parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
 
-    rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
-        parts.append(rc)
+    if tc := message.get("tool_calls"):
+        parts.append(json.dumps(tc, ensure_ascii=False))
+
+    if rc := message.get("reasoning_content"):
+        if type(rc) is str:
+            parts.append(rc)
 
     payload = "\n".join(parts)
     if not payload:
