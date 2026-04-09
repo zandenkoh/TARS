@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-02 - Combine OR-able Regex in Hot Paths
+**Learning:** To reduce execution overhead in Python hot paths (like parsing shell commands in `ExecTool`), executing multiple regex searches sequentially on the same string is inefficient. Combining multiple logically OR-able regex patterns into a single compiled regex and executing one `.findall()` is over 3x faster than multiple sequential matches.
+**Action:** Always combine logically related and OR-able regex patterns into a single expression where practical, instead of maintaining and executing separate sequential matches on the same text in hot loops.
