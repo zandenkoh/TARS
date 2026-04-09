@@ -27,7 +27,7 @@ import time
 from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +37,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -398,8 +398,29 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
-                if resp.status >= 400:
+            current_url = media_ref
+            resp = None
+            for _ in range(5):
+                resp = await self._http.get(current_url, allow_redirects=False)
+                if resp.status in (301, 302, 303, 307, 308):
+                    next_url = resp.headers.get("Location")
+                    resp.close()
+                    if not next_url:
+                        logger.warning("QQ outbound media redirect missing Location header: {}", current_url)
+                        return None, None
+                    current_url = urljoin(current_url, next_url)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning("QQ outbound media redirect validation failed url={} err={}", current_url, err)
+                        return None, None
+                else:
+                    break
+
+            if not resp:
+                return None, None
+
+            try:
+                if resp.status != 200:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
                         resp.status,
@@ -411,6 +432,8 @@ class QQChannel(BaseChannel):
                     return None, None
                 filename = os.path.basename(urlparse(media_ref).path) or "file.bin"
                 return data, filename
+            finally:
+                resp.close()
         except Exception as e:
             logger.warning("QQ outbound media download error url={} err={}", media_ref, e)
             return None, None
@@ -543,6 +566,11 @@ class QQChannel(BaseChannel):
         Enforces a max download size and writes to a .part temp file
         that is atomically renamed on success.
         """
+        ok, err = validate_url_target(url)
+        if not ok:
+            logger.warning("QQ inbound media URL validation failed url={} err={}", url, err)
+            return None
+
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
 
@@ -551,11 +579,32 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
+            current_url = url
+            resp = None
+            for _ in range(5):
+                resp = await self._http.get(
+                    current_url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                )
+                if resp.status in (301, 302, 303, 307, 308):
+                    next_url = resp.headers.get("Location")
+                    resp.close()
+                    if not next_url:
+                        logger.warning("QQ inbound media redirect missing Location header: {}", current_url)
+                        return None
+                    current_url = urljoin(current_url, next_url)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning("QQ inbound media redirect validation failed url={} err={}", current_url, err)
+                        return None
+                else:
+                    break
+
+            if not resp:
+                return None
+
+            try:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)
                     return None
@@ -626,6 +675,8 @@ class QQChannel(BaseChannel):
                 tmp_path = None  # mark as moved
                 logger.info("QQ file saved: {}", str(target))
                 return str(target)
+            finally:
+                resp.close()
 
         except Exception as e:
             logger.error("QQ download error: {}", e)
