@@ -55,7 +55,7 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
+            <button id="save-config-btn" type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
                 SAVE CONFIGURATION
             </button>
         </div>
@@ -63,6 +63,14 @@
 
     <script>
         async function saveConfig() {
+            const saveBtn = document.getElementById('save-config-btn');
+            const originalText = saveBtn.innerText;
+            const originalClasses = saveBtn.className;
+
+            // Loading state
+            saveBtn.innerText = 'SAVING...';
+            saveBtn.disabled = true;
+            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
             const form = document.getElementById('config-form');
             const data = new FormData(form);
             const obj = {};
@@ -97,13 +105,25 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    saveBtn.innerText = 'SAVED!';
+                    saveBtn.className = 'px-8 py-3 font-bold text-xs rounded-2xl transition-all shadow-xl shadow-white/5 bg-emerald-500 text-white';
                 } else {
-                    alert('Error: ' + result.message);
+                    saveBtn.innerText = 'ERROR!';
+                    saveBtn.className = 'px-8 py-3 font-bold text-xs rounded-2xl transition-all shadow-xl shadow-white/5 bg-red-500 text-white';
+                    console.error("Save error:", result.message);
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                saveBtn.innerText = 'ERROR!';
+                saveBtn.className = 'px-8 py-3 font-bold text-xs rounded-2xl transition-all shadow-xl shadow-white/5 bg-red-500 text-white';
             }
+
+            // Restore state
+            setTimeout(() => {
+                saveBtn.innerText = originalText;
+                saveBtn.className = originalClasses;
+                saveBtn.disabled = false;
+            }, 2000);
         }
     </script>
 </div>
