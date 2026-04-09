@@ -55,7 +55,7 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
+            <button type="button" id="save-config-btn" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed">
                 SAVE CONFIGURATION
             </button>
         </div>
@@ -90,19 +90,46 @@
             const formData = new FormData();
             formData.append('config_json', JSON.stringify(obj, null, 2));
 
+            const btn = document.getElementById('save-config-btn');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'SAVING...';
+
             try {
                 const resp = await fetch('/api/config', {
                     method: 'POST',
                     body: formData
                 });
                 const result = await resp.json();
+
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    btn.innerText = 'SAVED!';
+                    btn.classList.add('bg-emerald-500', 'text-white');
+                    btn.classList.remove('bg-white', 'text-black');
                 } else {
-                    alert('Error: ' + result.message);
+                    console.error("Save failed:", result.message);
+                    btn.innerText = 'ERROR!';
+                    btn.classList.add('bg-red-500', 'text-white');
+                    btn.classList.remove('bg-white', 'text-black');
                 }
+
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('bg-emerald-500', 'bg-red-500', 'text-white');
+                    btn.classList.add('bg-white', 'text-black');
+                }, 2000);
             } catch (err) {
                 console.error("Save failed", err);
+                btn.innerText = 'ERROR!';
+                btn.classList.add('bg-red-500', 'text-white');
+                btn.classList.remove('bg-white', 'text-black');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('bg-red-500', 'text-white');
+                    btn.classList.add('bg-white', 'text-black');
+                }, 2000);
             }
         }
     </script>
