@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-02 - Combine OR-able regex patterns
+**Learning:** In hot loops like `_extract_absolute_paths` inside `TARS/agent/tools/shell.py`, executing multiple sequential `.findall()` operations with individual regular expressions is significantly slower than combining the patterns using a logical OR `|` and executing a single `.findall()`. This saves CPU cycles by reducing string traversals and regex engine overhead.
+**Action:** When extracting multiple distinct patterns from a large string in performance-sensitive contexts, combine them into a single compiled regex with OR (`|`) to reduce execution overhead.
