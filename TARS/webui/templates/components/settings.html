@@ -55,8 +55,8 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
-                SAVE CONFIGURATION
+            <button id="save-btn" type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span id="save-text">SAVE CONFIGURATION</span>
             </button>
         </div>
     </form>
@@ -90,6 +90,13 @@
             const formData = new FormData();
             formData.append('config_json', JSON.stringify(obj, null, 2));
 
+            const btn = document.getElementById('save-btn');
+            const text = document.getElementById('save-text');
+            const originalText = text.textContent;
+
+            btn.disabled = true;
+            text.textContent = 'SAVING...';
+
             try {
                 const resp = await fetch('/api/config', {
                     method: 'POST',
@@ -97,12 +104,18 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    text.textContent = 'SAVED!';
                 } else {
-                    alert('Error: ' + result.message);
+                    text.textContent = 'ERROR!';
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                text.textContent = 'ERROR!';
+            } finally {
+                setTimeout(() => {
+                    text.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
             }
         }
     </script>
