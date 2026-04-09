@@ -32,7 +32,7 @@ app = FastAPI(
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        if request.method in ("POST", "PUT", "DELETE", "PATCH") or (request.method == "GET" and request.url.path == "/api/chat/stream"):
             origin = request.headers.get("origin") or request.headers.get("referer")
             if origin:
                 from urllib.parse import urlparse
