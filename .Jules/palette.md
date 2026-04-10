@@ -9,3 +9,7 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+
+## 2026-04-10 - [UX: Inline Form Feedback]
+**Learning:** Native browser alert() dialogs interrupt user flow and feel jarring for simple form submissions.
+**Action:** Replace alert() with inline visual feedback on the triggering button (e.g., showing a loading spinner, then a "SAVED!" state) to provide smooth, non-blocking feedback and prevent double-submissions.
