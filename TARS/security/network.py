@@ -10,21 +10,31 @@ from urllib.parse import urlparse
 _BLOCKED_NETWORKS = [
     ipaddress.ip_network("0.0.0.0/8"),
     ipaddress.ip_network("10.0.0.0/8"),
-    ipaddress.ip_network("100.64.0.0/10"),   # carrier-grade NAT
+    ipaddress.ip_network("100.64.0.0/10"),  # carrier-grade NAT
     ipaddress.ip_network("127.0.0.0/8"),
-    ipaddress.ip_network("169.254.0.0/16"),   # link-local / cloud metadata
+    ipaddress.ip_network("169.254.0.0/16"),  # link-local / cloud metadata
     ipaddress.ip_network("172.16.0.0/12"),
     ipaddress.ip_network("192.168.0.0/16"),
     ipaddress.ip_network("::1/128"),
-    ipaddress.ip_network("fc00::/7"),          # unique local
-    ipaddress.ip_network("fe80::/10"),         # link-local v6
+    ipaddress.ip_network("fc00::/7"),  # unique local
+    ipaddress.ip_network("fe80::/10"),  # link-local v6
 ]
 
 _URL_RE = re.compile(r"https?://[^\s\"'`;|<>]+", re.IGNORECASE)
 
 
 def _is_private(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
-    return any(addr in net for net in _BLOCKED_NETWORKS)
+    # Safely handle IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1)
+    # They are strictly parsed as IPv6Address but should be checked against IPv4 networks
+    if getattr(addr, "ipv4_mapped", None):
+        mapped = addr.ipv4_mapped
+        if any(mapped in net for net in _BLOCKED_NETWORKS if net.version == 4):
+            return True
+
+    for net in _BLOCKED_NETWORKS:
+        if addr.version == net.version and addr in net:
+            return True
+    return False
 
 
 def validate_url_target(url: str) -> tuple[bool, str]:
