@@ -4,6 +4,7 @@ import json
 
 # Part of TARS integrated web UI – prepared for HTMX + Tailwind
 import shutil
+import uuid
 from pathlib import Path
 from typing import Annotated, AsyncGenerator, List, Optional
 
@@ -113,8 +114,6 @@ async def read_root(request: Request, tars: TARS):
         "model_name": model_name,
         "config": tars.config
     })
-
-import uuid
 
 
 @app.get("/api/sessions")
@@ -278,7 +277,8 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
 
         items = []
         for p in target_path.iterdir():
-            if p.name.startswith('.'): continue # Hide hidden files
+            if p.name.startswith('.'):
+                continue # Hide hidden files
             items.append({
                 "name": p.name,
                 "is_dir": p.is_dir(),
@@ -314,12 +314,17 @@ async def get_tasks_ui(request: Request, tars: TARS):
     tasks_dir = tars.workspace / "tasks"
     tasks = []
     if tasks_dir.exists():
+        import asyncio
+        def _read_task(p_path):
+            with open(p_path, "r") as f:
+                return json.load(f)
+
         for p in sorted(tasks_dir.glob("daily_*.json"), reverse=True)[:5]:
             try:
-                with open(p, "r") as f:
-                    data = json.load(f)
-                    tasks.append({"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))})
-            except: continue
+                data = await asyncio.to_thread(_read_task, p)
+                tasks.append({"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))})
+            except Exception:
+                continue
 
     return templates.TemplateResponse(request, "components/tasks.html", {
         "tasks": tasks,
@@ -416,14 +421,18 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
         if not target_dir.resolve().is_relative_to(base.resolve()):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
 
+        import asyncio
+        def _save_file(path, file_obj):
+            with open(path, "wb") as f:
+                shutil.copyfileobj(file_obj, f)
+
         for file in files:
             # Prevent path traversal in filename
             file_path = (target_dir / file.filename).resolve()
             if not file_path.resolve().is_relative_to(base.resolve()):
                 return JSONResponse({"status": "error", "message": "Access Denied: Invalid filename"}, status_code=403)
 
-            with open(file_path, "wb") as f:
-                shutil.copyfileobj(file.file, f)
+            await asyncio.to_thread(_save_file, file_path, file.file)
 
         return JSONResponse({"status": "success", "message": f"Uploaded {len(files)} files"})
     except Exception as e:
@@ -444,9 +453,17 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
 
         tasks_data = {"tasks": [], "date": target_date}
 
+        import asyncio
+        def _load_tasks(path):
+            with open(path, "r") as f:
+                return json.load(f)
+
+        def _save_tasks(path, data):
+            with open(path, "w") as f:
+                json.dump(data, f, indent=2)
+
         if file_path.exists():
-            with open(file_path, "r") as f:
-                tasks_data = json.load(f)
+            tasks_data = await asyncio.to_thread(_load_tasks, file_path)
 
         tasks_data["tasks"].append({
             "id": uuid.uuid4().hex[:8],
@@ -455,8 +472,7 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
             "created_at": datetime.now().isoformat()
         })
 
-        with open(file_path, "w") as f:
-            json.dump(tasks_data, f, indent=2)
+        await asyncio.to_thread(_save_tasks, file_path, tasks_data)
 
         return JSONResponse({"status": "success", "message": "Task created"})
     except Exception as e:
@@ -473,8 +489,12 @@ async def update_config(tars: TARS, config_json: str = Form(...)):
         from TARS.config.paths import get_config_path
         path = get_config_path()
 
-        with open(path, "w") as f:
-            json.dump(new_config, f, indent=2)
+        import asyncio
+        def _save_config(p, cfg):
+            with open(p, "w") as f:
+                json.dump(cfg, f, indent=2)
+
+        await asyncio.to_thread(_save_config, path, new_config)
 
         tars.refresh_config()
         return JSONResponse({"status": "success", "message": "Configuration updated and reloaded"})
