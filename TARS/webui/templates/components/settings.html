@@ -54,15 +54,21 @@
             </div>
         </div>
 
+        <div class="hidden bg-emerald-500 hover:bg-emerald-600 bg-red-500 hover:bg-red-600 text-white"></div>
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
-                SAVE CONFIGURATION
+            <button type="button" id="save-config-btn" onclick="saveConfig()" class="w-48 px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 flex items-center justify-center gap-2">
+                <span>SAVE CONFIGURATION</span>
             </button>
         </div>
     </form>
 
     <script>
         async function saveConfig() {
+            const btn = document.getElementById('save-config-btn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="w-4 h-4 border-2 border-black/20 border-t-black animate-spin rounded-full"></div><span>SAVING...</span>';
+
             const form = document.getElementById('config-form');
             const data = new FormData(form);
             const obj = {};
@@ -97,12 +103,32 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    btn.innerHTML = '<span>SAVED!</span>';
+                    btn.classList.add('bg-emerald-500', 'text-white', 'hover:bg-emerald-600');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        btn.classList.remove('bg-emerald-500', 'text-white', 'hover:bg-emerald-600');
+                    }, 2000);
                 } else {
-                    alert('Error: ' + result.message);
+                    console.error('Error:', result.message);
+                    btn.innerHTML = '<span>ERROR</span>';
+                    btn.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        btn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
+                    }, 2000);
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                btn.innerHTML = '<span>ERROR</span>';
+                btn.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
+                }, 2000);
             }
         }
     </script>
