@@ -4,6 +4,7 @@ import json
 
 # Part of TARS integrated web UI – prepared for HTMX + Tailwind
 import shutil
+import uuid
 from pathlib import Path
 from typing import Annotated, AsyncGenerator, List, Optional
 
@@ -32,7 +33,7 @@ app = FastAPI(
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        if request.method in ("POST", "PUT", "DELETE", "PATCH") or (request.method == "GET" and request.url.path == "/api/chat/stream"):
             origin = request.headers.get("origin") or request.headers.get("referer")
             if origin:
                 from urllib.parse import urlparse
@@ -114,7 +115,6 @@ async def read_root(request: Request, tars: TARS):
         "config": tars.config
     })
 
-import uuid
 
 
 @app.get("/api/sessions")
@@ -278,7 +278,8 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
 
         items = []
         for p in target_path.iterdir():
-            if p.name.startswith('.'): continue # Hide hidden files
+            if p.name.startswith('.'):
+                continue # Hide hidden files
             items.append({
                 "name": p.name,
                 "is_dir": p.is_dir(),
@@ -319,7 +320,8 @@ async def get_tasks_ui(request: Request, tars: TARS):
                 with open(p, "r") as f:
                     data = json.load(f)
                     tasks.append({"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))})
-            except: continue
+            except Exception:
+                continue
 
     return templates.TemplateResponse(request, "components/tasks.html", {
         "tasks": tasks,
