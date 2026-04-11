@@ -245,35 +245,41 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     except Exception:
         pass
 
-    content = message.get("content")
     parts: list[str] = []
+    append = parts.append
+    dumps = json.dumps
+
+    content = message.get("content")
     if isinstance(content, str):
-        parts.append(content)
+        append(content)
     elif isinstance(content, list):
         for part in content:
             if isinstance(part, dict) and part.get("type") == "text":
-                text = part.get("text", "")
-                if text:
-                    parts.append(text)
+                if text := part.get("text", ""):
+                    append(text)
             else:
-                parts.append(json.dumps(part, ensure_ascii=False))
+                append(dumps(part, ensure_ascii=False))
     elif content is not None:
-        parts.append(json.dumps(content, ensure_ascii=False))
+        append(dumps(content, ensure_ascii=False))
 
-    for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
-            parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
+    if value := message.get("name"):
+        if isinstance(value, str):
+            append(value)
+    if value := message.get("tool_call_id"):
+        if isinstance(value, str):
+            append(value)
 
-    rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
-        parts.append(rc)
+    if tc := message.get("tool_calls"):
+        append(dumps(tc, ensure_ascii=False))
+
+    if rc := message.get("reasoning_content"):
+        if isinstance(rc, str):
+            append(rc)
+
+    if not parts:
+        return 4
 
     payload = "\n".join(parts)
-    if not payload:
-        return 4
     try:
         enc = _get_tiktoken_encoding()
         return max(4, len(enc.encode(payload)) + 4)

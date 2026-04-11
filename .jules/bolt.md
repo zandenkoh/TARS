@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-11 - [Optimize Token Estimation]
+**Learning:** Function calls (like parts.append or json.dumps) inside hot loops/blocks add up memory overhead over many invocations. Also, extracting values via multi-key iteration (for key in ("name", "tool_call_id")) adds tuple creation and iteration overhead compared to direct evaluation (e.g. if val := message.get("name")).
+**Action:** Cache hot function references (append = parts.append, dumps = json.dumps) and favor sequential walrus-operator checks over iterating tuples.
