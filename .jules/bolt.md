@@ -35,3 +35,12 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2025-04-11 - Fast-path optimizations in token estimation
+
+**Learning:**
+In hot-loops for token estimation and string manipulation (e.g. `estimate_prompt_tokens` and `split_message`), repeated key lookups on dicts and string method resolution incur measurable overhead in large message histories.
+Using the walrus operator directly inside loops (e.g., `if (value := msg.get("key")) and isinstance(...)`) instead of a `for key in ("key1", "key2"):` loop avoids tuple creation/iteration overhead, significantly speeding up evaluation (~30% faster). Additionally, caching methods (like `append = list.append` and `rfind = content.rfind`) right before hot loops prevents repeating object method attribute resolutions over multiple iterations.
+
+**Action:**
+Look for internal iteration loops inside function loops (like looping over explicit lists of properties) that can be unrolled with walrus operators for performance, and always cache `.append` or `.rfind` method references before string chunking loops or message token loops.
