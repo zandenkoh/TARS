@@ -9,3 +9,7 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+
+## 2026-04-12 - [UX: Inline Feedback Over Alerts]
+**Learning:** Found that using native browser `alert()` dialogs for simple form submissions (like saving settings) disrupts the user flow and feels outdated. Inline visual feedback (e.g., changing the button text/color to "SAVED!") provides a much smoother, modern experience. Crucially, when removing alerts that previously displayed backend error messages, those specific messages must be preserved via `console.error` for debugging, while displaying a generic "ERROR" state to the user. Additionally, when dynamically adding Tailwind utility classes (like `bg-emerald-500`) via JavaScript, the JIT compiler will miss them unless they are included in a hidden safelist element in the HTML.
+**Action:** Replace `alert()` dialogs with inline button state changes for success/error feedback. Ensure dynamic Tailwind classes are safelisted, and preserve error details in `console.error`.
