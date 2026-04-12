@@ -908,17 +908,17 @@
     function renderDropdown(id, options, currentValue) {
         const currentItem = options.find(o => o.value === currentValue) || options[0];
         const menuHtml = options.map(o => `
-            <button class="tars-dropdown-item ${o.value === currentValue ? 'selected' : ''}" 
+            <button role="option" aria-selected="${o.value === currentValue ? 'true' : 'false'}" class="tars-dropdown-item ${o.value === currentValue ? 'selected' : ''} focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
                 onclick="tarsSelect('${id}', '${o.value}', '${o.label}')">${o.label}</button>
         `).join('');
 
         return `
             <div id="dropdown-${id}" class="tars-dropdown-container">
-                <button class="tars-dropdown-btn" onclick="toggleDropdown('${id}')">
+                <button id="dropdown-btn-${id}" class="tars-dropdown-btn focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20" aria-haspopup="listbox" aria-expanded="false" aria-controls="dropdown-menu-${id}" onclick="toggleDropdown('${id}')">
                     <span id="dropdown-label-${id}">${currentItem.label}</span>
                     <svg aria-hidden="true" class="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div id="dropdown-menu-${id}" class="tars-dropdown-menu">
+                <div id="dropdown-menu-${id}" role="listbox" aria-labelledby="dropdown-btn-${id}" class="tars-dropdown-menu">
                     ${menuHtml}
                 </div>
             </div>
@@ -928,18 +928,33 @@
     function toggleDropdown(id) {
         // Close other dropdowns
         document.querySelectorAll('.tars-dropdown-menu').forEach(m => {
-            if (m.id !== `dropdown-menu-${id}`) m.classList.remove('active');
+            if (m.id !== `dropdown-menu-${id}`) {
+                m.classList.remove('active');
+                const btnId = m.id.replace('dropdown-menu-', 'dropdown-btn-');
+                const btn = document.getElementById(btnId);
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
         });
-        document.getElementById(`dropdown-menu-${id}`).classList.toggle('active');
+        const menu = document.getElementById(`dropdown-menu-${id}`);
+        const isActive = menu.classList.toggle('active');
+        const btn = document.getElementById(`dropdown-btn-${id}`);
+        if (btn) btn.setAttribute('aria-expanded', isActive ? 'true' : 'false');
     }
 
     function tarsSelect(id, value, label) {
         document.getElementById(`dropdown-label-${id}`).innerText = label;
         const menu = document.getElementById(`dropdown-menu-${id}`);
         menu.classList.remove('active');
+        const btn = document.getElementById(`dropdown-btn-${id}`);
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+
         menu.querySelectorAll('.tars-dropdown-item').forEach(item => {
             item.classList.remove('selected');
-            if (item.innerText === label) item.classList.add('selected');
+            item.setAttribute('aria-selected', 'false');
+            if (item.innerText === label) {
+                item.classList.add('selected');
+                item.setAttribute('aria-selected', 'true');
+            }
         });
         
         // Dispatch select event
@@ -950,7 +965,12 @@
     // Global click listener to close dropdowns
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.tars-dropdown-container')) {
-            document.querySelectorAll('.tars-dropdown-menu').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.tars-dropdown-menu').forEach(m => {
+                m.classList.remove('active');
+                const btnId = m.id.replace('dropdown-menu-', 'dropdown-btn-');
+                const btn = document.getElementById(btnId);
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
         }
     });
 
