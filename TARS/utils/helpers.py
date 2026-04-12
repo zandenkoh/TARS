@@ -186,8 +186,7 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
+                    if len(m) == 2 and isinstance(content := m.get("content"), str):
                         append_fast(content)
                     else:
                         fast_parts = None
@@ -201,28 +200,25 @@ def estimate_prompt_tokens(
         append = parts.append
         dumps = json.dumps
         for msg in messages:
-            content = msg.get("content")
-            if isinstance(content, str):
+            if isinstance(content := msg.get("content"), str):
                 append(content)
             elif isinstance(content, list):
                 for part in content:
                     if isinstance(part, dict) and part.get("type") == "text":
-                        txt = part.get("text", "")
-                        if txt:
+                        if txt := part.get("text", ""):
                             append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
-            rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if isinstance(rc := msg.get("reasoning_content"), str) and rc:
                 append(rc)
 
-            for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
-                    append(value)
+            if isinstance(name := msg.get("name"), str) and name:
+                append(name)
+
+            if isinstance(tci := msg.get("tool_call_id"), str) and tci:
+                append(tci)
 
         if tools:
             append(dumps(tools, ensure_ascii=False))
@@ -245,30 +241,29 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     except Exception:
         pass
 
-    content = message.get("content")
     parts: list[str] = []
-    if isinstance(content, str):
+    if isinstance(content := message.get("content"), str):
         parts.append(content)
     elif isinstance(content, list):
         for part in content:
             if isinstance(part, dict) and part.get("type") == "text":
-                text = part.get("text", "")
-                if text:
+                if text := part.get("text", ""):
                     parts.append(text)
             else:
                 parts.append(json.dumps(part, ensure_ascii=False))
     elif content is not None:
         parts.append(json.dumps(content, ensure_ascii=False))
 
-    for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
-            parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
+    if isinstance(name := message.get("name"), str) and name:
+        parts.append(name)
 
-    rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
+    if isinstance(tci := message.get("tool_call_id"), str) and tci:
+        parts.append(tci)
+
+    if tc := message.get("tool_calls"):
+        parts.append(json.dumps(tc, ensure_ascii=False))
+
+    if isinstance(rc := message.get("reasoning_content"), str) and rc:
         parts.append(rc)
 
     payload = "\n".join(parts)
