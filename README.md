@@ -19,6 +19,7 @@
 
 ## 📢 News
 
+- **[2024-04-12]** ⚡ Optimized token estimation fast paths using walrus operators for tuple loop unrolling.
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 
