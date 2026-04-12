@@ -54,8 +54,9 @@
             </div>
         </div>
 
+        <div class="hidden bg-emerald-500 bg-red-500 hover:bg-emerald-600 hover:bg-red-600"></div>
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
+            <button id="save-config-btn" type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
                 SAVE CONFIGURATION
             </button>
         </div>
@@ -90,6 +91,13 @@
             const formData = new FormData();
             formData.append('config_json', JSON.stringify(obj, null, 2));
 
+            const btn = document.getElementById('save-config-btn');
+            const originalText = btn.innerText;
+            const originalBg = btn.className;
+
+            btn.innerText = 'SAVING...';
+            btn.disabled = true;
+
             try {
                 const resp = await fetch('/api/config', {
                     method: 'POST',
@@ -97,12 +105,32 @@
                 });
                 const result = await resp.json();
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    btn.innerText = 'SAVED!';
+                    btn.className = originalBg.replace('bg-white', 'bg-emerald-500').replace('text-black', 'text-white').replace('hover:bg-tars-primary', 'hover:bg-emerald-600');
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.className = originalBg;
+                        btn.disabled = false;
+                    }, 2000);
                 } else {
-                    alert('Error: ' + result.message);
+                    console.error("Save failed:", result.message);
+                    btn.innerText = 'ERROR';
+                    btn.className = originalBg.replace('bg-white', 'bg-red-500').replace('text-black', 'text-white').replace('hover:bg-tars-primary', 'hover:bg-red-600');
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.className = originalBg;
+                        btn.disabled = false;
+                    }, 2000);
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                btn.innerText = 'ERROR';
+                btn.className = originalBg.replace('bg-white', 'bg-red-500').replace('text-black', 'text-white').replace('hover:bg-tars-primary', 'hover:bg-red-600');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.className = originalBg;
+                    btn.disabled = false;
+                }, 2000);
             }
         }
     </script>
