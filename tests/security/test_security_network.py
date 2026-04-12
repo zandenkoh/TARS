@@ -99,3 +99,11 @@ def test_allows_normal_curl():
 
 def test_no_urls_returns_false():
     assert not contains_internal_url("echo hello && ls -la")
+
+def test_blocks_ipv4_mapped_ipv6():
+    def _resolver(hostname, port, family=0, type_=0):
+        return [(socket.AF_INET6, socket.SOCK_STREAM, 0, "", ("::ffff:127.0.0.1", 0, 0, 0))]
+    with patch("TARS.security.network.socket.getaddrinfo", _resolver):
+        ok, err = validate_url_target("http://evil.com/")
+        assert not ok
+        assert "private" in err.lower() or "blocked" in err.lower()

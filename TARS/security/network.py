@@ -24,6 +24,8 @@ _URL_RE = re.compile(r"https?://[^\s\"'`;|<>]+", re.IGNORECASE)
 
 
 def _is_private(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    if getattr(addr, 'ipv4_mapped', None) is not None:
+        addr = addr.ipv4_mapped
     return any(addr in net for net in _BLOCKED_NETWORKS)
 
 
