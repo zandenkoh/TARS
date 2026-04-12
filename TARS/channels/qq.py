@@ -27,7 +27,7 @@ import time
 from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +37,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -398,19 +398,41 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
+            curr_url = media_ref
+            redirects = 0
+            while redirects < 5:
+                resp = await self._http.get(curr_url, allow_redirects=False)
+                if resp.status in (301, 302, 303, 307, 308):
+                    loc = resp.headers.get("Location")
+                    if not loc:
+                        resp.close()
+                        break
+                    next_url = urljoin(curr_url, loc)
+                    ok, err = validate_resolved_url(next_url)
+                    resp.close()
+                    if not ok:
+                        logger.warning("QQ SSRF redirect blocked url={} err={}", next_url, err)
+                        return None, None
+                    curr_url = next_url
+                    redirects += 1
+                    continue
+                break
+
+            try:
                 if resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
                         resp.status,
-                        media_ref,
+                        curr_url,
                     )
                     return None, None
                 data = await resp.read()
                 if not data:
                     return None, None
-                filename = os.path.basename(urlparse(media_ref).path) or "file.bin"
+                filename = os.path.basename(urlparse(curr_url).path) or "file.bin"
                 return data, filename
+            finally:
+                resp.close()
         except Exception as e:
             logger.warning("QQ outbound media download error url={} err={}", media_ref, e)
             return None, None
@@ -551,19 +573,39 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
+            curr_url = url
+            redirects = 0
+            while redirects < 5:
+                resp = await self._http.get(
+                    curr_url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                )
+                if resp.status in (301, 302, 303, 307, 308):
+                    loc = resp.headers.get("Location")
+                    if not loc:
+                        resp.close()
+                        break
+                    next_url = urljoin(curr_url, loc)
+                    ok, err = validate_resolved_url(next_url)
+                    resp.close()
+                    if not ok:
+                        logger.warning("QQ SSRF redirect blocked url={} err={}", next_url, err)
+                        return None
+                    curr_url = next_url
+                    redirects += 1
+                    continue
+                break
+
+            try:
                 if resp.status != 200:
-                    logger.warning("QQ download failed: status={} url={}", resp.status, url)
+                    logger.warning("QQ download failed: status={} url={}", resp.status, curr_url)
                     return None
 
                 ctype = (resp.headers.get("Content-Type") or "").lower()
 
                 # Infer extension: url -> filename_hint -> content-type -> fallback
-                ext = Path(urlparse(url).path).suffix
+                ext = Path(urlparse(curr_url).path).suffix
                 if not ext:
                     ext = Path(filename_hint).suffix
                 if not ext:
@@ -614,7 +656,7 @@ class QQChannel(BaseChannel):
                             logger.warning(
                                 "QQ download exceeded max_bytes={} url={} -> abort",
                                 max_bytes,
-                                url,
+                                curr_url,
                             )
                             return None
                         await asyncio.to_thread(f.write, chunk)
@@ -626,6 +668,8 @@ class QQChannel(BaseChannel):
                 tmp_path = None  # mark as moved
                 logger.info("QQ file saved: {}", str(target))
                 return str(target)
+            finally:
+                resp.close()
 
         except Exception as e:
             logger.error("QQ download error: {}", e)
