@@ -219,9 +219,11 @@ def estimate_prompt_tokens(
             if isinstance(rc, str) and rc:
                 append(rc)
 
-            for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
+            if value := msg.get("name"):
+                if isinstance(value, str):
+                    append(value)
+            if value := msg.get("tool_call_id"):
+                if isinstance(value, str):
                     append(value)
 
         if tools:
@@ -260,9 +262,11 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     elif content is not None:
         parts.append(json.dumps(content, ensure_ascii=False))
 
-    for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
+    if value := message.get("name"):
+        if isinstance(value, str):
+            parts.append(value)
+    if value := message.get("tool_call_id"):
+        if isinstance(value, str):
             parts.append(value)
     if message.get("tool_calls"):
         parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
