@@ -185,9 +185,9 @@ def estimate_prompt_tokens(
             try:
                 fast_parts = []
                 append_fast = fast_parts.append
+                # Optimization: use `type() is str` instead of `isinstance` for faster primitive checks on parsed JSON
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
+                    if len(m) == 2 and type(content := m.get("content")) is str:
                         append_fast(content)
                     else:
                         fast_parts = None
@@ -202,27 +202,25 @@ def estimate_prompt_tokens(
         dumps = json.dumps
         for msg in messages:
             content = msg.get("content")
-            if isinstance(content, str):
+            if type(content) is str:
                 append(content)
-            elif isinstance(content, list):
+            elif type(content) is list:
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
-                        txt = part.get("text", "")
-                        if txt:
+                    if type(part) is dict and part.get("type") == "text":
+                        if txt := part.get("text", ""):
                             append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
-            rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if type(rc := msg.get("reasoning_content")) is str and rc:
                 append(rc)
 
-            for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
-                    append(value)
+            # Optimization: sequentially unrolled lookups are faster than multi-key loops
+            if type(val := msg.get("name")) is str and val:
+                append(val)
+            if type(val := msg.get("tool_call_id")) is str and val:
+                append(val)
 
         if tools:
             append(dumps(tools, ensure_ascii=False))
@@ -237,7 +235,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
@@ -247,28 +245,27 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     content = message.get("content")
     parts: list[str] = []
-    if isinstance(content, str):
+    if type(content) is str:
         parts.append(content)
-    elif isinstance(content, list):
+    elif type(content) is list:
         for part in content:
-            if isinstance(part, dict) and part.get("type") == "text":
-                text = part.get("text", "")
-                if text:
+            if type(part) is dict and part.get("type") == "text":
+                if text := part.get("text", ""):
                     parts.append(text)
             else:
                 parts.append(json.dumps(part, ensure_ascii=False))
     elif content is not None:
         parts.append(json.dumps(content, ensure_ascii=False))
 
-    for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
-            parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
+    if type(val := message.get("name")) is str and val:
+        parts.append(val)
+    if type(val := message.get("tool_call_id")) is str and val:
+        parts.append(val)
 
-    rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
+    if tc := message.get("tool_calls"):
+        parts.append(json.dumps(tc, ensure_ascii=False))
+
+    if type(rc := message.get("reasoning_content")) is str and rc:
         parts.append(rc)
 
     payload = "\n".join(parts)

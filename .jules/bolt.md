@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-02 - [Token Estimation Optimization]
+**Learning:** Using `isinstance()` and multi-key `for` loops inside highly-frequent dictionary parsing pathways adds significant overhead. Replacing `for key in ("A", "B"): dict.get(key)` loops with sequential, direct walrus lookups (`if val := dict.get("A"):`) removes tuple iteration. Also, using strict type checking (`type(val) is str`) rather than `isinstance()` for JSON primitives speeds up base-level string checks in hot paths.
+**Action:** When parsing JSON dictionaries in high-frequency string formatting paths (like token estimators), use direct sequential walrus operator assignments combined with strict `type()` checks instead of dynamic multi-key iterations and standard inheritance-based type validation.
