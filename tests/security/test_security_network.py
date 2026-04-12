@@ -99,3 +99,20 @@ def test_allows_normal_curl():
 
 def test_no_urls_returns_false():
     assert not contains_internal_url("echo hello && ls -la")
+
+# ---------------------------------------------------------------------------
+# validate_resolved_url
+# ---------------------------------------------------------------------------
+
+from TARS.security.network import validate_resolved_url
+
+def test_validate_resolved_url_blocks_private():
+    with patch("TARS.security.network.socket.getaddrinfo", _fake_resolve("evil.com", ["127.0.0.1"])):
+        ok, err = validate_resolved_url("http://evil.com/redirect")
+        assert not ok
+        assert "private" in err.lower()
+
+def test_validate_resolved_url_allows_public():
+    with patch("TARS.security.network.socket.getaddrinfo", _fake_resolve("example.com", ["93.184.216.34"])):
+        ok, err = validate_resolved_url("http://example.com/redirect")
+        assert ok
