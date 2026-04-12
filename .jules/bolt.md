@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-02 - Optimize Token Estimation Hot Paths
+**Learning:** Using the walrus operator (`:=`) for sequential dictionary lookups avoids multi-key iteration loops and redundant `dict.get()` calls in hot paths like token estimation, significantly reducing overhead.
+**Action:** In high-frequency text processing and tokenization functions, replace iteration over key tuples (e.g., `for key in ("A", "B"):`) and redundant lookups with sequential conditional assignments using the walrus operator (`if value := dict.get("A"):`).
