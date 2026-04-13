@@ -108,3 +108,14 @@ def test_create_task_path_traversal(client, mock_tars):
     )
     assert response.status_code == 403
     assert "Access Denied" in response.json()["message"]
+
+def test_csrf_protection_on_chat_stream(client, mock_tars):
+    # Missing Origin/Referer should return 403
+    response = client.get("/api/chat/stream?content=hello&turn_id=123")
+    assert response.status_code == 403
+    assert "Missing Origin or Referer header for CSRF protection" in response.json()["message"]
+
+    # Invalid Origin should return 403
+    response = client.get("/api/chat/stream?content=hello&turn_id=123", headers={"Origin": "http://malicious.com"})
+    assert response.status_code == 403
+    assert "CSRF validation failed" in response.json()["message"]
