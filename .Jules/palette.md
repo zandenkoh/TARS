@@ -9,3 +9,6 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+## 2024-05-20 - [Accessibility: SVGs inside Buttons and ARIA Labels]
+**Learning:** Verified multiple icon-only buttons lacked `aria-label` and multiple SVGs inside navigation buttons lacked `aria-hidden="true"` throughout the web UI templates.
+**Action:** When adding or updating icons and buttons, consistently include `aria-label` for screen readers and apply `aria-hidden="true"` on inner decorative SVGs to prevent redundancy and improve accessibility.
