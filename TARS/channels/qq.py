@@ -398,7 +398,29 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
+            # We must enforce SSRF checks on any redirects, so manual loop
+            resp = await self._http.get(media_ref, allow_redirects=False)
+            redirects = 0
+            while resp.status in (301, 302, 303, 307, 308) and redirects < 5:
+                location = resp.headers.get("Location")
+                if not location:
+                    break
+                # close intermediate responses to prevent leaks
+                resp.close()
+                from urllib.parse import urljoin
+
+                from TARS.security.network import validate_resolved_url
+
+                next_url = urljoin(media_ref, location)
+                ok, err = validate_resolved_url(next_url)
+                if not ok:
+                    logger.warning("QQ outbound media redirect blocked by SSRF: {}", err)
+                    return None, None
+                media_ref = next_url
+                resp = await self._http.get(media_ref, allow_redirects=False)
+                redirects += 1
+
+            try:
                 if resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
@@ -411,6 +433,8 @@ class QQChannel(BaseChannel):
                     return None, None
                 filename = os.path.basename(urlparse(media_ref).path) or "file.bin"
                 return data, filename
+            finally:
+                resp.close()
         except Exception as e:
             logger.warning("QQ outbound media download error url={} err={}", media_ref, e)
             return None, None
@@ -551,11 +575,35 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
+            resp = await self._http.get(
                 url,
                 timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
+                allow_redirects=False,
+            )
+            redirects = 0
+            while resp.status in (301, 302, 303, 307, 308) and redirects < 5:
+                location = resp.headers.get("Location")
+                if not location:
+                    break
+                resp.close()
+                from urllib.parse import urljoin
+
+                from TARS.security.network import validate_resolved_url
+
+                next_url = urljoin(url, location)
+                ok, err = validate_resolved_url(next_url)
+                if not ok:
+                    logger.warning("QQ inbound media redirect blocked by SSRF: {}", err)
+                    return None
+                url = next_url
+                resp = await self._http.get(
+                    url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                )
+                redirects += 1
+
+            try:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)
                     return None
@@ -620,6 +668,8 @@ class QQChannel(BaseChannel):
                         await asyncio.to_thread(f.write, chunk)
                 finally:
                     await asyncio.to_thread(f.close)
+            finally:
+                resp.close()
 
                 # Atomic rename
                 await asyncio.to_thread(os.replace, tmp_path, target)
