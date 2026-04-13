@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-03 - Avoid Tuple Iteration Overhead in Hot Paths
+**Learning:** Iterating over small tuples (e.g., `for key in ("A", "B", "C"):`) inside frequently executed loops or "hot paths" (like token estimation fast-paths or message data cleaning loops) creates unnecessary tuple allocation and loop iterator overhead.
+**Action:** Replace small fixed-size tuple iterations with direct sequential evaluations. For example, use sequential `if` checks with the walrus operator (`if (value := dict.get("A")):`) or sequential direct assignments (`if "A" in dict:`). This avoids tuple and iterator creation and significantly improves hot path execution speeds.
