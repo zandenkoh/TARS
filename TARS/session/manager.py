@@ -34,12 +34,7 @@ class Session:
 
     def add_message(self, role: str, content: str, **kwargs: Any) -> None:
         """Add a message to the session."""
-        msg = {
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now().isoformat(),
-            **kwargs
-        }
+        msg = {"role": role, "content": content, "timestamp": datetime.now().isoformat(), **kwargs}
         self.messages.append(msg)
         self.updated_at = datetime.now()
 
@@ -59,7 +54,7 @@ class Session:
                 if tid and str(tid) not in declared:
                     start = i + 1
                     declared.clear()
-                    for prev in messages[start:i + 1]:
+                    for prev in messages[start : i + 1]:
                         if prev.get("role") == "assistant":
                             for tc in prev.get("tool_calls") or []:
                                 if isinstance(tc, dict) and tc.get("id"):
@@ -68,7 +63,7 @@ class Session:
 
     def get_history(self, max_messages: int = 500) -> list[dict[str, Any]]:
         """Return unconsolidated messages for LLM input, aligned to a legal tool-call boundary."""
-        unconsolidated = self.messages[self.last_consolidated:]
+        unconsolidated = self.messages[self.last_consolidated :]
         sliced = unconsolidated[-max_messages:]
 
         # Drop leading non-user messages to avoid starting mid-turn when possible.
@@ -86,9 +81,13 @@ class Session:
         out: list[dict[str, Any]] = []
         for message in sliced:
             entry: dict[str, Any] = {"role": message["role"], "content": message.get("content", "")}
-            for key in ("tool_calls", "tool_call_id", "name"):
-                if key in message:
-                    entry[key] = message[key]
+            # Optimization: Unrolled loop to avoid tuple iteration overhead in hot path
+            if "tool_calls" in message:
+                entry["tool_calls"] = message["tool_calls"]
+            if "tool_call_id" in message:
+                entry["tool_call_id"] = message["tool_call_id"]
+            if "name" in message:
+                entry["name"] = message["name"]
             out.append(entry)
         return out
 
@@ -199,7 +198,11 @@ class SessionManager:
 
                     if data.get("_type") == "metadata":
                         metadata = data.get("metadata", {})
-                        created_at = datetime.fromisoformat(data["created_at"]) if data.get("created_at") else None
+                        created_at = (
+                            datetime.fromisoformat(data["created_at"])
+                            if data.get("created_at")
+                            else None
+                        )
                         last_consolidated = data.get("last_consolidated", 0)
                     else:
                         messages.append(data)
@@ -209,7 +212,7 @@ class SessionManager:
                 messages=messages,
                 created_at=created_at or datetime.now(),
                 metadata=metadata,
-                last_consolidated=last_consolidated
+                last_consolidated=last_consolidated,
             )
         except Exception as e:
             logger.warning("Failed to load session {}: {}", key, e)
@@ -226,7 +229,7 @@ class SessionManager:
                 "created_at": session.created_at.isoformat(),
                 "updated_at": session.updated_at.isoformat(),
                 "metadata": session.metadata,
-                "last_consolidated": session.last_consolidated
+                "last_consolidated": session.last_consolidated,
             }
             f.write(json.dumps(metadata_line, ensure_ascii=False) + "\n")
             for msg in session.messages:
@@ -274,13 +277,15 @@ class SessionManager:
                         data = json.loads(first_line)
                         if data.get("_type") == "metadata":
                             key = data.get("key") or path.stem.replace("_", ":", 1)
-                            sessions.append({
-                                "key": key,
-                                "created_at": data.get("created_at"),
-                                "updated_at": data.get("updated_at"),
-                                "metadata": data.get("metadata", {}),
-                                "path": str(path)
-                            })
+                            sessions.append(
+                                {
+                                    "key": key,
+                                    "created_at": data.get("created_at"),
+                                    "updated_at": data.get("updated_at"),
+                                    "metadata": data.get("metadata", {}),
+                                    "path": str(path),
+                                }
+                            )
             except Exception:
                 continue
 
@@ -330,13 +335,15 @@ class SessionManager:
                                         break
 
                     if match:
-                        matching_sessions.append({
-                            "key": key,
-                            "created_at": metadata_data.get("created_at"),
-                            "updated_at": metadata_data.get("updated_at"),
-                            "metadata": metadata,
-                            "path": str(path)
-                        })
+                        matching_sessions.append(
+                            {
+                                "key": key,
+                                "created_at": metadata_data.get("created_at"),
+                                "updated_at": metadata_data.get("updated_at"),
+                                "metadata": metadata,
+                                "path": str(path),
+                            }
+                        )
             except Exception:
                 continue
 

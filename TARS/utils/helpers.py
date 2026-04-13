@@ -219,10 +219,11 @@ def estimate_prompt_tokens(
             if isinstance(rc, str) and rc:
                 append(rc)
 
-            for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
-                    append(value)
+            # Optimization: Unrolled loop to avoid tuple iteration overhead in hot path
+            if (value := msg.get("name")) and isinstance(value, str):
+                append(value)
+            if (value := msg.get("tool_call_id")) and isinstance(value, str):
+                append(value)
 
         if tools:
             append(dumps(tools, ensure_ascii=False))
@@ -260,10 +261,11 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     elif content is not None:
         parts.append(json.dumps(content, ensure_ascii=False))
 
-    for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
-            parts.append(value)
+    # Optimization: Unrolled loop to avoid tuple iteration overhead in hot path
+    if (value := message.get("name")) and isinstance(value, str):
+        parts.append(value)
+    if (value := message.get("tool_call_id")) and isinstance(value, str):
+        parts.append(value)
     if message.get("tool_calls"):
         parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
 
