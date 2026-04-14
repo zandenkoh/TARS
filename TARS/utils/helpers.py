@@ -186,12 +186,14 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
+                    if len(m) != 2:
                         fast_parts = None
                         break
+                    content = m.get("content")
+                    if type(content) is not str:
+                        fast_parts = None
+                        break
+                    append_fast(content)
                 if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
