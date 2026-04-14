@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2025-05-14 - Negative Checks For Fast Path Loop Condition
+**Learning:** In hot loops where items frequently fail validation early (like parsing token estimation fields), using a `for` loop with explicit negative type checks (`if type(content) is not str: break`) is significantly faster than using a list comprehension (`[m["content"] for m in messages if len(m) == 2 and isinstance(m["content"], str)]`) and waiting for it to throw or silently failing. This avoids executing the rest of the list comprehension when a non-compliant structure is hit early.
+**Action:** When iterating to extract specific schema fields in Python, use early `break`/`continue` with negative checks (and `type(x) is` for exact typing where inheritance isn't needed) to short-circuit operations rather than relying on generator overhead or exception-based fallback logic.
