@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-14 - Optimize validation loop performance in fast paths and lazily load heavy modules
+**Learning:** Heavy modules like `tiktoken` loaded at the top level block fast utilities. Full list comprehensions perform poorly when validation checks frequently fail compared to a targeted loop with early returns and negative checking (`type(x) is not str`).
+**Action:** Lazily load heavy modules inside specific functions, and prefer explicitly unrolled loops with early negative type-check breaks for speed-critical path validation.

@@ -19,6 +19,8 @@
 
 ## 📢 News
 
+- **2026-04-14** ⚡ Bolt: Optimize validation loops using negative checking and lazily load heavy dependencies in utility helpers.
+
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
 
