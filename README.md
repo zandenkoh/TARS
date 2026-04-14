@@ -18,6 +18,7 @@
 📏 Real-time line count: run `bash scripts/core_agent_lines.sh` to verify anytime.
 
 ## 📢 News
+- **2024-04-14**: 🎨 Added hover tooltips to all icon-only buttons for improved accessibility and user experience.
 
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
