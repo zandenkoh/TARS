@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-01 - Offload Blocking I/O in Async Routes
+**Learning:** In the TARS WebUI (FastAPI), synchronous file I/O operations (`open`, `json.load`, `json.dump`) inside `async def` route handlers (such as reading/writing task files or updating the configuration) block the main event loop. This stalling severely degrades the performance and responsiveness of concurrent requests and disrupts continuous Server-Sent Events (SSE) streaming endpoints.
+**Action:** Always wrap any blocking filesystem operations within `async def` route handlers using `await asyncio.to_thread(func, *args)` to safely offload the workload to a background thread pool, maintaining a non-blocking and highly concurrent event loop.
