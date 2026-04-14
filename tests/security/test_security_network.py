@@ -46,6 +46,8 @@ def test_rejects_missing_domain():
     ("192.168.1.1", "rfc1918_192"),
     ("169.254.169.254", "metadata"),
     ("0.0.0.0", "zero"),
+    ("::ffff:127.0.0.1", "ipv4_mapped_ipv6_loopback"),
+    ("::ffff:10.0.0.1", "ipv4_mapped_ipv6_10_0_0_1"),
 ])
 def test_blocks_private_ipv4(ip: str, label: str):
     with patch("TARS.security.network.socket.getaddrinfo", _fake_resolve("evil.com", [ip])):
