@@ -9,3 +9,7 @@
 ## 2024-05-20 - [UX: Empty States in File Explorer]
 **Learning:** Empty states are often overlooked in file explorers, leading to dead-end screens. By adding a drag-and-drop target to the empty state, users immediately know what action is required when encountering an empty directory, and we take advantage of the existing `handleDrop` javascript function.
 **Action:** Always consider what the "next step" is when a user hits an empty state, and make the empty state itself an interactive target for that next step when possible.
+
+## 2024-10-31 - Tooltips for Icon-Only Buttons
+**Learning:** Found that while many icon-only buttons had `aria-label` for screen readers, they lacked the `title` attribute, leaving sighted users without hover context. Additionally, some form inputs lacked `aria-label` or `placeholder` attributes.
+**Action:** Always pair `aria-label` with a visual `title` tooltip on icon-only interactive elements to ensure both screen reader and standard hover accessibility. Ensure all inputs have context via placeholders and explicit `aria-label`s.
