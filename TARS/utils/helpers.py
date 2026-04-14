@@ -8,8 +8,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import tiktoken
-
 _TIKTOKEN_ENC = None
 
 
@@ -17,6 +15,8 @@ def _get_tiktoken_encoding():
     """Lazily load and cache tiktoken encoding."""
     global _TIKTOKEN_ENC
     if _TIKTOKEN_ENC is None:
+        import tiktoken
+
         _TIKTOKEN_ENC = tiktoken.get_encoding("cl100k_base")
     return _TIKTOKEN_ENC
 
@@ -187,11 +187,11 @@ def estimate_prompt_tokens(
                 append_fast = fast_parts.append
                 for m in messages:
                     content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
+                    # ⚡ Bolt: Fast exact type check and negative check for faster early return
+                    if len(m) != 2 or type(content) is not str:
                         fast_parts = None
                         break
+                    append_fast(content)
                 if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
@@ -237,7 +237,8 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        # ⚡ Bolt: Fast exact type check to avoid isinstance overhead
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
