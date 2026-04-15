@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-15 - Fast Path Type Checking Optimization
+**Learning:** In highly-frequent token estimation fast paths, using exact type checking (`type(obj) is str`) rather than `isinstance(obj, str)` bypasses Python's inheritance-checking overhead and executes measurably faster.
+**Action:** Use exact type checks (`type(x) is type`) when inheritance support is not required and performance is critical in hot paths.
