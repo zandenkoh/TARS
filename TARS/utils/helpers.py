@@ -187,11 +187,11 @@ def estimate_prompt_tokens(
                 append_fast = fast_parts.append
                 for m in messages:
                     content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
+                    # Bolt optimization: exact type check avoids isinstance inheritance overhead
+                    if len(m) != 2 or type(content) is not str:
                         fast_parts = None
                         break
+                    append_fast(content)
                 if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
