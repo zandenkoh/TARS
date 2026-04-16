@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-03 - Lazy Initialization for Global Dependencies
+**Learning:** Heavy dependencies like `tiktoken` imported globally at the top level of utility files (e.g. `TARS/utils/helpers.py`) block execution and fail loudly on initial load in environments where the dependency isn't installed. This makes isolated utilities (like `ensure_dir`) unusable.
+**Action:** Defer heavy, module-level dependency imports (like `import tiktoken`) to be inside the exact lazy initialization wrapper (`_get_tiktoken_encoding()`).

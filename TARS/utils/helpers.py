@@ -8,8 +8,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import tiktoken
-
 _TIKTOKEN_ENC = None
 
 
@@ -17,6 +15,8 @@ def _get_tiktoken_encoding():
     """Lazily load and cache tiktoken encoding."""
     global _TIKTOKEN_ENC
     if _TIKTOKEN_ENC is None:
+        import tiktoken
+
         _TIKTOKEN_ENC = tiktoken.get_encoding("cl100k_base")
     return _TIKTOKEN_ENC
 
