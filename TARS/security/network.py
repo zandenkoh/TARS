@@ -10,21 +10,23 @@ from urllib.parse import urlparse
 _BLOCKED_NETWORKS = [
     ipaddress.ip_network("0.0.0.0/8"),
     ipaddress.ip_network("10.0.0.0/8"),
-    ipaddress.ip_network("100.64.0.0/10"),   # carrier-grade NAT
+    ipaddress.ip_network("100.64.0.0/10"),  # carrier-grade NAT
     ipaddress.ip_network("127.0.0.0/8"),
-    ipaddress.ip_network("169.254.0.0/16"),   # link-local / cloud metadata
+    ipaddress.ip_network("169.254.0.0/16"),  # link-local / cloud metadata
     ipaddress.ip_network("172.16.0.0/12"),
     ipaddress.ip_network("192.168.0.0/16"),
     ipaddress.ip_network("::1/128"),
-    ipaddress.ip_network("fc00::/7"),          # unique local
-    ipaddress.ip_network("fe80::/10"),         # link-local v6
+    ipaddress.ip_network("fc00::/7"),  # unique local
+    ipaddress.ip_network("fe80::/10"),  # link-local v6
 ]
 
 _URL_RE = re.compile(r"https?://[^\s\"'`;|<>]+", re.IGNORECASE)
 
 
 def _is_private(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
-    return any(addr in net for net in _BLOCKED_NETWORKS)
+    ipv4_mapped = getattr(addr, "ipv4_mapped", None)
+    target_addr = ipv4_mapped if ipv4_mapped else addr
+    return any(target_addr in net for net in _BLOCKED_NETWORKS)
 
 
 def validate_url_target(url: str) -> tuple[bool, str]:
