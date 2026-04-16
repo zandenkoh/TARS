@@ -21,3 +21,7 @@
 ## 2026-04-02 - Standardizing Dynamic Empty States
 **Learning:** Empty states should never replace or rename core creation actions. In TARS, the "Projects" sidebar empty state previously hid the main category header and replaced the "New project" button with a mislabeled "Projects" button that functioned identically but broke consistency. This confused users who didn't expect a navigation-like label to act as a creation action.
 **Action:** Unify empty and filled states to consistently display core structural elements (headers, creation buttons). Use a dedicated, clearly labeled empty state placeholder instead of co-opting existing actions. Additionally, always remember to add `focus-visible` styling to dynamically generated interactive elements to preserve keyboard accessibility.
+
+## 2026-04-03 - [Added Title Attributes to Icon Buttons]
+**Learning:** While `aria-label`s make icon-only buttons accessible to screen readers, sighted users relying on mice or keyboards without screen readers still face usability issues if they don't understand the icon's meaning. Adding a `title` attribute matching the `aria-label` provides a native browser tooltip on hover or focus, bridging the gap between a11y and general UX.
+**Action:** When adding `aria-label`s to icon-only interactive elements, ensure a corresponding `title` attribute is also added to provide visual tooltips.
