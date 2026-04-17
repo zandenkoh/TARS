@@ -35,3 +35,6 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+## 2026-04-17 - Optimize Type Checking in Hot Paths
+**Learning:** In performance-critical hot paths, using `isinstance()` introduces overhead because it must support inheritance checking. When exactly one type is expected (like strings in token counting or JSON text structures), bypassing the inheritance check using `type(obj) is str` executes slightly faster and yields a measurable cumulative benefit for operations invoked millions of times (e.g. streaming LLM chunks).
+**Action:** When validating single specific built-in types in a performance-critical loop where subclasses are intentionally not supported, prefer strict type identity checks (`type(obj) is str`) over `isinstance()`.
