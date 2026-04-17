@@ -27,15 +27,15 @@ class ExecTool(Tool):
         self.working_dir = working_dir
         self.workspace_dir = workspace_dir or working_dir
         self.deny_patterns = deny_patterns or [
-            r"\brm\s+-[rf]{1,2}\b",          # rm -r, rm -rf, rm -fr
-            r"\bdel\s+/[fq]\b",              # del /f, del /q
-            r"\brmdir\s+/s\b",               # rmdir /s
-            r"(?:^|[;&|]\s*)format\b",       # format (as standalone command only)
-            r"\b(mkfs|diskpart)\b",          # disk operations
-            r"\bdd\s+if=",                   # dd
-            r">\s*/dev/sd",                  # write to disk
+            r"\brm\s+-[rf]{1,2}\b",  # rm -r, rm -rf, rm -fr
+            r"\bdel\s+/[fq]\b",  # del /f, del /q
+            r"\brmdir\s+/s\b",  # rmdir /s
+            r"(?:^|[;&|]\s*)format\b",  # format (as standalone command only)
+            r"\b(mkfs|diskpart)\b",  # disk operations
+            r"\bdd\s+if=",  # dd
+            r">\s*/dev/sd",  # write to disk
             r"\b(shutdown|reboot|poweroff)\b",  # system power
-            r":\(\)\s*\{.*\};\s*:",          # fork bomb
+            r":\(\)\s*\{.*\};\s*:",  # fork bomb
         ]
         self.allow_patterns = allow_patterns or []
         self._compiled_deny_patterns = [re.compile(p) for p in self.deny_patterns]
@@ -81,8 +81,11 @@ class ExecTool(Tool):
         }
 
     async def execute(
-        self, command: str, working_dir: str | None = None,
-        timeout: int | None = None, **kwargs: Any,
+        self,
+        command: str,
+        working_dir: str | None = None,
+        timeout: int | None = None,
+        **kwargs: Any,
     ) -> str:
         cwd = working_dir or self.working_dir or os.getcwd()
         guard_error = self._guard_command(command, cwd)
@@ -161,7 +164,9 @@ class ExecTool(Tool):
             return f"Error executing command: {str(e)}"
 
     # Compile regex once on class initialization for hot-path guards
-    _PATH_TRAVERSAL_RE = re.compile(r'(?:^|[\s"\'|<>&;/\\=()`,\[\]{}])\.\.(?:[\s"\'|<>&;/\\=()`,\[\]{}]|$)')
+    _PATH_TRAVERSAL_RE = re.compile(
+        r'(?:^|[\s"\'|<>&;/\\=()`,\[\]\{\}])\.\.(?:[\s"\'|<>&;/\\=()`,\[\]\{\}]|$)'
+    )
 
     def _guard_command(self, command: str, cwd: str) -> str | None:
         """Best-effort safety guard for potentially destructive commands."""
@@ -177,6 +182,7 @@ class ExecTool(Tool):
                 return "Error: Command blocked by safety guard (not in allowlist)"
 
         from TARS.security.network import contains_internal_url
+
         if contains_internal_url(cmd):
             return "Error: Command blocked by safety guard (internal/private URL detected)"
 
@@ -191,7 +197,9 @@ class ExecTool(Tool):
             cwd_path = Path(cwd).resolve()
 
             if not cwd_path.is_relative_to(ws_path):
-                return "Error: Command blocked by safety guard (working directory outside workspace)"
+                return (
+                    "Error: Command blocked by safety guard (working directory outside workspace)"
+                )
 
             for raw in self.__class__._extract_absolute_paths(cmd):
                 try:
@@ -204,13 +212,17 @@ class ExecTool(Tool):
 
         return None
 
-    _WIN_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])([A-Za-z]:\\[^\s\"'|<>&;\(\)=`,\[\]{}]+)")
-    _POSIX_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])(/[^\s|<>&;\(\)'\"=`,\[\]{}]+)")
-    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]{}])(~[^\s|<>&;\(\)'\"=`,\[\]{}]*)")
+    _WIN_PATH_RE = re.compile(
+        r"(?:^|[\s|<>&;\(\)'\"=`,\[\]\{\}])([A-Za-z]:\\[^\s\"'|<>&;\(\)=`,\[\]\{\}]+)"
+    )
+    _POSIX_PATH_RE = re.compile(
+        r"(?:^|[\s|<>&;\(\)'\"=`,\[\]\{\}])(/[^\s|<>&;\(\)'\"=`,\[\]\{\}]+)"
+    )
+    _HOME_PATH_RE = re.compile(r"(?:^|[\s|<>&;\(\)'\"=`,\[\]\{\}])(~[^\s|<>&;\(\)'\"=`,\[\]\{\}]*)")
 
     @classmethod
     def _extract_absolute_paths(cls, command: str) -> list[str]:
-        win_paths = cls._WIN_PATH_RE.findall(command)   # Windows: C:\...
-        posix_paths = cls._POSIX_PATH_RE.findall(command) # POSIX: /absolute only
-        home_paths = cls._HOME_PATH_RE.findall(command) # POSIX/Windows home shortcut: ~
+        win_paths = cls._WIN_PATH_RE.findall(command)  # Windows: C:\...
+        posix_paths = cls._POSIX_PATH_RE.findall(command)  # POSIX: /absolute only
+        home_paths = cls._HOME_PATH_RE.findall(command)  # POSIX/Windows home shortcut: ~
         return win_paths + posix_paths + home_paths
