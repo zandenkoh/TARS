@@ -36,7 +36,7 @@
                 </div>
                 
                 <!-- Toggle Button -->
-                <button onclick="toggleChannel('{{ channel.name }}', this)" 
+                <button aria-label="{{ 'Disable' if channel.enabled else 'Enable' }} {{ channel.name }} channel" onclick="toggleChannel('{{ channel.name }}', this)"
                         class="w-full py-2 rounded-xl border border-white/5 text-[10px] font-bold uppercase tracking-widest transition-all
                                {% if channel.enabled %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20{% else %}bg-zinc-800 text-zinc-500 hover:text-white{% endif %}">
                     {{ 'Disable Channel' if channel.enabled else 'Enable Channel' }}
