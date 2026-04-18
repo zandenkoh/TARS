@@ -21,3 +21,8 @@
 **Vulnerability:** The SSRF protection in `TARS/security/network.py` checked IP addresses against a list of blocked subnets without explicitly extracting the mapped IPv4 address from IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`). This allowed attackers to bypass the SSRF filter by wrapping an internal IP address in an IPv6 format.
 **Learning:** Python's `ipaddress` module treats IPv4-mapped IPv6 addresses differently than standard IPv4 addresses. They will not match IPv4 subnets unless the underlying IPv4 address is explicitly extracted using `addr.ipv4_mapped`. Also, `IPv4Address('0.0.0.0')` is falsy in Python, so an explicit `is not None` check must be used.
 **Prevention:** When validating IP addresses for SSRF protection, always check if the address has an `ipv4_mapped` property. If it does, use the explicit `is not None` check to extract and validate the underlying IPv4 address.
+
+## 2026-04-18 - Prevent SSRF via Redirects in AIOHTTP
+**Vulnerability:** The QQ channel used `aiohttp.ClientSession.get` with `allow_redirects=True` when downloading attachments. This could allow an attacker to bypass the initial SSRF check (which only validated the first URL) by redirecting to an internal service (e.g. `127.0.0.1` or `169.254.169.254`).
+**Learning:** `aiohttp` lacks a simple request hook to validate redirect URLs (unlike `httpx` which supports `event_hooks={"request": [...]}`). Thus, using `allow_redirects=True` in `aiohttp` makes it inherently vulnerable to SSRF via redirect.
+**Prevention:** To prevent SSRF when using `aiohttp`, one must either use `httpx` with a request hook or implement a custom loop with `allow_redirects=False` that manually resolves and validates the `Location` header before continuing.
