@@ -186,12 +186,17 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
+                    # ⚡ Bolt Optimization: Early break on length mismatch avoids unnecessary dict lookups
+                    if len(m) != 2:
                         fast_parts = None
                         break
+                    content = m.get("content")
+                    # ⚡ Bolt Optimization: Exact type checking (type(obj) is str) is faster than isinstance
+                    # and negative checks with early breaks avoid iterating the entire sequence when falling back to slow path
+                    if type(content) is not str:
+                        fast_parts = None
+                        break
+                    append_fast(content)
                 if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
@@ -202,9 +207,10 @@ def estimate_prompt_tokens(
         dumps = json.dumps
         for msg in messages:
             content = msg.get("content")
-            if isinstance(content, str):
+            # ⚡ Bolt Optimization: Exact type checking for performance
+            if type(content) is str:
                 append(content)
-            elif isinstance(content, list):
+            elif type(content) is list:
                 for part in content:
                     if isinstance(part, dict) and part.get("type") == "text":
                         txt = part.get("text", "")
@@ -237,7 +243,8 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
+        # ⚡ Bolt Optimization: Exact type checking for performance
+        if len(message) == 2 and type(content := message.get("content")) is str:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
@@ -247,9 +254,10 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     content = message.get("content")
     parts: list[str] = []
-    if isinstance(content, str):
+    # ⚡ Bolt Optimization: Exact type checking for performance
+    if type(content) is str:
         parts.append(content)
-    elif isinstance(content, list):
+    elif type(content) is list:
         for part in content:
             if isinstance(part, dict) and part.get("type") == "text":
                 text = part.get("text", "")
