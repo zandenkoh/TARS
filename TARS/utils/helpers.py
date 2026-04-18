@@ -212,7 +212,7 @@ def estimate_prompt_tokens(
                 append(content)
             elif type(content) is list:
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
+                    if type(part) is dict and part.get("type") == "text":
                         txt = part.get("text", "")
                         if txt:
                             append(txt)
@@ -222,12 +222,12 @@ def estimate_prompt_tokens(
                 append(dumps(tc, ensure_ascii=False))
 
             rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if type(rc) is str and rc:
                 append(rc)
 
             for key in ("name", "tool_call_id"):
                 value = msg.get(key)
-                if isinstance(value, str) and value:
+                if type(value) is str and value:
                     append(value)
 
         if tools:
@@ -259,7 +259,7 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
         parts.append(content)
     elif type(content) is list:
         for part in content:
-            if isinstance(part, dict) and part.get("type") == "text":
+            if type(part) is dict and part.get("type") == "text":
                 text = part.get("text", "")
                 if text:
                     parts.append(text)
@@ -270,13 +270,13 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     for key in ("name", "tool_call_id"):
         value = message.get(key)
-        if isinstance(value, str) and value:
+        if type(value) is str and value:
             parts.append(value)
     if message.get("tool_calls"):
         parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
 
     rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
+    if type(rc) is str and rc:
         parts.append(rc)
 
     payload = "\n".join(parts)
