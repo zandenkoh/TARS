@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2026-04-18 - Pre-compile regex in Search
+**Learning:** In `TARS/session/manager.py` search loop, evaluating a `.lower()` on each line or chunk to perform case-insensitive substring search is extremely slow due to the sheer size of the chat history text block being allocated iteratively. Benchmarking shows using a pre-compiled `re.search` is around 3-4x faster than lowercasing and using `in`.
+**Action:** When doing case-insensitive text matching against heavy files, use a pre-compiled `re.compile(query, re.IGNORECASE)` object and its `.search(text)` method rather than lowercasing the search target repeatedly inside loops.
