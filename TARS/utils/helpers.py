@@ -185,13 +185,15 @@ def estimate_prompt_tokens(
             try:
                 fast_parts = []
                 append_fast = fast_parts.append
+                # Optimization: In this hot loop, type(content) is str is slightly faster
+                # than isinstance(content, str) and using a negative check with break avoids
+                # unnecessary evaluations when the fast path condition fails.
                 for m in messages:
                     content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
+                    if len(m) != 2 or type(content) is not str:
                         fast_parts = None
                         break
+                    append_fast(content)
                 if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
