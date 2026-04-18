@@ -27,14 +27,15 @@ def strip_think(text: str) -> str:
         return text.strip()
 
     parts: list[str] = []
+    append = parts.append
     start = 0
     while True:
         start_idx = text.find("<think>", start)
         if start_idx == -1:
-            parts.append(text[start:])
+            append(text[start:])
             break
 
-        parts.append(text[start:start_idx])
+        append(text[start:start_idx])
         end_idx = text.find("</think>", start_idx + 7)
         if end_idx == -1:
             # Unclosed trailing <think>
@@ -186,12 +187,14 @@ def estimate_prompt_tokens(
                 fast_parts = []
                 append_fast = fast_parts.append
                 for m in messages:
-                    content = m.get("content")
-                    if len(m) == 2 and isinstance(content, str):
-                        append_fast(content)
-                    else:
+                    if len(m) != 2:
                         fast_parts = None
                         break
+                    content = m.get("content")
+                    if type(content) is not str:
+                        fast_parts = None
+                        break
+                    append_fast(content)
                 if fast_parts is not None:
                     return len(enc.encode("\n".join(fast_parts))) + len(messages) * 4
             except Exception:
@@ -237,11 +240,13 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        if len(message) == 2 and isinstance(content := message.get("content"), str):
-            if not content:
-                return 4
-            enc = _get_tiktoken_encoding()
-            return max(4, len(enc.encode(content)) + 4)
+        if len(message) == 2:
+            content = message.get("content")
+            if type(content) is str:
+                if not content:
+                    return 4
+                enc = _get_tiktoken_encoding()
+                return max(4, len(enc.encode(content)) + 4)
     except Exception:
         pass
 

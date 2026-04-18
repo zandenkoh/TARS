@@ -35,3 +35,7 @@
 ## 2025-04-02 - [Precompute String Operations in Sliding Window]
 **Learning:** In the codebase, sliding window operations that perform repeated string manipulation inside the loop (like calling `[l.strip() for l in window]`) cause O(N*M) redundant string allocations and method calls overhead.
 **Action:** Pre-compute array transformations outside the sliding window loop. For example, pre-computing `stripped_content = [l.strip() for l in content_lines]` and using list slicing for comparison instead of repeatedly stripping strings inside the loop.
+
+## 2026-04-16 - [Avoid instance method calls in hot loop conditions]
+**Learning:** Using `isinstance(content, str)` inside high-frequency token counting loops adds significant overhead due to inheritance checking. Furthermore, chaining conditions like `if len(m) == 2 and isinstance(...)` incurs unnecessary function calls if the first condition often fails, or overhead if the dict `get` fails. Breaking out the loop with explicit `if type(content) is not str: break` and doing exact type checking offers measurable performance gains.
+**Action:** In critical fast paths, use exact type checking `type(obj) is str` over `isinstance()` if subclassing is not expected, and refactor chained conditionals to break early and sequentially.
