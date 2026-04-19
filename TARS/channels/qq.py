@@ -37,7 +37,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -398,7 +398,29 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
+            current_url = media_ref
+            for _ in range(5):
+                resp = await self._http.get(current_url, allow_redirects=False)
+                if resp.status in (301, 302, 303, 307, 308):
+                    next_url = resp.headers.get("Location")
+                    resp.close()
+                    if not next_url:
+                        return None, None
+                    from urllib.parse import urljoin
+
+                    current_url = urljoin(current_url, next_url)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning(
+                            "QQ outbound media redirect SSRF blocked url={} err={}",
+                            current_url,
+                            err,
+                        )
+                        return None, None
+                    continue
+                break
+
+            async with resp:
                 if resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
@@ -543,6 +565,11 @@ class QQChannel(BaseChannel):
         Enforces a max download size and writes to a .part temp file
         that is atomically renamed on success.
         """
+        ok, err = validate_url_target(url)
+        if not ok:
+            logger.warning("QQ inbound media URL validation failed url={} err={}", url, err)
+            return None
+
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
 
@@ -551,11 +578,31 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
+            current_url = url
+            for _ in range(5):
+                resp = await self._http.get(
+                    current_url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                )
+                if resp.status in (301, 302, 303, 307, 308):
+                    next_url = resp.headers.get("Location")
+                    resp.close()
+                    if not next_url:
+                        return None
+                    from urllib.parse import urljoin
+
+                    current_url = urljoin(current_url, next_url)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning(
+                            "QQ inbound media redirect SSRF blocked url={} err={}", current_url, err
+                        )
+                        return None
+                    continue
+                break
+
+            async with resp:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)
                     return None
