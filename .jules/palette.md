@@ -21,3 +21,7 @@
 ## 2026-04-02 - Standardizing Dynamic Empty States
 **Learning:** Empty states should never replace or rename core creation actions. In TARS, the "Projects" sidebar empty state previously hid the main category header and replaced the "New project" button with a mislabeled "Projects" button that functioned identically but broke consistency. This confused users who didn't expect a navigation-like label to act as a creation action.
 **Action:** Unify empty and filled states to consistently display core structural elements (headers, creation buttons). Use a dedicated, clearly labeled empty state placeholder instead of co-opting existing actions. Additionally, always remember to add `focus-visible` styling to dynamically generated interactive elements to preserve keyboard accessibility.
+
+## 2025-05-24 - [Keyboard Access for Group Hover Elements]
+**Learning:** Contextual actions hidden by default on hover (`opacity-0 group-hover:opacity-100`) are inaccessible to keyboard users because they can't hover. To fix this, we need to add `focus-within:opacity-100` to the parent container and `focus-visible:opacity-100 focus-visible:ring-2` to the interactive elements themselves to ensure they become visible and clearly outlined when focused via keyboard.
+**Action:** When hiding contextual actions behind a hover state, always pair `group-hover:opacity-100` with `focus-within:opacity-100` on the parent, and ensure the interactive children have explicit `focus-visible` styling.
