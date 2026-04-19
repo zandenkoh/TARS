@@ -21,3 +21,7 @@
 ## 2026-04-02 - Standardizing Dynamic Empty States
 **Learning:** Empty states should never replace or rename core creation actions. In TARS, the "Projects" sidebar empty state previously hid the main category header and replaced the "New project" button with a mislabeled "Projects" button that functioned identically but broke consistency. This confused users who didn't expect a navigation-like label to act as a creation action.
 **Action:** Unify empty and filled states to consistently display core structural elements (headers, creation buttons). Use a dedicated, clearly labeled empty state placeholder instead of co-opting existing actions. Additionally, always remember to add `focus-visible` styling to dynamically generated interactive elements to preserve keyboard accessibility.
+
+## 2024-05-10 - [Keyboard Accessibility for Hover-Hidden Actions]
+**Learning:** Contextual actions (like Copy/Export buttons or item options) that are hidden by default and only visible on hover (`opacity-0 group-hover:opacity-100`) are invisible to keyboard-only users navigating via Tab. This makes essential features inaccessible.
+**Action:** Always add `focus-within:opacity-100` (for containers) or `focus-visible:opacity-100` (for buttons) to ensure elements become visible when focused. Additionally, explicitly provide focus ring styling (`focus-visible:ring-2`) to visually indicate the active state.
