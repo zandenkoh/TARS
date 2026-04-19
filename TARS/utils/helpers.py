@@ -212,23 +212,24 @@ def estimate_prompt_tokens(
                 append(content)
             elif type(content) is list:
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
-                        txt = part.get("text", "")
-                        if txt:
+                    # ⚡ Bolt Optimization: Exact type checking and direct text assignment avoids redundant dictionary lookups
+                    if type(part) is dict and part.get("type") == "text":
+                        if txt := part.get("text"):
                             append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            # ⚡ Bolt Optimization: Assignment expressions prevent redundant dict lookups
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
+            # ⚡ Bolt Optimization: Unroll loop for exact type checking for common keys prevents generator overhead
             rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if type(rc) is str and rc:
                 append(rc)
 
-            for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
-                    append(value)
+            if (name := msg.get("name")) and type(name) is str:
+                append(name)
+            if (tid := msg.get("tool_call_id")) and type(tid) is str:
+                append(tid)
 
         if tools:
             append(dumps(tools, ensure_ascii=False))
@@ -254,30 +255,35 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
 
     content = message.get("content")
     parts: list[str] = []
+    append = parts.append
+    dumps = json.dumps
+
     # ⚡ Bolt Optimization: Exact type checking for performance
     if type(content) is str:
-        parts.append(content)
+        append(content)
     elif type(content) is list:
         for part in content:
-            if isinstance(part, dict) and part.get("type") == "text":
-                text = part.get("text", "")
-                if text:
-                    parts.append(text)
+            # ⚡ Bolt Optimization: Exact type checking and direct text assignment avoids redundant dictionary lookups
+            if type(part) is dict and part.get("type") == "text":
+                if txt := part.get("text"):
+                    append(txt)
             else:
-                parts.append(json.dumps(part, ensure_ascii=False))
+                append(dumps(part, ensure_ascii=False))
     elif content is not None:
-        parts.append(json.dumps(content, ensure_ascii=False))
+        append(dumps(content, ensure_ascii=False))
 
-    for key in ("name", "tool_call_id"):
-        value = message.get(key)
-        if isinstance(value, str) and value:
-            parts.append(value)
-    if message.get("tool_calls"):
-        parts.append(json.dumps(message["tool_calls"], ensure_ascii=False))
+    # ⚡ Bolt Optimization: Assignment expressions prevent redundant dict lookups and exact type checking prevents isinstance overhead
+    if (name := message.get("name")) and type(name) is str:
+        append(name)
+    if (tid := message.get("tool_call_id")) and type(tid) is str:
+        append(tid)
+
+    if tc := message.get("tool_calls"):
+        append(dumps(tc, ensure_ascii=False))
 
     rc = message.get("reasoning_content")
-    if isinstance(rc, str) and rc:
-        parts.append(rc)
+    if type(rc) is str and rc:
+        append(rc)
 
     payload = "\n".join(parts)
     if not payload:

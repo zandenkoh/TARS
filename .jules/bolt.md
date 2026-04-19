@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2025-04-19 - Fast Token Counting Optimization
+**Learning:** In heavily invoked token counting loops, `isinstance` checks and repeated dictionary lookups (like `.get()`) introduce measurable overhead. Using exact type checks (`type(obj) is dict`), caching bound methods (`append = parts.append`), and leveraging assignment expressions (`if text := part.get('text'):`) provide a significant performance boost in Python without sacrificing readability. We should also avoid unrolling dictionary values dynamically (`for key in ('name', 'tool_call_id'): ...`) when keys are known in advance.
+**Action:** Use strict type checking, method caching, and assignment expressions in hot paths that iterate over large lists of dictionaries like context messages.
