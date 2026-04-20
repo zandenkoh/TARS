@@ -21,3 +21,7 @@
 ## 2026-04-02 - Standardizing Dynamic Empty States
 **Learning:** Empty states should never replace or rename core creation actions. In TARS, the "Projects" sidebar empty state previously hid the main category header and replaced the "New project" button with a mislabeled "Projects" button that functioned identically but broke consistency. This confused users who didn't expect a navigation-like label to act as a creation action.
 **Action:** Unify empty and filled states to consistently display core structural elements (headers, creation buttons). Use a dedicated, clearly labeled empty state placeholder instead of co-opting existing actions. Additionally, always remember to add `focus-visible` styling to dynamically generated interactive elements to preserve keyboard accessibility.
+
+## $(date +%Y-%m-%d) - Focus Visible Styles for Primary Actions
+**Learning:** In a heavily customized web UI (like TARS using Tailwind and vanilla JS), the primary "Send" actions in forms often visually stand out (e.g. `bg-white text-black rounded-full`) but lack visual focus indicators when navigated via keyboard. This makes keyboard-based chat initiation difficult. The lack of `focus-visible` styles on custom-styled `<button>` elements is a recurring accessibility gap.
+**Action:** Always verify keyboard focus states (tabbing through the UI) for core actions, and explicitly add `focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none` utilities to ensure users can see what element has focus without needing to rely on mouse hover states.
