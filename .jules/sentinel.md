@@ -21,3 +21,8 @@
 **Vulnerability:** The SSRF protection in `TARS/security/network.py` checked IP addresses against a list of blocked subnets without explicitly extracting the mapped IPv4 address from IPv4-mapped IPv6 addresses (e.g., `::ffff:127.0.0.1`). This allowed attackers to bypass the SSRF filter by wrapping an internal IP address in an IPv6 format.
 **Learning:** Python's `ipaddress` module treats IPv4-mapped IPv6 addresses differently than standard IPv4 addresses. They will not match IPv4 subnets unless the underlying IPv4 address is explicitly extracted using `addr.ipv4_mapped`. Also, `IPv4Address('0.0.0.0')` is falsy in Python, so an explicit `is not None` check must be used.
 **Prevention:** When validating IP addresses for SSRF protection, always check if the address has an `ipv4_mapped` property. If it does, use the explicit `is not None` check to extract and validate the underlying IPv4 address.
+
+## 2026-04-20 - SSRF Vulnerability in QQ Channel Media Download
+**Vulnerability:** The QQ channel implementation in `TARS/channels/qq.py` fetched media via `aiohttp.ClientSession.get(..., allow_redirects=True)` without validating the redirection targets.
+**Learning:** Similar to DingTalk, fetching files via HTTP clients with `allow_redirects=True` is dangerous because attackers can host an external URL that redirects the client to a private IP or internal network service (like `http://169.254.169.254`), bypassing initial SSRF checks and performing SSRF via redirects.
+**Prevention:** When using `aiohttp` or other clients without request hooks, manually loop over redirects using `allow_redirects=False`. Extract the `Location` header, validate the redirected target using `validate_resolved_url`, and only proceed if safe.
