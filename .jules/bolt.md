@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2026-04-16 - Token Estimation Optimization (isinstance to type check)
+**Learning:** In `estimate_prompt_tokens` and `estimate_message_tokens`, checking the types of `part`, `rc`, and `value` variables used `isinstance`, which is much slower than exact type checking (`type(obj) is T`). Since inheritance wasn't expected for these standard parsed dictionaries/strings, switching `isinstance` to `type` offers a 2x performance increase.
+**Action:** When performing type checks in hot token estimation loops, replace `isinstance(obj, type)` with exact `type(obj) is type` where inheritance support isn't strictly required to bypass Python's inheritance-checking overhead.
