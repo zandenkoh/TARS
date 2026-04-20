@@ -207,28 +207,26 @@ def estimate_prompt_tokens(
         dumps = json.dumps
         for msg in messages:
             content = msg.get("content")
-            # ⚡ Bolt Optimization: Exact type checking for performance
             if type(content) is str:
                 append(content)
             elif type(content) is list:
                 for part in content:
-                    if isinstance(part, dict) and part.get("type") == "text":
+                    if type(part) is dict and part.get("type") == "text":
                         txt = part.get("text", "")
                         if txt:
                             append(txt)
 
-            tc = msg.get("tool_calls")
-            if tc:
+            if tc := msg.get("tool_calls"):
                 append(dumps(tc, ensure_ascii=False))
 
             rc = msg.get("reasoning_content")
-            if isinstance(rc, str) and rc:
+            if type(rc) is str and rc:
                 append(rc)
 
             for key in ("name", "tool_call_id"):
-                value = msg.get(key)
-                if isinstance(value, str) and value:
-                    append(value)
+                if value := msg.get(key):
+                    if type(value) is str:
+                        append(value)
 
         if tools:
             append(dumps(tools, ensure_ascii=False))
@@ -243,12 +241,15 @@ def estimate_message_tokens(message: dict[str, Any]) -> int:
     """Estimate prompt tokens contributed by one persisted message."""
     try:
         # Fast path for simple messages (e.g. role + content string)
-        # ⚡ Bolt Optimization: Exact type checking for performance
-        if len(message) == 2 and type(content := message.get("content")) is str:
+        # ⚡ Bolt Optimization: EAFP approach avoids checking len/type and .get() if normal text message
+        content = message["content"]
+        if type(content) is str and len(message) == 2:
             if not content:
                 return 4
             enc = _get_tiktoken_encoding()
             return max(4, len(enc.encode(content)) + 4)
+    except (KeyError, TypeError):
+        pass
     except Exception:
         pass
 

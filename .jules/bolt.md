@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2025-04-20 - Walrus Operators and EAFP in Hot Loops
+**Learning:** In extremely hot utility functions like `estimate_prompt_tokens` and `estimate_message_tokens`, evaluating `.get()` redundantly or replacing it blindly with `in` checks can introduce bugs (like serializing falsy empty lists or causing double lookups). However, using the walrus operator (`if tc := msg.get("tool_calls")`) perfectly balances fetching and truthiness checking in a single operation.
+**Action:** Use the walrus operator (`if val := dict.get("key")`) for optional dictionary lookups inside frequent message processing iterations to combine retrieval and truthiness checks cleanly, and combine EAFP with dictionary bracket notation (`dict["key"]`) only when the property is almost guaranteed to exist (e.g. `content` on a message block) to bypass check overhead.
