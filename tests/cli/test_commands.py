@@ -25,11 +25,12 @@ import shutil
 @pytest.fixture
 def mock_paths():
     """Mock config/workspace paths for test isolation."""
-    with patch("TARS.config.loader.get_config_path") as mock_cp, \
-         patch("TARS.config.loader.save_config") as mock_sc, \
-         patch("TARS.config.loader.load_config") as mock_lc, \
-         patch("TARS.cli.commands.get_workspace_path") as mock_ws:
-
+    with (
+        patch("TARS.config.loader.get_config_path") as mock_cp,
+        patch("TARS.config.loader.save_config") as mock_sc,
+        patch("TARS.config.loader.load_config") as mock_lc,
+        patch("TARS.cli.commands.get_workspace_path") as mock_ws,
+    ):
         base_dir = Path("./test_onboard_data")
         if base_dir.exists():
             shutil.rmtree(base_dir)
@@ -115,8 +116,8 @@ def test_onboard_existing_workspace_safe_create(mock_paths):
 
 def _strip_ansi(text):
     """Remove ANSI escape codes from text."""
-    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
-    return ansi_escape.sub('', text)
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*m")
+    return ansi_escape.sub("", text)
 
 
 def test_onboard_help_shows_workspace_and_config_options():
@@ -353,14 +354,15 @@ def mock_agent_runtime(tmp_path):
     config = Config()
     config.agents.defaults.workspace = str(tmp_path / "default-workspace")
 
-    with patch("TARS.config.loader.load_config", return_value=config) as mock_load_config, \
-         patch("TARS.cli.commands.sync_workspace_templates") as mock_sync_templates, \
-         patch("TARS.cli.commands._make_provider", return_value=object()), \
-         patch("TARS.cli.commands._print_agent_response") as mock_print_response, \
-         patch("TARS.bus.queue.MessageBus"), \
-         patch("TARS.cron.service.CronService"), \
-         patch("TARS.agent.loop.AgentLoop") as mock_agent_loop_cls:
-
+    with (
+        patch("TARS.config.loader.load_config", return_value=config) as mock_load_config,
+        patch("TARS.cli.commands.sync_workspace_templates") as mock_sync_templates,
+        patch("TARS.cli.commands._make_provider", return_value=object()),
+        patch("TARS.cli.commands._print_agent_response") as mock_print_response,
+        patch("TARS.bus.queue.MessageBus"),
+        patch("TARS.cron.service.CronService"),
+        patch("TARS.agent.loop.AgentLoop") as mock_agent_loop_cls,
+    ):
         agent_loop = MagicMock()
         agent_loop.channels_config = None
         agent_loop.process_direct = AsyncMock(
@@ -403,7 +405,9 @@ def test_agent_uses_default_config_when_no_workspace_or_config_flags(mock_agent_
     )
     mock_agent_runtime["agent_loop"].process_direct.assert_awaited_once()
     mock_agent_runtime["print_response"].assert_called_once_with(
-        "mock-response", render_markdown=True, metadata={},
+        "mock-response",
+        render_markdown=True,
+        metadata={},
     )
 
 
@@ -426,7 +430,7 @@ def test_agent_config_sets_active_path(monkeypatch, tmp_path: Path) -> None:
     seen: dict[str, Path] = {}
 
     monkeypatch.setattr(
-       "TARS.config.loader.set_config_path",
+        "TARS.config.loader.set_config_path",
         lambda path, **kwargs: seen.__setitem__("config_path", path),
     )
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)
@@ -496,9 +500,7 @@ def test_agent_uses_workspace_directory_for_cron_store(monkeypatch, tmp_path: Pa
     assert seen["cron_store"] == config.workspace_path / "cron" / "jobs.json"
 
 
-def test_agent_workspace_override_does_not_migrate_legacy_cron(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_agent_workspace_override_does_not_migrate_legacy_cron(monkeypatch, tmp_path: Path) -> None:
     config_file = tmp_path / "instance" / "config.json"
     config_file.parent.mkdir(parents=True)
     config_file.write_text("{}")
@@ -653,7 +655,7 @@ def test_gateway_uses_workspace_from_config_by_default(monkeypatch, tmp_path: Pa
     seen: dict[str, Path] = {}
 
     monkeypatch.setattr(
-       "TARS.config.loader.set_config_path",
+        "TARS.config.loader.set_config_path",
         lambda path, **kwargs: seen.__setitem__("config_path", path),
     )
     monkeypatch.setattr("TARS.config.loader.load_config", lambda _path=None: config)

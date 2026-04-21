@@ -177,7 +177,9 @@ async def test_send_without_context_token_does_not_send_text() -> None:
     channel._send_text = AsyncMock()
 
     await channel.send(
-        type("Msg", (), {"chat_id": "unknown-user", "content": "pong", "media": [], "metadata": {}})()
+        type(
+            "Msg", (), {"chat_id": "unknown-user", "content": "pong", "media": [], "metadata": {}}
+        )()
     )
 
     channel._send_text.assert_not_awaited()

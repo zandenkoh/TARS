@@ -6,7 +6,9 @@ from TARS.agent.tools.web import WebSearchTool
 
 def _fake_resolve_private(hostname, port, family=0, type_=0):
     import socket
+
     return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("169.254.169.254", 0))]
+
 
 async def main():
     tool = WebSearchTool()
@@ -20,6 +22,7 @@ async def main():
     with patch("TARS.security.network.socket.getaddrinfo", _fake_resolve_private):
         res = await tool.execute("test")
         print(f"searxng: {res}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

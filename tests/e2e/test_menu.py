@@ -20,7 +20,7 @@ def run():
             page.click("text=Complete Setup")
             time.sleep(2)
         except Exception:
-            pass # Maybe not present
+            pass  # Maybe not present
 
         page.screenshot(path="screenshot_after_setup.png")
 
@@ -34,6 +34,7 @@ def run():
         time.sleep(2)
         page.screenshot(path="screenshot_settings.png")
         browser.close()
+
 
 if __name__ == "__main__":
     run()

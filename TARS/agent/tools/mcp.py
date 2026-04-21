@@ -64,9 +64,7 @@ def _normalize_schema_for_openai(schema: Any) -> dict[str, Any]:
 
     if "properties" in normalized and isinstance(normalized["properties"], dict):
         normalized["properties"] = {
-            name: _normalize_schema_for_openai(prop)
-            if isinstance(prop, dict)
-            else prop
+            name: _normalize_schema_for_openai(prop) if isinstance(prop, dict) else prop
             for name, prop in normalized["properties"].items()
         }
 
@@ -175,7 +173,9 @@ async def connect_mcp_servers(
                 if cfg.url:
                     ok, err = validate_url_target(cfg.url)
                     if not ok:
-                        logger.warning("MCP server '{}': SSRF blocked on URL '{}': {}", name, cfg.url, err)
+                        logger.warning(
+                            "MCP server '{}': SSRF blocked on URL '{}': {}", name, cfg.url, err
+                        )
                         continue
 
                 def httpx_client_factory(
@@ -199,7 +199,9 @@ async def connect_mcp_servers(
                 if cfg.url:
                     ok, err = validate_url_target(cfg.url)
                     if not ok:
-                        logger.warning("MCP server '{}': SSRF blocked on URL '{}': {}", name, cfg.url, err)
+                        logger.warning(
+                            "MCP server '{}': SSRF blocked on URL '{}': {}", name, cfg.url, err
+                        )
                         continue
 
                 # Always provide an explicit httpx client so MCP HTTP transport does not

@@ -1,3 +1,7 @@
+## 2024-05-22 - [Accessibility: Hover-only Context Actions]
+**Learning:** Found several context actions (like "Copy", "Export", "Session Options", and "Wipe Data" icons) that were hidden by default and only visible on `group-hover` (using `opacity-0 group-hover:opacity-100`). This made them completely invisible to keyboard-only users who navigate via Tab.
+**Action:** Always pair hover-based visibility classes with focus-based visibility classes. For parent containers, add `focus-within:opacity-100` so the children appear when navigating inside. For the hidden interactive elements themselves, add `focus-visible:opacity-100` along with visible focus rings (`focus-visible:ring-2`) to ensure they are perceivable and usable via keyboard.
+
 ## 2024-05-18 - [Accessibility: Forms and Modals]
 **Learning:** Found multiple inputs, buttons, and textareas lacking basic ARIA labels and explicit label associations in `TARS/webui/templates/index.html`. While screen readers can sometimes guess context, explicit labels (`aria-label` or `for`/`id` combinations) are crucial for guaranteed accessibility.
 **Action:** When creating new interactive elements, immediately add semantic labeling. Ensure SVGs inside buttons have `aria-hidden="true"` to prevent redundant reading.

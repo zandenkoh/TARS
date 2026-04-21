@@ -19,6 +19,7 @@ def test_resolve_mochat_target_empty_input():
     assert target3.is_panel is False
     assert target3.user_id is None
 
+
 def test_resolve_mochat_target_basic_id():
     # Basic strings without prefix
     target = resolve_mochat_target("room123")
@@ -27,6 +28,7 @@ def test_resolve_mochat_target_basic_id():
     assert target.is_panel is True
     assert target.user_id is None
 
+
 def test_resolve_mochat_target_session_id():
     # Strings starting with session_ without prefix
     target = resolve_mochat_target("session_456")
@@ -34,6 +36,7 @@ def test_resolve_mochat_target_session_id():
     # Not forced panel, and starts with session_ -> is_panel = False
     assert target.is_panel is False
     assert target.user_id is None
+
 
 def test_resolve_mochat_target_mochat_prefix():
     # mochat: prefix is not forced panel
@@ -46,6 +49,7 @@ def test_resolve_mochat_target_mochat_prefix():
     assert target_session.id == "session_456"
     assert target_session.is_panel is False
     assert target_session.user_id is None
+
 
 def test_resolve_mochat_target_forced_panel_prefixes():
     # group:, channel:, panel: prefixes force is_panel to True
@@ -61,11 +65,13 @@ def test_resolve_mochat_target_forced_panel_prefixes():
         assert target_normal.is_panel is True
         assert target_normal.user_id is None
 
+
 def test_resolve_mochat_target_prefix_case_insensitivity():
     target = resolve_mochat_target("PaNeL:  room123  ")
     assert target.id == "room123"
     assert target.is_panel is True
     assert target.user_id is None
+
 
 def test_resolve_mochat_target_empty_after_prefix():
     # If the prefix strips out to nothing, return empty
@@ -78,6 +84,7 @@ def test_resolve_mochat_target_empty_after_prefix():
     assert target_spaces.id == ""
     assert target_spaces.is_panel is False
     assert target_spaces.user_id is None
+
 
 def test_resolve_mochat_target_with_user_id():
     # Test strings with `@` symbol (issue description scenario)
@@ -95,6 +102,7 @@ def test_resolve_mochat_target_with_user_id():
     assert target3.id == "room123"
     assert target3.user_id == "user456"
     assert target3.is_panel is True
+
 
 def test_resolve_mochat_target_empty_room_with_user_id():
     # Missing room part

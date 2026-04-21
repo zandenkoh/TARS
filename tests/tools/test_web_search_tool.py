@@ -8,7 +8,9 @@ from TARS.config.schema import WebSearchConfig
 
 
 def _tool(provider: str = "brave", api_key: str = "", base_url: str = "") -> WebSearchTool:
-    return WebSearchTool(config=WebSearchConfig(provider=provider, api_key=api_key, base_url=base_url))
+    return WebSearchTool(
+        config=WebSearchConfig(provider=provider, api_key=api_key, base_url=base_url)
+    )
 
 
 def _response(status: int = 200, json: dict | None = None) -> httpx.Response:
@@ -23,9 +25,19 @@ async def test_brave_search(monkeypatch):
     async def mock_get(self, url, **kw):
         assert "brave" in url
         assert kw["headers"]["X-Subscription-Token"] == "brave-key"
-        return _response(json={
-            "web": {"results": [{"title": "NanoBot", "url": "https://example.com", "description": "AI assistant"}]}
-        })
+        return _response(
+            json={
+                "web": {
+                    "results": [
+                        {
+                            "title": "NanoBot",
+                            "url": "https://example.com",
+                            "description": "AI assistant",
+                        }
+                    ]
+                }
+            }
+        )
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
     tool = _tool(provider="brave", api_key="brave-key")
@@ -39,9 +51,13 @@ async def test_tavily_search(monkeypatch):
     async def mock_post(self, url, **kw):
         assert "tavily" in url
         assert kw["headers"]["Authorization"] == "Bearer tavily-key"
-        return _response(json={
-            "results": [{"title": "OpenClaw", "url": "https://openclaw.io", "content": "Framework"}]
-        })
+        return _response(
+            json={
+                "results": [
+                    {"title": "OpenClaw", "url": "https://openclaw.io", "content": "Framework"}
+                ]
+            }
+        )
 
     monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
     tool = _tool(provider="tavily", api_key="tavily-key")
@@ -59,9 +75,13 @@ async def test_searxng_search(monkeypatch):
 
     async def mock_get(self, url, **kw):
         assert "searx.example" in url
-        return _response(json={
-            "results": [{"title": "Result", "url": "https://example.com", "content": "SearXNG result"}]
-        })
+        return _response(
+            json={
+                "results": [
+                    {"title": "Result", "url": "https://example.com", "content": "SearXNG result"}
+                ]
+            }
+        )
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
     monkeypatch.setattr("TARS.security.network.socket.getaddrinfo", _fake_resolve_public)
@@ -78,10 +98,13 @@ async def test_duckduckgo_search(monkeypatch):
             pass
 
         def text(self, query, max_results=5):
-            return [{"title": "DDG Result", "href": "https://ddg.example", "body": "From DuckDuckGo"}]
+            return [
+                {"title": "DDG Result", "href": "https://ddg.example", "body": "From DuckDuckGo"}
+            ]
 
     monkeypatch.setattr("TARS.agent.tools.web.DDGS", MockDDGS, raising=False)
     import TARS.agent.tools.web as web_mod
+
     monkeypatch.setattr(web_mod, "DDGS", MockDDGS, raising=False)
 
     monkeypatch.setattr("ddgs.DDGS", MockDDGS)
@@ -98,7 +121,9 @@ async def test_brave_fallback_to_duckduckgo_when_no_key(monkeypatch):
             pass
 
         def text(self, query, max_results=5):
-            return [{"title": "Fallback", "href": "https://ddg.example", "body": "DuckDuckGo fallback"}]
+            return [
+                {"title": "Fallback", "href": "https://ddg.example", "body": "DuckDuckGo fallback"}
+            ]
 
     monkeypatch.setattr("ddgs.DDGS", MockDDGS)
     monkeypatch.delenv("BRAVE_API_KEY", raising=False)
@@ -113,9 +138,11 @@ async def test_jina_search(monkeypatch):
     async def mock_get(self, url, **kw):
         assert "s.jina.ai" in str(url)
         assert kw["headers"]["Authorization"] == "Bearer jina-key"
-        return _response(json={
-            "data": [{"title": "Jina Result", "url": "https://jina.ai", "content": "AI search"}]
-        })
+        return _response(
+            json={
+                "data": [{"title": "Jina Result", "url": "https://jina.ai", "content": "AI search"}]
+            }
+        )
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_get)
     tool = _tool(provider="jina", api_key="jina-key")
@@ -191,9 +218,7 @@ def test_format_results_empty():
 
 
 def test_format_results_basic():
-    items = [
-        {"title": "<b>Test</b> Title", "url": "https://test.com", "content": "Some snippet"}
-    ]
+    items = [{"title": "<b>Test</b> Title", "url": "https://test.com", "content": "Some snippet"}]
     res = _format_results("test", items, 1)
     assert "Results for: test\n" in res or "Results for: test" in res
     assert "1. Test Title" in res
@@ -206,7 +231,7 @@ def test_format_results_missing_fields():
         {"title": "Only Title"},
         {"url": "https://only-url.com"},
         {"content": "Only content"},
-        {}
+        {},
     ]
     res = _format_results("test", items, 4)
     assert "1. Only Title" in res
@@ -221,7 +246,7 @@ def test_format_results_limit_n():
     items = [
         {"title": "First", "url": "https://first.com"},
         {"title": "Second", "url": "https://second.com"},
-        {"title": "Third", "url": "https://third.com"}
+        {"title": "Third", "url": "https://third.com"},
     ]
     res = _format_results("test", items, 2)
     assert "First" in res

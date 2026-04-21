@@ -11,5 +11,6 @@ def run():
         page.screenshot(path="screenshot.png")
         browser.close()
 
+
 if __name__ == "__main__":
     run()

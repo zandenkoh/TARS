@@ -24,11 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(
-    title="TARS Web UI",
-    description="Main Web Interface for TARS",
-    version="0.5.0"
-)
+app = FastAPI(title="TARS Web UI", description="Main Web Interface for TARS", version="0.5.0")
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -36,13 +33,24 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             origin = request.headers.get("origin") or request.headers.get("referer")
             if origin:
                 from urllib.parse import urlparse
+
                 hostname = urlparse(origin).hostname
                 if hostname not in ("localhost", "127.0.0.1"):
                     from fastapi.responses import JSONResponse
-                    return JSONResponse({"status": "error", "message": "CSRF validation failed"}, status_code=403)
+
+                    return JSONResponse(
+                        {"status": "error", "message": "CSRF validation failed"}, status_code=403
+                    )
             else:
                 from fastapi.responses import JSONResponse
-                return JSONResponse({"status": "error", "message": "Missing Origin or Referer header for CSRF protection"}, status_code=403)
+
+                return JSONResponse(
+                    {
+                        "status": "error",
+                        "message": "Missing Origin or Referer header for CSRF protection",
+                    },
+                    status_code=403,
+                )
 
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -50,6 +58,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return response
+
 
 app.add_middleware(SecurityHeadersMiddleware)
 
@@ -68,12 +77,15 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # --- TARS Core Initialization ---
 
+
 class TARSState:
     """Singleton-like state for TARS core to avoid re-initializing on Every request."""
+
     _instance = None
 
     def __init__(self):
         from TARS.cli.commands import _load_runtime_config, _make_provider
+
         self.config = _load_runtime_config()
         self.workspace = get_workspace_path(self.config.workspace_path)
         self.bus = MessageBus(config=self.config)
@@ -91,28 +103,32 @@ class TARSState:
     def refresh_config(self):
         """Reload configuration from disk."""
         from TARS.cli.commands import _load_runtime_config
+
         self.config = _load_runtime_config()
         # Update agent's config-based fields
         self.agent.model = self.config.agents.defaults.model
         # Workspace remains the same for now
+
 
 def get_tars() -> TARSState:
     if TARSState._instance is None:
         TARSState._instance = TARSState()
     return TARSState._instance
 
+
 TARS = Annotated[TARSState, Depends(get_tars)]
 
 # --- Routes ---
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, tars: TARS):
     """Serve the main TARS chat interface."""
     model_name = tars.config.agents.defaults.model
-    return templates.TemplateResponse(request, "index.html", {
-        "model_name": model_name,
-        "config": tars.config
-    })
+    return templates.TemplateResponse(
+        request, "index.html", {"model_name": model_name, "config": tars.config}
+    )
+
 
 import uuid
 
@@ -124,6 +140,7 @@ async def list_sessions(tars: TARS):
     # Filter for web sessions if needed, but for now show all
     return sessions
 
+
 @app.get("/api/sessions/search")
 async def search_sessions(tars: TARS, q: str):
     """Search sessions by query."""
@@ -131,6 +148,7 @@ async def search_sessions(tars: TARS, q: str):
         return []
     sessions = tars.sessions.search_sessions(q)
     return JSONResponse(sessions)
+
 
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(tars: TARS, session_id: str):
@@ -141,6 +159,7 @@ async def delete_session(tars: TARS, session_id: str):
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
+
 @app.post("/api/sessions/{session_id}/title")
 async def rename_session(request: Request, tars: TARS, session_id: str):
     """Rename a chat session."""
@@ -148,7 +167,9 @@ async def rename_session(request: Request, tars: TARS, session_id: str):
         data = await request.json()
         new_title = data.get("title")
         if not new_title:
-            return JSONResponse({"status": "error", "message": "Title is required"}, status_code=400)
+            return JSONResponse(
+                {"status": "error", "message": "Title is required"}, status_code=400
+            )
 
         session = tars.sessions.get_or_create(session_id)
         session.metadata["title"] = new_title
@@ -157,21 +178,29 @@ async def rename_session(request: Request, tars: TARS, session_id: str):
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
+
 @app.get("/api/sessions/{session_id}", response_class=HTMLResponse)
 async def get_session_history(request: Request, tars: TARS, session_id: str):
     """Get the message history for a specific session and render as HTMX fragments."""
     session = tars.sessions.get_or_create(session_id)
     # Filter out metadata and system messages for the UI
-    messages = [m for m in session.messages if m.get("_type") != "metadata" and m.get("role") != "system"]
+    messages = [
+        m for m in session.messages if m.get("_type") != "metadata" and m.get("role") != "system"
+    ]
 
     # We want to render each message using the existing template
-    return templates.TemplateResponse(request, "chat_history.html", {
-        "messages": messages,
-        "session_id": session_id
-    })
+    return templates.TemplateResponse(
+        request, "chat_history.html", {"messages": messages, "session_id": session_id}
+    )
+
 
 @app.post("/api/chat")
-async def chat(request: Request, tars: TARS, content: Annotated[str, Form()], session_id: str | None = Form(None)):
+async def chat(
+    request: Request,
+    tars: TARS,
+    content: Annotated[str, Form()],
+    session_id: str | None = Form(None),
+):
     """Handle chat messages and return the initial message frame + SSE link."""
     turn_id = uuid.uuid4().hex
     # Default to web:chat if no session_id provided, or generate a new one if it's "new"
@@ -184,22 +213,28 @@ async def chat(request: Request, tars: TARS, content: Annotated[str, Form()], se
         session.metadata["title"] = content[:30] + "..." if len(content) > 30 else content
         tars.sessions.save(session)
 
-    return templates.TemplateResponse(request, "chat_turn.html", {
-        "user_message": content,
-        "turn_id": turn_id,
-        "session_id": session_id
-    })
+    return templates.TemplateResponse(
+        request,
+        "chat_turn.html",
+        {"user_message": content, "turn_id": turn_id, "session_id": session_id},
+    )
+
 
 @app.get("/api/chat/stream")
-async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, session_id: str = "web:chat"):
+async def chat_stream(
+    request: Request, tars: TARS, content: str, turn_id: str, session_id: str = "web:chat"
+):
     """Enhanced SSE stream for TARS agent response with tool hints."""
+
     async def event_generator() -> AsyncGenerator[str, None]:
         import asyncio
+
         queue = asyncio.Queue()
         first = True
 
         async def on_stream(delta: str):
             import html
+
             nonlocal first
             safe_delta = html.escape(delta).replace("\n", "&#13;")
             data = safe_delta
@@ -211,6 +246,7 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
 
         async def on_progress(text: str, tool_hint: bool = False):
             import html
+
             # Send tool hints as OOB updates to a status area
             if tool_hint:
                 # Format: "web_search('...')" -> premium badge
@@ -231,12 +267,13 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
                     channel="web",
                     chat_id="user",
                     on_stream=on_stream,
-                    on_progress=on_progress
+                    on_progress=on_progress,
                 )
                 if outbound and first:
                     await on_stream(outbound.content or "")
             except Exception as e:
                 import traceback
+
                 traceback.print_exc()
                 await on_stream(f"\n\nError: {e}")
             finally:
@@ -262,9 +299,11 @@ async def chat_stream(request: Request, tars: TARS, content: str, turn_id: str, 
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "message": "TARS Core Integrated"}
+
 
 @app.get("/api/workspace", response_class=HTMLResponse)
 async def list_workspace(request: Request, tars: TARS, path: str = "."):
@@ -278,34 +317,44 @@ async def list_workspace(request: Request, tars: TARS, path: str = "."):
 
         items = []
         for p in target_path.iterdir():
-            if p.name.startswith('.'): continue # Hide hidden files
-            items.append({
-                "name": p.name,
-                "is_dir": p.is_dir(),
-                "size": f"{p.stat().st_size / 1024:.1f} KB" if p.is_file() else "-",
-                "path": str(p.relative_to(base_path))
-            })
+            if p.name.startswith("."):
+                continue  # Hide hidden files
+            items.append(
+                {
+                    "name": p.name,
+                    "is_dir": p.is_dir(),
+                    "size": f"{p.stat().st_size / 1024:.1f} KB" if p.is_file() else "-",
+                    "path": str(p.relative_to(base_path)),
+                }
+            )
 
         # Sort: directories first, then files
         items.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
 
-        return templates.TemplateResponse(request, "components/file_explorer.html", {
-            "items": items,
-            "current_path": path,
-            "parent_path": str(Path(path).parent) if path != "." else None
-        })
+        return templates.TemplateResponse(
+            request,
+            "components/file_explorer.html",
+            {
+                "items": items,
+                "current_path": path,
+                "parent_path": str(Path(path).parent) if path != "." else None,
+            },
+        )
     except Exception as e:
         return HTMLResponse(f"<div class='text-red-500'>Error: {str(e)}</div>")
+
 
 @app.get("/api/config", response_class=HTMLResponse)
 async def get_config_ui(request: Request, tars: TARS):
     """Render the configuration/settings dashboard."""
     # Convert to dict for easier iteration in template
     config_dict = tars.config.model_dump(by_alias=True)
-    return templates.TemplateResponse(request, "components/settings.html", {
-        "config": config_dict,
-        "workspace": str(tars.workspace)
-    })
+    return templates.TemplateResponse(
+        request,
+        "components/settings.html",
+        {"config": config_dict, "workspace": str(tars.workspace)},
+    )
+
 
 @app.get("/api/tasks/today", response_class=HTMLResponse)
 async def get_tasks_ui(request: Request, tars: TARS):
@@ -318,13 +367,16 @@ async def get_tasks_ui(request: Request, tars: TARS):
             try:
                 with open(p, "r") as f:
                     data = json.load(f)
-                    tasks.append({"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))})
-            except: continue
+                    tasks.append(
+                        {"date": p.stem.replace("daily_", ""), "count": len(data.get("tasks", []))}
+                    )
+            except:
+                continue
 
-    return templates.TemplateResponse(request, "components/tasks.html", {
-        "tasks": tasks,
-        "tasks_path": str(tasks_dir)
-    })
+    return templates.TemplateResponse(
+        request, "components/tasks.html", {"tasks": tasks, "tasks_path": str(tasks_dir)}
+    )
+
 
 @app.get("/api/channels", response_class=HTMLResponse)
 async def get_channels_ui(request: Request, tars: TARS):
@@ -346,21 +398,12 @@ async def get_channels_ui(request: Request, tars: TARS):
                 raw_id = cfg.get("appId") or cfg.get("botToken") or cfg.get("token") or "configured"
                 masked_id = str(raw_id)[:10] + "..."
 
-                channels.append({
-                    "name": name,
-                    "enabled": True,
-                    "id": masked_id
-                })
+                channels.append({"name": name, "enabled": True, "id": masked_id})
             else:
-                channels.append({
-                    "name": name,
-                    "enabled": False,
-                    "id": "N/A"
-                })
+                channels.append({"name": name, "enabled": False, "id": "N/A"})
 
-    return templates.TemplateResponse(request, "components/channels.html", {
-        "channels": channels
-    })
+    return templates.TemplateResponse(request, "components/channels.html", {"channels": channels})
+
 
 @app.post("/api/channels/toggle")
 async def toggle_channel(tars: TARS, name: str = Form(...)):
@@ -372,18 +415,28 @@ async def toggle_channel(tars: TARS, name: str = Form(...)):
         if name in channels:
             channels[name]["enabled"] = not channels[name].get("enabled", False)
         else:
-            return JSONResponse({"status": "error", "message": f"Channel {name} not found"}, status_code=404)
+            return JSONResponse(
+                {"status": "error", "message": f"Channel {name} not found"}, status_code=404
+            )
 
         # Save updated config
         from TARS.config.loader import save_config
         from TARS.config.schema import Config
+
         new_config = Config.model_validate(config_dict)
         save_config(new_config)
 
         tars.refresh_config()
-        return JSONResponse({"status": "success", "message": f"Channel {name} toggled", "enabled": channels[name]["enabled"]})
+        return JSONResponse(
+            {
+                "status": "success",
+                "message": f"Channel {name} toggled",
+                "enabled": channels[name]["enabled"],
+            }
+        )
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
 
 @app.post("/api/workspace/move")
 async def move_workspace_item(tars: TARS, src: str = Form(...), dst: str = Form(...)):
@@ -393,22 +446,29 @@ async def move_workspace_item(tars: TARS, src: str = Form(...), dst: str = Form(
         src_path = (base / src).resolve()
         dst_path = (base / dst).resolve()
 
-        if not src_path.resolve().is_relative_to(base.resolve()) or \
-           not dst_path.resolve().is_relative_to(base.resolve()):
+        if not src_path.resolve().is_relative_to(
+            base.resolve()
+        ) or not dst_path.resolve().is_relative_to(base.resolve()):
             return JSONResponse({"status": "error", "message": "Access Denied"}, status_code=403)
 
         if dst_path.exists() and dst_path.is_dir():
             dst_path = (dst_path / src_path.name).resolve()
             if not dst_path.resolve().is_relative_to(base.resolve()):
-                return JSONResponse({"status": "error", "message": "Access Denied: Invalid destination"}, status_code=403)
+                return JSONResponse(
+                    {"status": "error", "message": "Access Denied: Invalid destination"},
+                    status_code=403,
+                )
 
         shutil.move(str(src_path), str(dst_path))
         return JSONResponse({"status": "success", "message": f"Moved {src_path.name} to {dst}"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
+
 @app.post("/api/workspace/upload")
-async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[UploadFile] = File(...)):
+async def upload_workspace_file(
+    tars: TARS, path: str = Form("."), files: List[UploadFile] = File(...)
+):
     """Upload files to a specific path in the workspace."""
     try:
         base = tars.workspace
@@ -420,7 +480,10 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
             # Prevent path traversal in filename
             file_path = (target_dir / file.filename).resolve()
             if not file_path.resolve().is_relative_to(base.resolve()):
-                return JSONResponse({"status": "error", "message": "Access Denied: Invalid filename"}, status_code=403)
+                return JSONResponse(
+                    {"status": "error", "message": "Access Denied: Invalid filename"},
+                    status_code=403,
+                )
 
             with open(file_path, "wb") as f:
                 shutil.copyfileobj(file.file, f)
@@ -429,18 +492,23 @@ async def upload_workspace_file(tars: TARS, path: str = Form("."), files: List[U
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
+
 @app.post("/api/tasks")
 async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] = Form(None)):
     """Manually create a task."""
     try:
         from datetime import datetime
+
         target_date = date or datetime.now().strftime("%Y-%m-%d")
         tasks_dir = tars.workspace / "tasks"
         tasks_dir.mkdir(exist_ok=True)
 
         file_path = (tasks_dir / f"daily_{target_date}.json").resolve()
         if not file_path.is_relative_to(tasks_dir.resolve()):
-            return JSONResponse({"status": "error", "message": "Access Denied: Invalid date parameter"}, status_code=403)
+            return JSONResponse(
+                {"status": "error", "message": "Access Denied: Invalid date parameter"},
+                status_code=403,
+            )
 
         tasks_data = {"tasks": [], "date": target_date}
 
@@ -448,12 +516,14 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
             with open(file_path, "r") as f:
                 tasks_data = json.load(f)
 
-        tasks_data["tasks"].append({
-            "id": uuid.uuid4().hex[:8],
-            "content": content,
-            "status": "pending",
-            "created_at": datetime.now().isoformat()
-        })
+        tasks_data["tasks"].append(
+            {
+                "id": uuid.uuid4().hex[:8],
+                "content": content,
+                "status": "pending",
+                "created_at": datetime.now().isoformat(),
+            }
+        )
 
         with open(file_path, "w") as f:
             json.dump(tasks_data, f, indent=2)
@@ -462,15 +532,17 @@ async def create_task(tars: TARS, content: str = Form(...), date: Optional[str] 
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
+
 @app.post("/api/config")
 async def update_config(tars: TARS, config_json: str = Form(...)):
     """Save global configuration changes."""
     try:
         new_config = json.loads(config_json)
-        tars.workspace / "tars_config.json" # Need to find the actual path
+        tars.workspace / "tars_config.json"  # Need to find the actual path
         # In TARS, config is usually in workspace or ~/.tars/config.json
         # The TARSState._load_runtime_config uses the paths.
         from TARS.config.paths import get_config_path
+
         path = get_config_path()
 
         with open(path, "w") as f:
@@ -481,6 +553,9 @@ async def update_config(tars: TARS, config_json: str = Form(...)):
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
+
 @app.post("/api/voice")
 async def voice_stub():
-    return HTMLResponse("<div class='p-8 glass rounded-3xl text-center'><span class='text-tars-primary font-heading animate-pulse'>Voice Recognition Engine initializing...</span></div>")
+    return HTMLResponse(
+        "<div class='p-8 glass rounded-3xl text-center'><span class='text-tars-primary font-heading animate-pulse'>Voice Recognition Engine initializing...</span></div>"
+    )

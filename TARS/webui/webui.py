@@ -11,6 +11,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+
 @app.command()
 def start(
     host: Annotated[str, typer.Option(help="Binding host")] = "0.0.0.0",
@@ -27,9 +28,11 @@ def start(
         log_level="info",
     )
 
+
 def main():
     """Script entry point."""
     app()
+
 
 if __name__ == "__main__":
     main()

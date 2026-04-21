@@ -54,29 +54,23 @@ class MessageTool(Tool):
         return {
             "type": "object",
             "properties": {
-                "content": {
-                    "type": "string",
-                    "description": "The message content to send"
-                },
+                "content": {"type": "string", "description": "The message content to send"},
                 "channel": {
                     "type": "string",
-                    "description": "Optional: target channel (telegram, discord, etc.)"
+                    "description": "Optional: target channel (telegram, discord, etc.)",
                 },
-                "chat_id": {
-                    "type": "string",
-                    "description": "Optional: target chat/user ID"
-                },
+                "chat_id": {"type": "string", "description": "Optional: target chat/user ID"},
                 "media": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional: list of file paths to attach (images, audio, documents)"
+                    "description": "Optional: list of file paths to attach (images, audio, documents)",
                 },
                 "reply_markup": {
                     "type": "object",
-                    "description": "Optional: Interactive elements like inline buttons (Telegram only). Format: {'inline_keyboard': [[{'text': 'Label', 'callback_data': 'data'}]]}"
-                }
+                    "description": "Optional: Interactive elements like inline buttons (Telegram only). Format: {'inline_keyboard': [[{'text': 'Label', 'callback_data': 'data'}]]}",
+                },
             },
-            "required": ["content"]
+            "required": ["content"],
         }
 
     async def execute(
@@ -87,7 +81,7 @@ class MessageTool(Tool):
         message_id: str | None = None,
         media: list[str] | None = None,
         reply_markup: dict[str, Any] | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> str:
         channel = channel or self._default_channel
         chat_id = chat_id or self._default_chat_id
@@ -119,4 +113,3 @@ class MessageTool(Tool):
             return f"Message sent to {channel}:{chat_id}{media_info}{markup_info}"
         except Exception as e:
             return f"Error sending message: {str(e)}"
-

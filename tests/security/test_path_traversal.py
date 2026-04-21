@@ -1,4 +1,3 @@
-
 import tempfile
 from pathlib import Path
 
@@ -25,6 +24,7 @@ def test_path_traversal_vulnerability():
         else:
             print("Vulnerability NOT confirmed!")
 
+
 def test_path_traversal_fix():
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir).resolve()
@@ -45,6 +45,7 @@ def test_path_traversal_fix():
             print("Fix confirmed!")
         else:
             print("Fix failed!")
+
 
 if __name__ == "__main__":
     test_path_traversal_vulnerability()

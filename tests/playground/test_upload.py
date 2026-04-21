@@ -3,9 +3,11 @@ from pathlib import Path
 target_dir = Path("./workspace")
 target_dir.mkdir(exist_ok=True)
 
+
 class MockFile:
     def __init__(self, filename):
         self.filename = filename
+
 
 f = MockFile("../../../etc/passwd")
 

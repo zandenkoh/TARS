@@ -75,6 +75,7 @@ def test_onboard_does_not_crash_with_legacy_memory_window(tmp_path, monkeypatch)
     from typer.testing import CliRunner
 
     from TARS.cli.commands import app
+
     runner = CliRunner()
     result = runner.invoke(app, ["onboard"], input="n\n")
 
@@ -122,6 +123,7 @@ def test_onboard_refresh_backfills_missing_channel_fields(tmp_path, monkeypatch)
     from typer.testing import CliRunner
 
     from TARS.cli.commands import app
+
     runner = CliRunner()
     result = runner.invoke(app, ["onboard"], input="n\n")
 

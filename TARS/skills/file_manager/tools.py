@@ -11,8 +11,12 @@ from TARS.bus.events import OutboundMessage
 class SendFileToUserTool(_FsTool):
     """Send a file directly to the user as an upload."""
 
-    def __init__(self, workspace=None, send_callback=None, allowed_dir=None, extra_allowed_dirs=None):
-        super().__init__(workspace=workspace, allowed_dir=allowed_dir, extra_allowed_dirs=extra_allowed_dirs)
+    def __init__(
+        self, workspace=None, send_callback=None, allowed_dir=None, extra_allowed_dirs=None
+    ):
+        super().__init__(
+            workspace=workspace, allowed_dir=allowed_dir, extra_allowed_dirs=extra_allowed_dirs
+        )
         self._send_callback = send_callback
         self._default_channel = ""
         self._default_chat_id = ""
@@ -43,14 +47,14 @@ class SendFileToUserTool(_FsTool):
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Path to the file to send (relative to workspace or absolute)"
+                    "description": "Path to the file to send (relative to workspace or absolute)",
                 },
                 "caption": {
                     "type": "string",
-                    "description": "Optional message to send along with the file"
-                }
+                    "description": "Optional message to send along with the file",
+                },
             },
-            "required": ["path"]
+            "required": ["path"],
         }
 
     async def execute(self, path: str, caption: str = "", **kwargs: Any) -> str:
@@ -70,13 +74,14 @@ class SendFileToUserTool(_FsTool):
                 chat_id=self._default_chat_id,
                 content=caption or f"Sent file: {fp.name}",
                 media=[str(fp)],
-                metadata={"message_id": self._default_message_id}
+                metadata={"message_id": self._default_message_id},
             )
 
             await self._send_callback(msg)
             return f"Successfully uploaded '{fp.name}' to the chat."
         except Exception as e:
             return f"Error sending file: {e}"
+
 
 class ListWorkspaceFilesTool(_FsTool):
     """List files in the workspace safely."""
@@ -97,14 +102,14 @@ class ListWorkspaceFilesTool(_FsTool):
                 "path": {
                     "type": "string",
                     "description": "Relative path within the workspace (default '.')",
-                    "default": "."
+                    "default": ".",
                 },
                 "recursive": {
                     "type": "boolean",
                     "description": "Whether to list subdirectories recursively",
-                    "default": False
-                }
-            }
+                    "default": False,
+                },
+            },
         }
 
     async def execute(self, path: str = ".", recursive: bool = False, **kwargs: Any) -> str:
@@ -147,6 +152,7 @@ class ListWorkspaceFilesTool(_FsTool):
         except Exception as e:
             return f"Error listing workspace files: {e}"
 
+
 class GetFileInfoTool(_FsTool):
     """Get detailed information about a file."""
 
@@ -165,10 +171,10 @@ class GetFileInfoTool(_FsTool):
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Path to the file (relative to workspace or absolute)"
+                    "description": "Path to the file (relative to workspace or absolute)",
                 }
             },
-            "required": ["path"]
+            "required": ["path"],
         }
 
     async def execute(self, path: str, **kwargs: Any) -> str:
@@ -191,11 +197,17 @@ class GetFileInfoTool(_FsTool):
             ]
 
             # Add a small preview for text files
-            if not is_dir and stat.st_size > 0 and (mime and (mime.startswith("text/") or mime == "application/json")):
+            if (
+                not is_dir
+                and stat.st_size > 0
+                and (mime and (mime.startswith("text/") or mime == "application/json"))
+            ):
                 try:
                     with open(fp, "r", encoding="utf-8") as f:
                         preview = f.read(500)
-                        info.append(f"\nPreview:\n---\n{preview}{'...' if stat.st_size > 500 else ''}\n---")
+                        info.append(
+                            f"\nPreview:\n---\n{preview}{'...' if stat.st_size > 500 else ''}\n---"
+                        )
                 except Exception:
                     pass
 
