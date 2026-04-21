@@ -211,7 +211,7 @@ class WebSearchTool(Tool):
         try:
             # Note: duckduckgo_search is synchronous and does its own requests
             # We run it in a thread to avoid blocking the loop
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
 
             ddgs = DDGS(timeout=10)
             raw = await asyncio.to_thread(ddgs.text, query, max_results=n)
