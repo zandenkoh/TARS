@@ -11,6 +11,7 @@ from typing import Any
 import tiktoken
 
 _TIKTOKEN_ENC = None
+_SPACE_RE = re.compile(r"\s+")
 
 
 def _get_tiktoken_encoding():
@@ -145,8 +146,10 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
         chunks.append(content[start:pos])
 
         start = pos
-        while start < total_len and content[start].isspace():
-            start += 1
+        # Bolt: Optimize space skipping using C-based regex engine instead of Python loop
+        match = _SPACE_RE.match(content, start)
+        if match:
+            start = match.end()
 
     return chunks
 

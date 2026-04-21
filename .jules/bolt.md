@@ -1,3 +1,7 @@
+## 2026-04-21 - Optimize character-by-character while loops
+**Learning:** In Python, replacing character-by-character `while` loops that scan strings (e.g., `while content[start].isspace(): start += 1`) with globally pre-compiled regular expressions using the `pos` parameter (e.g., `_SPACE_RE.match(content, start)`) significantly improves performance by shifting the iteration from bytecode to the highly-optimized C-based `re` engine.
+**Action:** Always favor C-based tools like `re` with position parameters over manual Python loops for character scanning in performance-critical hot paths.
+
 ## 2025-03-31 - Pre-compiling RegEx in Web Tools
 **Learning:** During extensive web scraping and formatting inside `TARS/agent/tools/web.py` (e.g. `_strip_tags`, `_normalize`, `_to_markdown`), the system heavily relies on `re.sub()`. For large strings or heavy tool usage, dynamically recompiling the same regex expressions continuously wastes CPU cycles and slows down operations. This is especially true for hot-path regex strings containing flags like `re.I`.
 **Action:** Always pre-compile regular expressions (`re.compile`) at the module level for repetitive text processing loops and scraping modules to reduce regex overhead and maintain speed.
