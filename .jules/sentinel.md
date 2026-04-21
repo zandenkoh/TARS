@@ -1,3 +1,8 @@
+## 2026-04-18 - SSRF Vulnerability in QQ Attachment Download
+**Vulnerability:** The QQ channel implementation in `TARS/channels/qq.py` fetched files from URLs using `aiohttp.get(..., allow_redirects=True)` without validating intermediate redirect targets against SSRF.
+**Learning:** When using `aiohttp.ClientSession` which lacks a request event hook equivalent to `httpx`, setting `allow_redirects=True` is unsafe because it blindly follows redirects, potentially reaching internal network services.
+**Prevention:** Always disable automatic redirects (`allow_redirects=False`) in `aiohttp.ClientSession` and manually handle 3xx responses. Resolve the `Location` header using `urllib.parse.urljoin`, validate the new URL using `validate_resolved_url`, and ensure intermediate responses are safely released.
+
 ## 2026-04-01 - SSRF Vulnerability in Discord Attachment Download
 **Vulnerability:** The Discord channel implementation in `TARS/channels/discord.py` downloaded file attachments from user messages without validating the URL against SSRF using `validate_url_target`.
 **Learning:** Even though Discord attachment URLs are generally from Discord's CDN, depending on how Discord Gateway provides it or if an attacker manipulates the payload, it could potentially inject a malicious URL, leading to SSRF.
