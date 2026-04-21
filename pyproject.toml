@@ -134,3 +134,6 @@ filterwarnings = [
     "ignore:websockets.InvalidStatusCode is deprecated:DeprecationWarning",
     "ignore:websockets.legacy is deprecated:DeprecationWarning",
 ]
+
+[tool.uv]
+required-environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]

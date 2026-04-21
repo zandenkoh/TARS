@@ -18,6 +18,7 @@
 📏 Real-time line count: run `bash scripts/core_agent_lines.sh` to verify anytime.
 
 ## 📢 News
+- **2026-04-18**: ⚡ Bolt: Replace O(N) lowercasing with pre-compiled regex for session search optimization.
 - **2026-04-16**: ⚡ Bolt optimized prompt token estimation fast path for significant performance gains.
 
 > [!IMPORTANT]
