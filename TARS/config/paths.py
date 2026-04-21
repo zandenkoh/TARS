@@ -42,7 +42,11 @@ def get_workspace_path(workspace: str | None = None) -> Path:
 
 def is_default_workspace(workspace: str | Path | None) -> bool:
     """Return whether a workspace resolves to TARS's default workspace path."""
-    current = Path(workspace).expanduser() if workspace is not None else Path.home() / ".TARS" / "workspace"
+    current = (
+        Path(workspace).expanduser()
+        if workspace is not None
+        else Path.home() / ".TARS" / "workspace"
+    )
     default = Path.home() / ".TARS" / "workspace"
     return current.resolve(strict=False) == default.resolve(strict=False)
 

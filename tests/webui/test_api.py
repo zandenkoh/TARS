@@ -1,4 +1,3 @@
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,18 +11,22 @@ class MockTARSState:
         self.workspace = tmp_path
         self.config = Config()
 
+
 @pytest.fixture
 def mock_tars(tmp_path):
     return MockTARSState(tmp_path)
+
 
 @pytest.fixture
 def client(mock_tars):
     # Override the dependency
     from TARS.webui.api import get_tars
+
     app.dependency_overrides[get_tars] = lambda: mock_tars
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
 
 def test_list_workspace_in_bounds(client, mock_tars):
     # Create a dummy file
@@ -32,67 +35,87 @@ def test_list_workspace_in_bounds(client, mock_tars):
     assert response.status_code == 200
     assert "test.txt" in response.text
 
+
 def test_list_workspace_out_of_bounds(client):
     response = client.get("/api/workspace?path=../etc/passwd")
     assert response.status_code == 200
     assert "Access Denied" in response.text
 
+
 def test_move_workspace_item_in_bounds(client, mock_tars):
     (mock_tars.workspace / "test.txt").write_text("hello")
-    response = client.post("/api/workspace/move", headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"}, data={"src": "test.txt", "dst": "test2.txt"})
+    response = client.post(
+        "/api/workspace/move",
+        headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
+        data={"src": "test.txt", "dst": "test2.txt"},
+    )
     assert response.status_code == 200
     assert response.json()["status"] == "success"
     assert not (mock_tars.workspace / "test.txt").exists()
     assert (mock_tars.workspace / "test2.txt").exists()
 
+
 def test_move_workspace_item_out_of_bounds_src(client, mock_tars):
-    response = client.post("/api/workspace/move", headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"}, data={"src": "../../../etc/passwd", "dst": "test.txt"})
+    response = client.post(
+        "/api/workspace/move",
+        headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
+        data={"src": "../../../etc/passwd", "dst": "test.txt"},
+    )
     assert response.status_code == 403
     assert response.json()["message"] == "Access Denied"
 
+
 def test_move_workspace_item_out_of_bounds_dst(client, mock_tars):
     (mock_tars.workspace / "test.txt").write_text("hello")
-    response = client.post("/api/workspace/move", headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"}, data={"src": "test.txt", "dst": "../../../etc/passwd"})
+    response = client.post(
+        "/api/workspace/move",
+        headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
+        data={"src": "test.txt", "dst": "../../../etc/passwd"},
+    )
     assert response.status_code == 403
     assert response.json()["message"] == "Access Denied"
+
 
 def test_upload_workspace_file_in_bounds(client, mock_tars):
     response = client.post(
         "/api/workspace/upload",
         headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
         data={"path": "."},
-        files={"files": ("test.txt", b"hello content")}
+        files={"files": ("test.txt", b"hello content")},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "success"
     assert (mock_tars.workspace / "test.txt").exists()
     assert (mock_tars.workspace / "test.txt").read_text() == "hello content"
 
+
 def test_upload_workspace_file_out_of_bounds_dir(client, mock_tars):
     response = client.post(
         "/api/workspace/upload",
         headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
         data={"path": "../../../etc"},
-        files={"files": ("test.txt", b"hello content")}
+        files={"files": ("test.txt", b"hello content")},
     )
     assert response.status_code == 403
     assert response.json()["message"] == "Access Denied"
+
 
 def test_upload_workspace_file_out_of_bounds_filename(client, mock_tars):
     response = client.post(
         "/api/workspace/upload",
         headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
         data={"path": "."},
-        files={"files": ("../../../etc/passwd", b"hello content")}
+        files={"files": ("../../../etc/passwd", b"hello content")},
     )
     assert response.status_code == 403
     assert "Access Denied: Invalid filename" in response.json()["message"]
+
 
 def test_create_task_in_bounds(client, mock_tars):
     response = client.post(
         "/api/tasks",
         headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
-        data={"content": "Learn HTMX", "date": "2023-10-25"}
+        data={"content": "Learn HTMX", "date": "2023-10-25"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "success"
@@ -100,11 +123,12 @@ def test_create_task_in_bounds(client, mock_tars):
     assert task_file.exists()
     assert "Learn HTMX" in task_file.read_text()
 
+
 def test_create_task_path_traversal(client, mock_tars):
     response = client.post(
         "/api/tasks",
         headers={"Origin": "http://localhost:18790", "Host": "localhost:18790"},
-        data={"content": "Hacked", "date": "../../../etc/passwd"}
+        data={"content": "Hacked", "date": "../../../etc/passwd"},
     )
     assert response.status_code == 403
     assert "Access Denied" in response.json()["message"]

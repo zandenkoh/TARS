@@ -20,6 +20,7 @@ from pathlib import Path
 MAX_SKILL_NAME_LENGTH = 64
 ALLOWED_RESOURCES = {"scripts", "references", "assets"}
 
+
 def get_skill_template(skill_name, skill_title):
     metadata = f"""---
 name: {skill_name}
@@ -111,6 +112,7 @@ Files not intended to be loaded into context, but rather used within the output 
 """
     return metadata + readme
 
+
 EXAMPLE_SCRIPT = '''#!/usr/bin/env python3
 """
 Example helper script for {skill_name}
@@ -198,6 +200,7 @@ Note: This is a text placeholder. Actual assets can be any file type.
 # Pre-compiled static regexes for normalization performance
 _NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
 _MULTI_HYPHEN_RE = re.compile(r"-{2,}")
+
 
 def normalize_skill_name(skill_name):
     """Normalize a skill name to lowercase hyphen-case."""

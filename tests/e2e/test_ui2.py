@@ -48,14 +48,14 @@ def run_cuj(page):
     page.screenshot(path="tests/e2e/screenshots/projects_modal.png")
     page.wait_for_timeout(1000)
 
+
 if __name__ == "__main__":
     os.makedirs("tests/e2e/screenshots", exist_ok=True)
     os.makedirs("tests/e2e/videos", exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
-            record_video_dir="tests/e2e/videos",
-            viewport={'width': 1280, 'height': 800}
+            record_video_dir="tests/e2e/videos", viewport={"width": 1280, "height": 800}
         )
         page = context.new_page()
         try:

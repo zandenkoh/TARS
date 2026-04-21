@@ -11,5 +11,6 @@ async def main():
     print(tool._guard_command("cd ../ && cat /etc/passwd", "/tmp/workspace"))
     print(tool._guard_command("cat foo..bar", "/tmp/workspace"))
 
+
 if __name__ == "__main__":
     asyncio.run(main())

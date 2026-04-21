@@ -39,7 +39,11 @@ class FailoverProvider(LLMProvider):
                 p.generation = value
 
     def _prune_messages(
-        self, messages: list[dict[str, Any]], context_limit: int, completion_limit: int, provider_name: str
+        self,
+        messages: list[dict[str, Any]],
+        context_limit: int,
+        completion_limit: int,
+        provider_name: str,
     ) -> list[dict[str, Any]]:
         """
         Keep system message and as much recent history as fits within context window minus buffer.
@@ -49,7 +53,7 @@ class FailoverProvider(LLMProvider):
         # Reserve buffer for competition tokens and safety headroom
         buffer = completion_limit + 1024
         if context_limit <= buffer:
-            return messages # Too small to prune effectively
+            return messages  # Too small to prune effectively
 
         system_msg = messages[0] if messages and messages[0].get("role") == "system" else None
         last_msg = messages[-1] if messages else None
@@ -66,7 +70,9 @@ class FailoverProvider(LLMProvider):
             # Last message + system is too big? Return them and hope for the best.
             logger.warning(
                 "System+User query exceeds {} budget ({} > {})",
-                provider_name, fixed_tokens, context_limit - buffer
+                provider_name,
+                fixed_tokens,
+                context_limit - buffer,
             )
             return [system_msg, last_msg] if system_msg else [last_msg]
 
@@ -92,7 +98,10 @@ class FailoverProvider(LLMProvider):
         if len(result) < len(messages):
             logger.info(
                 "Context pruned for {}: {} turns -> {} turns (budget {} prompt tokens reserved)",
-                provider_name, len(messages), len(result), budget
+                provider_name,
+                len(messages),
+                len(result),
+                budget,
             )
         return result
 
@@ -110,7 +119,7 @@ class FailoverProvider(LLMProvider):
         last_error = None
         primary_model = self.providers[0][1] if self.providers else None
         # If no model specified or it matches the primary, allow failover to others
-        is_primary_request = (model is None or model == primary_model)
+        is_primary_request = model is None or model == primary_model
 
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             # Use current provider's model for failover, otherwise stick to original
@@ -119,7 +128,9 @@ class FailoverProvider(LLMProvider):
             # Prune context for fallback providers if it exceeds their limit
             call_messages = messages
             if i > 0:
-                call_messages = self._prune_messages(messages, context_limit, max_tokens, provider.__class__.__name__)
+                call_messages = self._prune_messages(
+                    messages, context_limit, max_tokens, provider.__class__.__name__
+                )
 
             response = await provider.chat(
                 messages=call_messages,
@@ -132,10 +143,20 @@ class FailoverProvider(LLMProvider):
             )
             if response.finish_reason != "error":
                 if i > 0:
-                    logger.info("Failover successful: using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
+                    logger.info(
+                        "Failover successful: using provider {} ({}) with model {}",
+                        i,
+                        provider.__class__.__name__,
+                        target_model,
+                    )
                 return response
 
-            logger.warning("Provider {} ({}) failed: {}. Trying next...", i, provider.__class__.__name__, response.content)
+            logger.warning(
+                "Provider {} ({}) failed: {}. Trying next...",
+                i,
+                provider.__class__.__name__,
+                response.content,
+            )
             last_error = response
 
             # Non-primary requests should not failover to a different provider
@@ -158,14 +179,16 @@ class FailoverProvider(LLMProvider):
         """Call chat_stream() on self.providers sequentially until one succeeds."""
         last_error = None
         primary_model = self.providers[0][1] if self.providers else None
-        is_primary_request = (model is None or model == primary_model)
+        is_primary_request = model is None or model == primary_model
 
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             target_model = default_model if is_primary_request else model
 
             call_messages = messages
             if i > 0:
-                call_messages = self._prune_messages(messages, context_limit, max_tokens, provider.__class__.__name__)
+                call_messages = self._prune_messages(
+                    messages, context_limit, max_tokens, provider.__class__.__name__
+                )
 
             response = await provider.chat_stream(
                 messages=call_messages,
@@ -179,10 +202,20 @@ class FailoverProvider(LLMProvider):
             )
             if response.finish_reason != "error":
                 if i > 0:
-                    logger.info("Failover successful (streaming): using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
+                    logger.info(
+                        "Failover successful (streaming): using provider {} ({}) with model {}",
+                        i,
+                        provider.__class__.__name__,
+                        target_model,
+                    )
                 return response
 
-            logger.warning("Provider {} ({}) failed in streaming: {}. Trying next...", i, provider.__class__.__name__, response.content)
+            logger.warning(
+                "Provider {} ({}) failed in streaming: {}. Trying next...",
+                i,
+                provider.__class__.__name__,
+                response.content,
+            )
             last_error = response
 
             if not is_primary_request:
@@ -197,7 +230,7 @@ class FailoverProvider(LLMProvider):
         completion_limit = kwargs.get("max_tokens", 4096)
         messages = kwargs.get("messages", [])
         primary_model = self.providers[0][1] if self.providers else None
-        is_primary_request = (requested_model is None or requested_model == primary_model)
+        is_primary_request = requested_model is None or requested_model == primary_model
 
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             target_model = default_model if is_primary_request else requested_model
@@ -206,15 +239,26 @@ class FailoverProvider(LLMProvider):
             call_kwargs = dict(kwargs)
             call_kwargs["model"] = target_model
             if i > 0:
-                call_kwargs["messages"] = self._prune_messages(messages, context_limit, completion_limit, provider.__class__.__name__)
+                call_kwargs["messages"] = self._prune_messages(
+                    messages, context_limit, completion_limit, provider.__class__.__name__
+                )
 
             response = await provider.chat_with_retry(**call_kwargs)
             if response.finish_reason != "error":
                 if i > 0:
-                    logger.info("Failover successful (retry): using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
+                    logger.info(
+                        "Failover successful (retry): using provider {} ({}) with model {}",
+                        i,
+                        provider.__class__.__name__,
+                        target_model,
+                    )
                 return response
 
-            logger.warning("Provider {} ({}) exhausting retries. Trying next provider...", i, provider.__class__.__name__)
+            logger.warning(
+                "Provider {} ({}) exhausting retries. Trying next provider...",
+                i,
+                provider.__class__.__name__,
+            )
             last_error = response
 
             if not is_primary_request:
@@ -229,7 +273,7 @@ class FailoverProvider(LLMProvider):
         completion_limit = kwargs.get("max_tokens", 4096)
         messages = kwargs.get("messages", [])
         primary_model = self.providers[0][1] if self.providers else None
-        is_primary_request = (requested_model is None or requested_model == primary_model)
+        is_primary_request = requested_model is None or requested_model == primary_model
 
         for i, (provider, default_model, context_limit) in enumerate(self.providers):
             target_model = default_model if is_primary_request else requested_model
@@ -237,15 +281,26 @@ class FailoverProvider(LLMProvider):
             call_kwargs = dict(kwargs)
             call_kwargs["model"] = target_model
             if i > 0:
-                call_kwargs["messages"] = self._prune_messages(messages, context_limit, completion_limit, provider.__class__.__name__)
+                call_kwargs["messages"] = self._prune_messages(
+                    messages, context_limit, completion_limit, provider.__class__.__name__
+                )
 
             response = await provider.chat_stream_with_retry(**call_kwargs)
             if response.finish_reason != "error":
                 if i > 0:
-                    logger.info("Failover successful (stream-retry): using provider {} ({}) with model {}", i, provider.__class__.__name__, target_model)
+                    logger.info(
+                        "Failover successful (stream-retry): using provider {} ({}) with model {}",
+                        i,
+                        provider.__class__.__name__,
+                        target_model,
+                    )
                 return response
 
-            logger.warning("Provider {} ({}) exhausting streaming retries. Trying next provider...", i, provider.__class__.__name__)
+            logger.warning(
+                "Provider {} ({}) exhausting streaming retries. Trying next provider...",
+                i,
+                provider.__class__.__name__,
+            )
             last_error = response
 
             if not is_primary_request:

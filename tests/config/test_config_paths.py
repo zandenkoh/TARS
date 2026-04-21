@@ -40,5 +40,6 @@ def test_is_default_workspace_distinguishes_default_and_custom_paths() -> None:
     assert is_default_workspace(Path.home() / ".TARS" / "workspace") is True
     assert is_default_workspace("~/custom-workspace") is False
 
+
 def test_legacy_sessions_dir_remains_global() -> None:
     assert get_legacy_sessions_dir() == Path.home() / ".TARS" / "sessions"

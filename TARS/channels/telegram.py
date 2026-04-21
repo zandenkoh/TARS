@@ -44,21 +44,24 @@ from TARS.skills.tasks.tasks_manager import TasksManager
 from TARS.utils.helpers import split_message
 
 TELEGRAM_MAX_MESSAGE_LEN = 4000  # Telegram message character limit
-TELEGRAM_REPLY_CONTEXT_MAX_LEN = TELEGRAM_MAX_MESSAGE_LEN  # Max length for reply context in user message
+TELEGRAM_REPLY_CONTEXT_MAX_LEN = (
+    TELEGRAM_MAX_MESSAGE_LEN  # Max length for reply context in user message
+)
 
 
 # ⚡ Bolt: Pre-compile regexes to avoid recompilation overhead
-_STRIP_MD_RE_BOLD = re.compile(r'\*\*(.+?)\*\*')
-_STRIP_MD_RE_UNDERLINE = re.compile(r'__(.+?)__')
-_STRIP_MD_RE_STRIKE = re.compile(r'~~(.+?)~~')
-_STRIP_MD_RE_CODE = re.compile(r'`([^`]+)`')
+_STRIP_MD_RE_BOLD = re.compile(r"\*\*(.+?)\*\*")
+_STRIP_MD_RE_UNDERLINE = re.compile(r"__(.+?)__")
+_STRIP_MD_RE_STRIKE = re.compile(r"~~(.+?)~~")
+_STRIP_MD_RE_CODE = re.compile(r"`([^`]+)`")
+
 
 def _strip_md(s: str) -> str:
     """Strip markdown inline formatting from text."""
-    s = _STRIP_MD_RE_BOLD.sub(r'\1', s)
-    s = _STRIP_MD_RE_UNDERLINE.sub(r'\1', s)
-    s = _STRIP_MD_RE_STRIKE.sub(r'\1', s)
-    s = _STRIP_MD_RE_CODE.sub(r'\1', s)
+    s = _STRIP_MD_RE_BOLD.sub(r"\1", s)
+    s = _STRIP_MD_RE_UNDERLINE.sub(r"\1", s)
+    s = _STRIP_MD_RE_STRIKE.sub(r"\1", s)
+    s = _STRIP_MD_RE_CODE.sub(r"\1", s)
     return s.strip()
 
 
@@ -66,46 +69,46 @@ def _render_table_box(table_lines: list[str]) -> str:
     """Convert markdown pipe-table to compact aligned text for <pre> display."""
 
     def dw(s: str) -> int:
-        return sum(2 if unicodedata.east_asian_width(c) in ('W', 'F') else 1 for c in s)
+        return sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1 for c in s)
 
     rows: list[list[str]] = []
     has_sep = False
     for line in table_lines:
-        cells = [_strip_md(c) for c in line.strip().strip('|').split('|')]
+        cells = [_strip_md(c) for c in line.strip().strip("|").split("|")]
         if all(_TG_MD_RE_TABLE_SEP.match(c) for c in cells if c):
             has_sep = True
             continue
         rows.append(cells)
     if not rows or not has_sep:
-        return '\n'.join(table_lines)
+        return "\n".join(table_lines)
 
     ncols = max(len(r) for r in rows)
     for r in rows:
-        r.extend([''] * (ncols - len(r)))
+        r.extend([""] * (ncols - len(r)))
     widths = [max(dw(r[c]) for r in rows) for c in range(ncols)]
 
     def dr(cells: list[str]) -> str:
-        return '  '.join(f'{c}{" " * (w - dw(c))}' for c, w in zip(cells, widths))
+        return "  ".join(f"{c}{' ' * (w - dw(c))}" for c, w in zip(cells, widths))
 
     out = [dr(rows[0])]
-    out.append('  '.join('─' * w for w in widths))
+    out.append("  ".join("─" * w for w in widths))
     for row in rows[1:]:
         out.append(dr(row))
-    return '\n'.join(out)
+    return "\n".join(out)
 
 
-_TG_MD_RE_CODE_BLOCK = re.compile(r'```[\w]*\n?([\s\S]*?)```')
-_TG_MD_RE_INLINE_CODE = re.compile(r'`([^`]+)`')
-_TG_MD_RE_HEADERS = re.compile(r'^#{1,6}\s+(.+)$', re.MULTILINE)
-_TG_MD_RE_BLOCKQUOTES = re.compile(r'^>\s*(.*)$', re.MULTILINE)
-_TG_MD_RE_LINKS = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
-_TG_MD_RE_BOLD1 = re.compile(r'\*\*(.+?)\*\*')
-_TG_MD_RE_BOLD2 = re.compile(r'__(.+?)__')
-_TG_MD_RE_ITALIC = re.compile(r'(?<![a-zA-Z0-9])_([^_]+)_(?![a-zA-Z0-9])')
-_TG_MD_RE_STRIKE = re.compile(r'~~(.+?)~~')
-_TG_MD_RE_BULLETS = re.compile(r'^[-*]\s+', re.MULTILINE)
-_TG_MD_RE_TABLE_ROW = re.compile(r'^\s*\|.+\|')
-_TG_MD_RE_TABLE_SEP = re.compile(r'^:?-+:?$')
+_TG_MD_RE_CODE_BLOCK = re.compile(r"```[\w]*\n?([\s\S]*?)```")
+_TG_MD_RE_INLINE_CODE = re.compile(r"`([^`]+)`")
+_TG_MD_RE_HEADERS = re.compile(r"^#{1,6}\s+(.+)$", re.MULTILINE)
+_TG_MD_RE_BLOCKQUOTES = re.compile(r"^>\s*(.*)$", re.MULTILINE)
+_TG_MD_RE_LINKS = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_TG_MD_RE_BOLD1 = re.compile(r"\*\*(.+?)\*\*")
+_TG_MD_RE_BOLD2 = re.compile(r"__(.+?)__")
+_TG_MD_RE_ITALIC = re.compile(r"(?<![a-zA-Z0-9])_([^_]+)_(?![a-zA-Z0-9])")
+_TG_MD_RE_STRIKE = re.compile(r"~~(.+?)~~")
+_TG_MD_RE_BULLETS = re.compile(r"^[-*]\s+", re.MULTILINE)
+_TG_MD_RE_TABLE_ROW = re.compile(r"^\s*\|.+\|")
+_TG_MD_RE_TABLE_SEP = re.compile(r"^:?-+:?$")
 
 
 # ⚡ Bolt: Use pre-compiled regex constants to avoid recompilation overhead in parsing
@@ -118,6 +121,7 @@ def _markdown_to_telegram_html(text: str) -> str:
 
     # 1. Extract and protect code blocks (preserve content from other processing)
     code_blocks: list[str] = []
+
     def save_code_block(m: re.Match) -> str:
         code_blocks.append(m.group(1))
         return f"\x00CB{len(code_blocks) - 1}\x00"
@@ -125,7 +129,7 @@ def _markdown_to_telegram_html(text: str) -> str:
     text = _TG_MD_RE_CODE_BLOCK.sub(save_code_block, text)
 
     # 1.5. Convert markdown tables to box-drawing (reuse code_block placeholders)
-    lines = text.split('\n')
+    lines = text.split("\n")
     rebuilt: list[str] = []
     li = 0
     while li < len(lines):
@@ -135,7 +139,7 @@ def _markdown_to_telegram_html(text: str) -> str:
                 tbl.append(lines[li])
                 li += 1
             box = _render_table_box(tbl)
-            if box != '\n'.join(tbl):
+            if box != "\n".join(tbl):
                 code_blocks.append(box)
                 rebuilt.append(f"\x00CB{len(code_blocks) - 1}\x00")
             else:
@@ -143,10 +147,11 @@ def _markdown_to_telegram_html(text: str) -> str:
         else:
             rebuilt.append(lines[li])
             li += 1
-    text = '\n'.join(rebuilt)
+    text = "\n".join(rebuilt)
 
     # 2. Extract and protect inline code
     inline_codes: list[str] = []
+
     def save_inline_code(m: re.Match) -> str:
         inline_codes.append(m.group(1))
         return f"\x00IC{len(inline_codes) - 1}\x00"
@@ -154,10 +159,10 @@ def _markdown_to_telegram_html(text: str) -> str:
     text = _TG_MD_RE_INLINE_CODE.sub(save_inline_code, text)
 
     # 3. Headers # Title -> just the title text
-    text = _TG_MD_RE_HEADERS.sub(r'\1', text)
+    text = _TG_MD_RE_HEADERS.sub(r"\1", text)
 
     # 4. Blockquotes > text -> just the text (before HTML escaping)
-    text = _TG_MD_RE_BLOCKQUOTES.sub(r'\1', text)
+    text = _TG_MD_RE_BLOCKQUOTES.sub(r"\1", text)
 
     # 5. Escape HTML special characters
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -166,17 +171,17 @@ def _markdown_to_telegram_html(text: str) -> str:
     text = _TG_MD_RE_LINKS.sub(r'<a href="\2">\1</a>', text)
 
     # 7. Bold **text** or __text__
-    text = _TG_MD_RE_BOLD1.sub(r'<b>\1</b>', text)
-    text = _TG_MD_RE_BOLD2.sub(r'<b>\1</b>', text)
+    text = _TG_MD_RE_BOLD1.sub(r"<b>\1</b>", text)
+    text = _TG_MD_RE_BOLD2.sub(r"<b>\1</b>", text)
 
     # 8. Italic _text_ (avoid matching inside words like some_var_name)
-    text = _TG_MD_RE_ITALIC.sub(r'<i>\1</i>', text)
+    text = _TG_MD_RE_ITALIC.sub(r"<i>\1</i>", text)
 
     # 9. Strikethrough ~~text~~
-    text = _TG_MD_RE_STRIKE.sub(r'<s>\1</s>', text)
+    text = _TG_MD_RE_STRIKE.sub(r"<s>\1</s>", text)
 
     # 10. Bullet lists - item -> • item
-    text = _TG_MD_RE_BULLETS.sub('• ', text)
+    text = _TG_MD_RE_BULLETS.sub("• ", text)
 
     # 11. Restore inline code with HTML tags
     for i, code in enumerate(inline_codes):
@@ -200,6 +205,7 @@ _SEND_RETRY_BASE_DELAY = 0.5  # seconds, doubled each retry
 @dataclass
 class _StreamBuf:
     """Per-chat streaming accumulator for progressive message editing."""
+
     text: str = ""
     message_id: int | None = None
     last_edit: float = 0.0
@@ -352,9 +358,15 @@ class TelegramChannel(BaseChannel):
         # Add message handler for text, photos, voice, documents
         self._app.add_handler(
             MessageHandler(
-                (filters.TEXT | filters.PHOTO | filters.VOICE | filters.AUDIO | filters.Document.ALL)
+                (
+                    filters.TEXT
+                    | filters.PHOTO
+                    | filters.VOICE
+                    | filters.AUDIO
+                    | filters.Document.ALL
+                )
                 & ~filters.COMMAND,
-                self._on_message
+                self._on_message,
             )
         )
 
@@ -379,7 +391,7 @@ class TelegramChannel(BaseChannel):
         # Start polling (this runs until stopped)
         await self._app.updater.start_polling(
             allowed_updates=["message"],
-            drop_pending_updates=True  # Ignore old messages on startup
+            drop_pending_updates=True,  # Ignore old messages on startup
         )
 
         # Keep running until stopped
@@ -487,12 +499,11 @@ class TelegramChannel(BaseChannel):
         if self.config.reply_to_message:
             if reply_to_message_id:
                 reply_params = ReplyParameters(
-                    message_id=reply_to_message_id,
-                    allow_sending_without_reply=True
+                    message_id=reply_to_message_id, allow_sending_without_reply=True
                 )
 
         # Send media files
-        for media_path in (msg.media or []):
+        for media_path in msg.media or []:
             try:
                 media_type = self._get_media_type(media_path)
                 sender = {
@@ -500,7 +511,13 @@ class TelegramChannel(BaseChannel):
                     "voice": self._app.bot.send_voice,
                     "audio": self._app.bot.send_audio,
                 }.get(media_type, self._app.bot.send_document)
-                param = "photo" if media_type == "photo" else media_type if media_type in ("voice", "audio") else "document"
+                param = (
+                    "photo"
+                    if media_type == "photo"
+                    else media_type
+                    if media_type in ("voice", "audio")
+                    else "document"
+                )
 
                 # Telegram Bot API accepts HTTP(S) URLs directly for media params.
                 if self._is_remote_media_url(media_path):
@@ -555,10 +572,22 @@ class TelegramChannel(BaseChannel):
                             # Ensure text and callback_data are present
                             btn_text = btn.get("text", str(btn.get("callback_data", "")))
                             btn_data = btn.get("callback_data", btn_text)
-                            kb_row.append(InlineKeyboardButton(text=btn_text, callback_data=btn_data, **{k: v for k, v in btn.items() if k not in ("text", "callback_data")}))
+                            kb_row.append(
+                                InlineKeyboardButton(
+                                    text=btn_text,
+                                    callback_data=btn_data,
+                                    **{
+                                        k: v
+                                        for k, v in btn.items()
+                                        if k not in ("text", "callback_data")
+                                    },
+                                )
+                            )
                         else:
                             # Simple label string, use it as callback data too
-                            kb_row.append(InlineKeyboardButton(text=str(btn), callback_data=str(btn)))
+                            kb_row.append(
+                                InlineKeyboardButton(text=str(btn), callback_data=str(btn))
+                            )
                     if kb_row:
                         kb.append(kb_row)
                 reply_markup = InlineKeyboardMarkup(kb) if kb else None
@@ -568,10 +597,11 @@ class TelegramChannel(BaseChannel):
 
         if msg.content and msg.content != "[empty message]":
             for chunk in split_message(msg.content, TELEGRAM_MAX_MESSAGE_LEN):
-                await self._send_text(chat_id, chunk, reply_params, thread_kwargs, reply_markup=reply_markup)
+                await self._send_text(
+                    chat_id, chunk, reply_params, thread_kwargs, reply_markup=reply_markup
+                )
             # --- Auto-TTS voice message generation ---
             await self._send_tts(chat_id, msg.content, reply_params, thread_kwargs)
-
 
     async def _call_with_retry(self, fn, *args, **kwargs):
         """Call an async Telegram API function with retry on pool/network timeout."""
@@ -584,7 +614,9 @@ class TelegramChannel(BaseChannel):
                 delay = _SEND_RETRY_BASE_DELAY * (2 ** (attempt - 1))
                 logger.warning(
                     "Telegram timeout (attempt {}/{}), retrying in {:.1f}s",
-                    attempt, _SEND_MAX_RETRIES, delay,
+                    attempt,
+                    _SEND_MAX_RETRIES,
+                    delay,
                 )
                 await asyncio.sleep(delay)
 
@@ -601,7 +633,9 @@ class TelegramChannel(BaseChannel):
             html = _markdown_to_telegram_html(text)
             await self._call_with_retry(
                 self._app.bot.send_message,
-                chat_id=chat_id, text=html, parse_mode="HTML",
+                chat_id=chat_id,
+                text=html,
+                parse_mode="HTML",
                 reply_parameters=reply_params,
                 reply_markup=reply_markup,
                 **(thread_kwargs or {}),
@@ -620,7 +654,9 @@ class TelegramChannel(BaseChannel):
             except Exception as e2:
                 logger.error("Error sending Telegram message: {}", e2)
 
-    async def _send_tts(self, chat_id: int, text: str, reply_params=None, thread_kwargs=None) -> None:
+    async def _send_tts(
+        self, chat_id: int, text: str, reply_params=None, thread_kwargs=None
+    ) -> None:
         """Helper to generate and send TTS voice for completed text."""
         if not self.config.tts:
             return
@@ -634,7 +670,9 @@ class TelegramChannel(BaseChannel):
 
             import edge_tts
 
-            logger.info(f"Starting TTS generation using edge-tts (voice: {self.config.tts_voice})...")
+            logger.info(
+                f"Starting TTS generation using edge-tts (voice: {self.config.tts_voice})..."
+            )
             clean_text = _strip_md(text)
             if not clean_text:
                 return
@@ -662,7 +700,9 @@ class TelegramChannel(BaseChannel):
         except Exception as e:
             logger.error(f"Failed to generate or send local TTS: {e}")
 
-    async def _send_gemini_tts(self, chat_id: int, text: str, reply_params=None, thread_kwargs=None) -> None:
+    async def _send_gemini_tts(
+        self, chat_id: int, text: str, reply_params=None, thread_kwargs=None
+    ) -> None:
         """Use Gemini 2.0 Flash (Native Audio) to generate speech for a text string."""
         try:
             import base64
@@ -686,7 +726,7 @@ class TelegramChannel(BaseChannel):
 
             if not api_key:
                 logger.warning("No Gemini API key found for Native TTS, falling back to local")
-                self.config.tts_engine = "local" # Temporary fallback
+                self.config.tts_engine = "local"  # Temporary fallback
                 return await self._send_tts(chat_id, text, reply_params, thread_kwargs)
 
             # Use Gemini 2.0 Flash for audio generation
@@ -694,12 +734,14 @@ class TelegramChannel(BaseChannel):
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
 
             payload = {
-                "contents": [{
-                    "parts": [{"text": f"Output ONLY the audio content for this text: {clean_text}"}]
-                }],
-                "generationConfig": {
-                    "responseModalities": ["AUDIO"]
-                }
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": f"Output ONLY the audio content for this text: {clean_text}"}
+                        ]
+                    }
+                ],
+                "generationConfig": {"responseModalities": ["AUDIO"]},
             }
 
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -742,7 +784,9 @@ class TelegramChannel(BaseChannel):
         except Exception as e:
             logger.error(f"Failed to generate or send Gemini Native TTS: {e}")
 
-    async def send_delta(self, chat_id: str, delta: str, metadata: dict[str, Any] | None = None) -> None:
+    async def send_delta(
+        self, chat_id: str, delta: str, metadata: dict[str, Any] | None = None
+    ) -> None:
         """Progressive message editing: send on first delta, edit on subsequent ones."""
         if not self._app:
             return
@@ -758,15 +802,18 @@ class TelegramChannel(BaseChannel):
                 html = _markdown_to_telegram_html(buf.text)
                 await self._call_with_retry(
                     self._app.bot.edit_message_text,
-                    chat_id=int_chat_id, message_id=buf.message_id,
-                    text=html, parse_mode="HTML",
+                    chat_id=int_chat_id,
+                    message_id=buf.message_id,
+                    text=html,
+                    parse_mode="HTML",
                 )
             except Exception as e:
                 logger.debug("Final stream edit failed (HTML), trying plain: {}", e)
                 try:
                     await self._call_with_retry(
                         self._app.bot.edit_message_text,
-                        chat_id=int_chat_id, message_id=buf.message_id,
+                        chat_id=int_chat_id,
+                        message_id=buf.message_id,
                         text=buf.text,
                     )
                 except Exception:
@@ -789,7 +836,8 @@ class TelegramChannel(BaseChannel):
             try:
                 sent = await self._call_with_retry(
                     self._app.bot.send_message,
-                    chat_id=int_chat_id, text=buf.text,
+                    chat_id=int_chat_id,
+                    text=buf.text,
                 )
                 buf.message_id = sent.message_id
                 buf.last_edit = now
@@ -799,7 +847,8 @@ class TelegramChannel(BaseChannel):
             try:
                 await self._call_with_retry(
                     self._app.bot.edit_message_text,
-                    chat_id=int_chat_id, message_id=buf.message_id,
+                    chat_id=int_chat_id,
+                    message_id=buf.message_id,
                     text=buf.text,
                 )
                 buf.last_edit = now
@@ -923,7 +972,7 @@ class TelegramChannel(BaseChannel):
                 upload_dir = get_media_dir(channel=self) / datetime.now().strftime("%Y-%m-%d")
             except (AttributeError, TypeError):
                 # Fallback for tests or when bus.config is not available
-                if hasattr(self.bus, 'config') and hasattr(self.bus.config, 'workspace_path'):
+                if hasattr(self.bus, "config") and hasattr(self.bus.config, "workspace_path"):
                     workspace = Path(self.bus.config.workspace_path)
                     upload_dir = workspace / "uploads" / datetime.now().strftime("%Y-%m-%d")
                 else:
@@ -952,13 +1001,17 @@ class TelegramChannel(BaseChannel):
                 "media_type": media_type,
             }
             meta_path = file_path.with_suffix(file_path.suffix + ".json")
-            meta_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+            meta_path.write_text(
+                json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
 
             if media_type in ("voice", "audio"):
                 transcription = await self.transcribe_audio(file_path)
                 if transcription:
                     logger.info("Transcribed {}: {}...", media_type, transcription[:50])
-                    return [path_str], [f"[file_uploaded: {path_str}]\n[transcription: {transcription}]"]
+                    return [path_str], [
+                        f"[file_uploaded: {path_str}]\n[transcription: {transcription}]"
+                    ]
 
             return [path_str], [f"[file_uploaded: {path_str}]"]
         except Exception as e:
@@ -1100,7 +1153,9 @@ class TelegramChannel(BaseChannel):
             if reply_media:
                 media_paths = reply_media + media_paths
                 logger.debug("Attached replied-to media: {}", reply_media[0])
-            tag = reply_ctx or (f"[Reply to: {reply_media_parts[0]}]" if reply_media_parts else None)
+            tag = reply_ctx or (
+                f"[Reply to: {reply_media_parts[0]}]" if reply_media_parts else None
+            )
             if tag:
                 content_parts.insert(0, tag)
         content = "\n".join(content_parts) if content_parts else "[empty message]"
@@ -1116,8 +1171,10 @@ class TelegramChannel(BaseChannel):
             key = f"{str_chat_id}:{media_group_id}"
             if key not in self._media_group_buffers:
                 self._media_group_buffers[key] = {
-                    "sender_id": sender_id, "chat_id": str_chat_id,
-                    "contents": [], "media": [],
+                    "sender_id": sender_id,
+                    "chat_id": str_chat_id,
+                    "contents": [],
+                    "media": [],
                     "metadata": metadata,
                     "session_key": session_key,
                 }
@@ -1153,8 +1210,10 @@ class TelegramChannel(BaseChannel):
                 return
             content = "\n".join(buf["contents"]) or "[empty message]"
             await self._handle_message(
-                sender_id=buf["sender_id"], chat_id=buf["chat_id"],
-                content=content, media=list(dict.fromkeys(buf["media"])),
+                sender_id=buf["sender_id"],
+                chat_id=buf["chat_id"],
+                content=content,
+                media=list(dict.fromkeys(buf["media"])),
                 metadata=buf["metadata"],
                 session_key=buf.get("session_key"),
             )
@@ -1258,7 +1317,9 @@ class TelegramChannel(BaseChannel):
 
                         try:
                             html = _markdown_to_telegram_html(text)
-                            await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
+                            await query.edit_message_text(
+                                text=html, parse_mode="HTML", reply_markup=markup
+                            )
                         except Exception:
                             await query.edit_message_text(text=text, reply_markup=markup)
 
@@ -1270,7 +1331,9 @@ class TelegramChannel(BaseChannel):
                     markup = manager.format_telegram_markup(tasks_data)
                     try:
                         html = _markdown_to_telegram_html(text)
-                        await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
+                        await query.edit_message_text(
+                            text=html, parse_mode="HTML", reply_markup=markup
+                        )
                     except Exception:
                         await query.edit_message_text(text=text, reply_markup=markup)
 
@@ -1292,7 +1355,9 @@ class TelegramChannel(BaseChannel):
                     markup = manager.format_telegram_markup(tasks_data)
                     try:
                         html = _markdown_to_telegram_html(text)
-                        await query.edit_message_text(text=html, parse_mode="HTML", reply_markup=markup)
+                        await query.edit_message_text(
+                            text=html, parse_mode="HTML", reply_markup=markup
+                        )
                     except Exception:
                         await query.edit_message_text(text=text, reply_markup=markup)
 
@@ -1313,7 +1378,13 @@ class TelegramChannel(BaseChannel):
                 date_str = datetime.now().strftime("%Y-%m-%d")
                 text = f"✅ Daily task generation time updated to *{new_time}*!\n\n_New schedule is active._"
 
-                keyboard = [[InlineKeyboardButton("🔙 Back to Tasks", callback_data=f"task:refresh:{date_str}")]]
+                keyboard = [
+                    [
+                        InlineKeyboardButton(
+                            "🔙 Back to Tasks", callback_data=f"task:refresh:{date_str}"
+                        )
+                    ]
+                ]
                 markup = InlineKeyboardMarkup(keyboard)
 
                 try:
@@ -1344,7 +1415,6 @@ class TelegramChannel(BaseChannel):
             session_key=self._derive_topic_session_key(query.message),
         )
 
-
     async def _update_task_time_setting(self, new_time: str) -> None:
         """Update the daily task time in config and the running cron service."""
         try:
@@ -1372,7 +1442,9 @@ class TelegramChannel(BaseChannel):
                         break
 
                 if modified:
-                    cron_jobs_path.write_text(json.dumps(jobs_data, indent=2, ensure_ascii=False), encoding="utf-8")
+                    cron_jobs_path.write_text(
+                        json.dumps(jobs_data, indent=2, ensure_ascii=False), encoding="utf-8"
+                    )
                     logger.info("Updated Daily Task Generation schedule to {} in jobs.json", expr)
         except Exception as e:
             logger.error("Failed to update daily task time setting: {}", e)

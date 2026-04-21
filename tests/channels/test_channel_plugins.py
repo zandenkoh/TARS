@@ -17,6 +17,7 @@ from TARS.config.schema import ChannelsConfig
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 class _FakePlugin(BaseChannel):
     name = "fakeplugin"
     display_name = "Fake Plugin"
@@ -41,6 +42,7 @@ class _FakePlugin(BaseChannel):
 
 class _FakeTelegram(BaseChannel):
     """Plugin that tries to shadow built-in telegram."""
+
     name = "telegram"
     display_name = "Fake Telegram"
 
@@ -64,10 +66,13 @@ def _make_entry_point(name: str, cls: type):
 # ChannelsConfig extra="allow"
 # ---------------------------------------------------------------------------
 
+
 def test_channels_config_accepts_unknown_keys():
-    cfg = ChannelsConfig.model_validate({
-        "myplugin": {"enabled": True, "token": "abc"},
-    })
+    cfg = ChannelsConfig.model_validate(
+        {
+            "myplugin": {"enabled": True, "token": "abc"},
+        }
+    )
     extra = cfg.model_extra
     assert extra is not None
     assert extra["myplugin"]["enabled"] is True
@@ -124,6 +129,7 @@ def test_discover_plugins_handles_load_error():
 # discover_all — merge & priority
 # ---------------------------------------------------------------------------
 
+
 def test_discover_all_includes_builtins():
     from TARS.channels.registry import discover_all, discover_channel_names
 
@@ -163,15 +169,18 @@ def test_discover_all_builtin_shadows_plugin():
 # Manager _init_channels with dict config (plugin scenario)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_manager_loads_plugin_from_dict_config():
     """ChannelManager should instantiate a plugin channel from a raw dict config."""
     from TARS.channels.manager import ChannelManager
 
     fake_config = SimpleNamespace(
-        channels=ChannelsConfig.model_validate({
-            "fakeplugin": {"enabled": True, "allowFrom": ["*"]},
-        }),
+        channels=ChannelsConfig.model_validate(
+            {
+                "fakeplugin": {"enabled": True, "allowFrom": ["*"]},
+            }
+        ),
         providers=SimpleNamespace(groq=SimpleNamespace(api_key="")),
     )
 
@@ -222,9 +231,11 @@ def test_channels_login_uses_discovered_plugin_class(monkeypatch):
 @pytest.mark.asyncio
 async def test_manager_skips_disabled_plugin():
     fake_config = SimpleNamespace(
-        channels=ChannelsConfig.model_validate({
-            "fakeplugin": {"enabled": False},
-        }),
+        channels=ChannelsConfig.model_validate(
+            {
+                "fakeplugin": {"enabled": False},
+            }
+        ),
         providers=SimpleNamespace(groq=SimpleNamespace(api_key="")),
     )
 
@@ -246,9 +257,11 @@ async def test_manager_skips_disabled_plugin():
 # Built-in channel default_config() and dict->Pydantic conversion
 # ---------------------------------------------------------------------------
 
+
 def test_builtin_channel_default_config():
     """Built-in channels expose default_config() returning a dict with 'enabled': False."""
     from TARS.channels.telegram import TelegramChannel
+
     cfg = TelegramChannel.default_config()
     assert isinstance(cfg, dict)
     assert cfg["enabled"] is False
@@ -258,6 +271,7 @@ def test_builtin_channel_default_config():
 def test_builtin_channel_init_from_dict():
     """Built-in channels accept a raw dict and convert to Pydantic internally."""
     from TARS.channels.telegram import TelegramChannel
+
     bus = MessageBus()
     ch = TelegramChannel({"enabled": False, "token": "test-tok", "allowFrom": ["*"]}, bus)
     assert ch.config.token == "test-tok"

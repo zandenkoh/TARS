@@ -13,6 +13,7 @@ class Base(BaseModel):
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
+
 class UserConfig(Base):
     """User profile configuration."""
 
@@ -73,7 +74,9 @@ class ProvidersConfig(Base):
     """Configuration for LLM providers."""
 
     custom: ProviderConfig = Field(default_factory=ProviderConfig)  # Any OpenAI-compatible endpoint
-    azure_openai: ProviderConfig = Field(default_factory=ProviderConfig)  # Azure OpenAI (model = deployment name)
+    azure_openai: ProviderConfig = Field(
+        default_factory=ProviderConfig
+    )  # Azure OpenAI (model = deployment name)
     anthropic: ProviderConfig = Field(default_factory=ProviderConfig)
     openai: ProviderConfig = Field(default_factory=ProviderConfig)
     openrouter: ProviderConfig = Field(default_factory=ProviderConfig)
@@ -91,11 +94,21 @@ class ProvidersConfig(Base):
     aihubmix: ProviderConfig = Field(default_factory=ProviderConfig)  # AiHubMix API gateway
     siliconflow: ProviderConfig = Field(default_factory=ProviderConfig)  # SiliconFlow (硅基流动)
     volcengine: ProviderConfig = Field(default_factory=ProviderConfig)  # VolcEngine (火山引擎)
-    volcengine_coding_plan: ProviderConfig = Field(default_factory=ProviderConfig)  # VolcEngine Coding Plan
-    byteplus: ProviderConfig = Field(default_factory=ProviderConfig)  # BytePlus (VolcEngine international)
-    byteplus_coding_plan: ProviderConfig = Field(default_factory=ProviderConfig)  # BytePlus Coding Plan
-    openai_codex: ProviderConfig = Field(default_factory=ProviderConfig, exclude=True)  # OpenAI Codex (OAuth)
-    github_copilot: ProviderConfig = Field(default_factory=ProviderConfig, exclude=True)  # Github Copilot (OAuth)
+    volcengine_coding_plan: ProviderConfig = Field(
+        default_factory=ProviderConfig
+    )  # VolcEngine Coding Plan
+    byteplus: ProviderConfig = Field(
+        default_factory=ProviderConfig
+    )  # BytePlus (VolcEngine international)
+    byteplus_coding_plan: ProviderConfig = Field(
+        default_factory=ProviderConfig
+    )  # BytePlus Coding Plan
+    openai_codex: ProviderConfig = Field(
+        default_factory=ProviderConfig, exclude=True
+    )  # OpenAI Codex (OAuth)
+    github_copilot: ProviderConfig = Field(
+        default_factory=ProviderConfig, exclude=True
+    )  # Github Copilot (OAuth)
 
 
 class HeartbeatConfig(Base):
@@ -139,6 +152,7 @@ class ExecToolConfig(Base):
     timeout: int = 60
     path_append: str = ""
 
+
 class MCPServerConfig(Base):
     """MCP server connection configuration (stdio or HTTP)."""
 
@@ -149,7 +163,10 @@ class MCPServerConfig(Base):
     url: str = ""  # HTTP/SSE: endpoint URL
     headers: dict[str, str] = Field(default_factory=dict)  # HTTP/SSE: custom headers
     tool_timeout: int = 30  # seconds before a tool call is cancelled
-    enabled_tools: list[str] = Field(default_factory=lambda: ["*"])  # Only register these tools; accepts raw MCP names or wrapped mcp_<server>_<tool> names; ["*"] = all tools; [] = no tools
+    enabled_tools: list[str] = Field(
+        default_factory=lambda: ["*"]
+    )  # Only register these tools; accepts raw MCP names or wrapped mcp_<server>_<tool> names; ["*"] = all tools; [] = no tools
+
 
 class ToolsConfig(Base):
     """Tools configuration."""
@@ -159,10 +176,12 @@ class ToolsConfig(Base):
     restrict_to_workspace: bool = False  # If true, restrict all tool access to workspace directory
     mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)
 
+
 class TasksConfig(Base):
     """Daily tasks configuration."""
 
     daily_time: str = "07:00"
+
 
 class SkillsConfig(Base):
     """Skills configuration."""
@@ -285,7 +304,7 @@ class Config(BaseSettings):
         """
         Get the prioritized list of providers. Each provider can now have multiple
         models and multiple API keys, generating a failover permutation.
-        
+
         Returns: list of (ProviderConfig, provider_name, model_name, context_window_tokens).
         """
         default_tokens = self.agents.defaults.context_window_tokens
@@ -314,7 +333,7 @@ class Config(BaseSettings):
                     if k and k not in keys:
                         keys.append(k)
             if not keys:
-                keys = [None] # At least one attempt if no key
+                keys = [None]  # At least one attempt if no key
 
             # Consolidate models: list([model]) + models
             models = []
@@ -333,7 +352,11 @@ class Config(BaseSettings):
             num_attempts = max(len(keys), len(models))
             for i in range(num_attempts):
                 api_key = keys[i] if i < len(keys) else (keys[-1] if keys else None)
-                model_name = models[i] if i < len(models) else (models[-1] if models else self.agents.defaults.model)
+                model_name = (
+                    models[i]
+                    if i < len(models)
+                    else (models[-1] if models else self.agents.defaults.model)
+                )
 
                 # Create a cloned config with specific key/model for instantiation
                 p_clone = p.model_copy()

@@ -23,15 +23,16 @@ def _make_loop():
     workspace = MagicMock()
     workspace.__truediv__ = MagicMock(return_value=MagicMock())
 
-    with patch("TARS.agent.loop.ContextBuilder"), \
-         patch("TARS.agent.loop.SessionManager"), \
-         patch("TARS.agent.loop.SubagentManager"):
+    with (
+        patch("TARS.agent.loop.ContextBuilder"),
+        patch("TARS.agent.loop.SessionManager"),
+        patch("TARS.agent.loop.SubagentManager"),
+    ):
         loop = AgentLoop(bus=bus, provider=provider, workspace=workspace)
     return loop, bus
 
 
 class TestRestartCommand:
-
     @pytest.mark.asyncio
     async def test_restart_sends_message_and_calls_execv(self):
         from TARS.command.builtin import cmd_restart
@@ -54,8 +55,10 @@ class TestRestartCommand:
         loop, bus = _make_loop()
         msg = InboundMessage(channel="telegram", sender_id="u1", chat_id="c1", content="/restart")
 
-        with patch.object(loop, "_dispatch", new_callable=AsyncMock) as mock_dispatch, \
-             patch("TARS.command.builtin.os.execv"):
+        with (
+            patch.object(loop, "_dispatch", new_callable=AsyncMock) as mock_dispatch,
+            patch("TARS.command.builtin.os.execv"),
+        ):
             await bus.publish_inbound(msg)
 
             loop._running = True
@@ -146,10 +149,12 @@ class TestRestartCommand:
     @pytest.mark.asyncio
     async def test_run_agent_loop_resets_usage_when_provider_omits_it(self):
         loop, _bus = _make_loop()
-        loop.provider.chat_with_retry = AsyncMock(side_effect=[
-            LLMResponse(content="first", usage={"prompt_tokens": 9, "completion_tokens": 4}),
-            LLMResponse(content="second", usage={}),
-        ])
+        loop.provider.chat_with_retry = AsyncMock(
+            side_effect=[
+                LLMResponse(content="first", usage={"prompt_tokens": 9, "completion_tokens": 4}),
+                LLMResponse(content="second", usage={}),
+            ]
+        )
 
         await loop._run_agent_loop([])
         assert loop._last_usage == {"prompt_tokens": 9, "completion_tokens": 4}

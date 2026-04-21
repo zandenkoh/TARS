@@ -26,7 +26,9 @@ class WhatsAppConfig(Base):
     bridge_url: str = "ws://localhost:3001"
     bridge_token: str = ""
     allow_from: list[str] = Field(default_factory=list)
-    group_policy: Literal["open", "mention"] = "open"  # "open" responds to all, "mention" only when @mentioned
+    group_policy: Literal["open", "mention"] = (
+        "open"  # "open" responds to all, "mention" only when @mentioned
+    )
 
 
 class WhatsAppChannel(BaseChannel):
@@ -75,9 +77,7 @@ class WhatsAppChannel(BaseChannel):
 
         logger.info("Starting WhatsApp bridge for QR login...")
         try:
-            subprocess.run(
-                [shutil.which("npm"), "start"], cwd=bridge_dir, check=True, env=env
-            )
+            subprocess.run([shutil.which("npm"), "start"], cwd=bridge_dir, check=True, env=env)
         except subprocess.CalledProcessError:
             return False
 
@@ -279,8 +279,7 @@ def _ensure_bridge_setup() -> Path:
 
     if not source:
         raise RuntimeError(
-            "WhatsApp bridge source not found. "
-            "Try reinstalling: pip install --force-reinstall TARS"
+            "WhatsApp bridge source not found. Try reinstalling: pip install --force-reinstall TARS"
         )
 
     logger.info("Setting up WhatsApp bridge...")

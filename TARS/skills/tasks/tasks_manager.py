@@ -12,6 +12,7 @@ from loguru import logger
 TASK_STATUS = Literal["pending", "done", "skipped"]
 DEFAULT_TASKS_DIR = "~/.TARS/workspace/tasks"
 
+
 class TasksManager:
     """Manages loading, saving, and updating daily task JSON files."""
 
@@ -91,7 +92,7 @@ class TasksManager:
             return "\n".join(lines)
 
         for i, t in enumerate(tasks, 1):
-            status_icon = "⏳" # pending
+            status_icon = "⏳"  # pending
             if t.get("status") == "done":
                 status_icon = "✅"
             elif t.get("status") == "skipped":
@@ -125,8 +126,10 @@ class TasksManager:
                     title = title[:17] + "..."
 
                 row = [
-                    InlineKeyboardButton(f"✅ Done: {title}", callback_data=f"task:done:{date_str}:{task_id}"),
-                    InlineKeyboardButton("⏭ Skip", callback_data=f"task:skip:{date_str}:{task_id}")
+                    InlineKeyboardButton(
+                        f"✅ Done: {title}", callback_data=f"task:done:{date_str}:{task_id}"
+                    ),
+                    InlineKeyboardButton("⏭ Skip", callback_data=f"task:skip:{date_str}:{task_id}"),
                 ]
                 keyboard.append(row)
 
@@ -135,7 +138,7 @@ class TasksManager:
             InlineKeyboardButton("➕ Add", callback_data=f"task:add:{date_str}"),
             InlineKeyboardButton("📅 Refresh", callback_data=f"task:refresh:{date_str}"),
             InlineKeyboardButton("📋 All", callback_data=f"task:view_all:{date_str}"),
-            InlineKeyboardButton("⚙️ Time", callback_data=f"task:time_menu:{date_str}")
+            InlineKeyboardButton("⚙️ Time", callback_data=f"task:time_menu:{date_str}"),
         ]
         keyboard.append(mgmt_row)
 
@@ -149,15 +152,25 @@ class TasksManager:
         keyboard = []
         for i in range(0, len(times), 2):
             row = []
-            row.append(InlineKeyboardButton(times[i], callback_data=f"task:set_time:{times[i].replace(':', '-')}"))
+            row.append(
+                InlineKeyboardButton(
+                    times[i], callback_data=f"task:set_time:{times[i].replace(':', '-')}"
+                )
+            )
             if i + 1 < len(times):
-                row.append(InlineKeyboardButton(times[i+1], callback_data=f"task:set_time:{times[i+1].replace(':', '-')}"))
+                row.append(
+                    InlineKeyboardButton(
+                        times[i + 1],
+                        callback_data=f"task:set_time:{times[i + 1].replace(':', '-')}",
+                    )
+                )
             keyboard.append(row)
 
         # Back button
         keyboard.append([InlineKeyboardButton("🔙 Back", callback_data=f"task:refresh:{date_str}")])
 
         return InlineKeyboardMarkup(keyboard)
+
 
 # Global singleton or instance if needed
 # For now, we'll instantiate it in the channel/skill as needed.
