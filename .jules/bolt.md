@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2026-04-21 - Regex Match Fast Path in split_message
+**Learning:** The previous implementation of `split_message` iterated character-by-character via a `while` loop combined with `.isspace()` to handle sequential whitespaces when defining chunks. Using Python loops to evaluate string content element-wise is significantly slower than relying on heavily-optimized C-based extensions like `re`.
+**Action:** Replace `while start < total_len and content[start].isspace(): start += 1` with a pre-compiled regular expression match `if match := _SPACE_RE.match(content, start): start = match.end()` to delegate iteration to the highly-optimized C runtime.
