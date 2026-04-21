@@ -80,10 +80,6 @@ async def test_duckduckgo_search(monkeypatch):
         def text(self, query, max_results=5):
             return [{"title": "DDG Result", "href": "https://ddg.example", "body": "From DuckDuckGo"}]
 
-    monkeypatch.setattr("TARS.agent.tools.web.DDGS", MockDDGS, raising=False)
-    import TARS.agent.tools.web as web_mod
-    monkeypatch.setattr(web_mod, "DDGS", MockDDGS, raising=False)
-
     monkeypatch.setattr("duckduckgo_search.DDGS", MockDDGS)
 
     tool = _tool(provider="duckduckgo")
