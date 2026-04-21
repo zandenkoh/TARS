@@ -84,7 +84,7 @@ async def test_duckduckgo_search(monkeypatch):
     import TARS.agent.tools.web as web_mod
     monkeypatch.setattr(web_mod, "DDGS", MockDDGS, raising=False)
 
-    monkeypatch.setattr("ddgs.DDGS", MockDDGS)
+    monkeypatch.setattr("duckduckgo_search.DDGS", MockDDGS)
 
     tool = _tool(provider="duckduckgo")
     result = await tool.execute(query="hello")
@@ -100,7 +100,7 @@ async def test_brave_fallback_to_duckduckgo_when_no_key(monkeypatch):
         def text(self, query, max_results=5):
             return [{"title": "Fallback", "href": "https://ddg.example", "body": "DuckDuckGo fallback"}]
 
-    monkeypatch.setattr("ddgs.DDGS", MockDDGS)
+    monkeypatch.setattr("duckduckgo_search.DDGS", MockDDGS)
     monkeypatch.delenv("BRAVE_API_KEY", raising=False)
 
     tool = _tool(provider="brave", api_key="")
@@ -153,7 +153,7 @@ async def test_searxng_no_base_url_falls_back(monkeypatch):
         def text(self, query, max_results=5):
             return [{"title": "Fallback", "href": "https://ddg.example", "body": "fallback"}]
 
-    monkeypatch.setattr("ddgs.DDGS", MockDDGS)
+    monkeypatch.setattr("duckduckgo_search.DDGS", MockDDGS)
     monkeypatch.delenv("SEARXNG_BASE_URL", raising=False)
 
     tool = _tool(provider="searxng", base_url="")
