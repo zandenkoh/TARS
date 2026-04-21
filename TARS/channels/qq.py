@@ -27,7 +27,7 @@ import time
 from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +37,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -398,7 +398,29 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
+            current_url = media_ref
+            resp = None
+            redirect_count = 0
+            while redirect_count < 5:
+                resp = await self._http.get(current_url, allow_redirects=False)
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    resp.release()
+                    if not location:
+                        return None, None
+                    current_url = urljoin(current_url, location)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning(f"QQ outbound media SSRF redirect blocked: {err}")
+                        return None, None
+                    redirect_count += 1
+                else:
+                    break
+
+            if resp is None:
+                return None, None
+
+            try:
                 if resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
@@ -411,6 +433,9 @@ class QQChannel(BaseChannel):
                     return None, None
                 filename = os.path.basename(urlparse(media_ref).path) or "file.bin"
                 return data, filename
+            finally:
+                if resp:
+                    resp.release()
         except Exception as e:
             logger.warning("QQ outbound media download error url={} err={}", media_ref, e)
             return None, None
@@ -551,11 +576,33 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
+            current_url = url
+            resp = None
+            redirect_count = 0
+            while redirect_count < 5:
+                resp = await self._http.get(
+                    current_url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                )
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    resp.release()
+                    if not location:
+                        return None
+                    current_url = urljoin(current_url, location)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning(f"QQ download SSRF redirect blocked: {err}")
+                        return None
+                    redirect_count += 1
+                else:
+                    break
+
+            if resp is None:
+                return None
+
+            try:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)
                     return None
@@ -620,6 +667,9 @@ class QQChannel(BaseChannel):
                         await asyncio.to_thread(f.write, chunk)
                 finally:
                     await asyncio.to_thread(f.close)
+            finally:
+                if resp:
+                    resp.release()
 
                 # Atomic rename
                 await asyncio.to_thread(os.replace, tmp_path, target)
