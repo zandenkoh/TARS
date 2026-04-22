@@ -14,3 +14,7 @@
 ## 2024-05-21 - [UX: Icon-only Button Tooltips]
 **Learning:** Found multiple icon-only buttons (like "New Chat", "Toggle Sidebar", "Notifications") that had correct `aria-label` attributes for screen readers but lacked `title` attributes. Sighted users relying on a mouse need visible tooltips on hover to understand the purpose of ambiguous icons.
 **Action:** Always pair `aria-label` attributes with visible `title` tooltips on icon-only interactive elements to ensure accessibility for all user types.
+
+## 2026-04-22 - [Accessibility: Hover-only Actions]
+**Learning:** In TARS WebUI templates, contextual actions hidden by default on hover (`opacity-0 group-hover:opacity-100`) are inaccessible to keyboard users because they cannot be triggered without a mouse.
+**Action:** Ensure accessibility by adding `focus-within:opacity-100` to their parent containers and explicit focus states (e.g., `focus-visible:opacity-100 focus:outline-none focus-visible:ring-2`) to the interactive elements themselves.
