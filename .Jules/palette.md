@@ -14,3 +14,7 @@
 ## 2024-05-21 - [UX: Icon-only Button Tooltips]
 **Learning:** Found multiple icon-only buttons (like "New Chat", "Toggle Sidebar", "Notifications") that had correct `aria-label` attributes for screen readers but lacked `title` attributes. Sighted users relying on a mouse need visible tooltips on hover to understand the purpose of ambiguous icons.
 **Action:** Always pair `aria-label` attributes with visible `title` tooltips on icon-only interactive elements to ensure accessibility for all user types.
+
+## 2026-04-22 - [Accessibility: Hidden Interactive Elements Focus State]
+**Learning:** Found multiple interactive elements (buttons, chevrons, SVGs) that are hidden by default via `opacity-0` but shown on hover using `group-hover:opacity-100`. While mouse users can discover these elements, keyboard users cannot see them when tabbing through the interface, leading to inaccessible UI actions. Adding `focus-within` and `focus-visible` classes to their respective parents and children fixes this.
+**Action:** Always verify that interactive elements hidden behind hover states (like `opacity-0` and `group-hover`) have corresponding `focus-visible` and `focus-within` styles so keyboard users can see them when navigating the DOM.
