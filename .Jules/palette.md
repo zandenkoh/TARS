@@ -14,3 +14,7 @@
 ## 2024-05-21 - [UX: Icon-only Button Tooltips]
 **Learning:** Found multiple icon-only buttons (like "New Chat", "Toggle Sidebar", "Notifications") that had correct `aria-label` attributes for screen readers but lacked `title` attributes. Sighted users relying on a mouse need visible tooltips on hover to understand the purpose of ambiguous icons.
 **Action:** Always pair `aria-label` attributes with visible `title` tooltips on icon-only interactive elements to ensure accessibility for all user types.
+
+## 2024-05-22 - [Accessibility: Hover-revealed Elements]
+**Learning:** Elements hidden by `opacity-0` and revealed via `group-hover:opacity-100` are completely inaccessible to keyboard navigation because they never become visible when tabbed to.
+**Action:** Always add `focus-within:opacity-100` to the parent container, and explicit `focus-visible:ring-2` focus outlines to the interactive elements themselves to ensure keyboard accessibility.
