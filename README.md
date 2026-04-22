@@ -18,6 +18,7 @@
 📏 Real-time line count: run `bash scripts/core_agent_lines.sh` to verify anytime.
 
 ## 📢 News
+- **2026-04-22**: 🎨 Palette: Fix accessibility for contextual actions hidden by default to ensure they are available for keyboard users.
 - **2026-04-16**: ⚡ Bolt optimized prompt token estimation fast path for significant performance gains.
 
 > [!IMPORTANT]
