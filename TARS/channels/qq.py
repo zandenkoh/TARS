@@ -395,22 +395,47 @@ class QQChannel(BaseChannel):
             logger.warning("QQ outbound media URL validation failed url={} err={}", media_ref, err)
             return None, None
 
+        ok, err = validate_url_target(media_ref)
+        if not ok:
+            logger.warning("QQ outbound media URL validation failed url={} err={}", media_ref, err)
+            return None, None
+
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
-                if resp.status >= 400:
-                    logger.warning(
-                        "QQ outbound media download failed status={} url={}",
-                        resp.status,
-                        media_ref,
-                    )
-                    return None, None
-                data = await resp.read()
-                if not data:
-                    return None, None
-                filename = os.path.basename(urlparse(media_ref).path) or "file.bin"
-                return data, filename
+            from urllib.parse import urljoin
+
+            from TARS.security.network import validate_resolved_url
+
+            current_url = media_ref
+            for _ in range(5):
+                resp = await self._http.get(current_url, allow_redirects=False)
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    resp.release()
+                    if not location:
+                        return None, None
+                    current_url = urljoin(current_url, location)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning("SSRF blocked redirect target: {} err: {}", current_url, err)
+                        return None, None
+                    continue
+
+                async with resp:
+                    if resp.status >= 400:
+                        logger.warning(
+                            "QQ outbound media download failed status={} url={}",
+                            resp.status,
+                            current_url,
+                        )
+                        return None, None
+                    data = await resp.read()
+                    if not data:
+                        return None, None
+                    filename = os.path.basename(urlparse(current_url).path) or "file.bin"
+                    return data, filename
+            return None, None
         except Exception as e:
             logger.warning("QQ outbound media download error url={} err={}", media_ref, e)
             return None, None
@@ -543,6 +568,11 @@ class QQChannel(BaseChannel):
         Enforces a max download size and writes to a .part temp file
         that is atomically renamed on success.
         """
+        ok, err = validate_url_target(url)
+        if not ok:
+            logger.warning("QQ download URL validation failed url={} err={}", url, err)
+            return None
+
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
 
@@ -551,81 +581,104 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
-                if resp.status != 200:
-                    logger.warning("QQ download failed: status={} url={}", resp.status, url)
-                    return None
+            from urllib.parse import urljoin
 
-                ctype = (resp.headers.get("Content-Type") or "").lower()
+            from TARS.security.network import validate_resolved_url
 
-                # Infer extension: url -> filename_hint -> content-type -> fallback
-                ext = Path(urlparse(url).path).suffix
-                if not ext:
-                    ext = Path(filename_hint).suffix
-                if not ext:
-                    if "png" in ctype:
-                        ext = ".png"
-                    elif "jpeg" in ctype or "jpg" in ctype:
-                        ext = ".jpg"
-                    elif "gif" in ctype:
-                        ext = ".gif"
-                    elif "webp" in ctype:
-                        ext = ".webp"
-                    elif "pdf" in ctype:
-                        ext = ".pdf"
-                    else:
-                        ext = ".bin"
-
-                if safe:
-                    if not Path(safe).suffix:
-                        safe = safe + ext
-                    filename = safe
-                else:
-                    filename = f"qq_file_{ts}{ext}"
-
-                target = self._media_root / filename
-                if target.exists():
-                    target = self._media_root / f"{target.stem}_{ts}{target.suffix}"
-
-                tmp_path = target.with_suffix(target.suffix + ".part")
-
-                # Stream write
-                downloaded = 0
-                chunk_size = max(1024, int(self.config.download_chunk_size or 262144))
-                max_bytes = max(
-                    1024 * 1024, int(self.config.download_max_bytes or (200 * 1024 * 1024))
+            current_url = url
+            for _ in range(5):
+                resp = await self._http.get(
+                    current_url,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
                 )
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    resp.release()
+                    if not location:
+                        return None
+                    current_url = urljoin(current_url, location)
+                    ok, err = validate_resolved_url(current_url)
+                    if not ok:
+                        logger.warning(
+                            "QQ download blocked redirect target: {} err: {}", current_url, err
+                        )
+                        return None
+                    continue
 
-                def _open_tmp():
-                    tmp_path.parent.mkdir(parents=True, exist_ok=True)
-                    return open(tmp_path, "wb")  # noqa: SIM115
+                async with resp:
+                    if resp.status != 200:
+                        logger.warning(
+                            "QQ download failed: status={} url={}", resp.status, current_url
+                        )
+                        return None
 
-                f = await asyncio.to_thread(_open_tmp)
-                try:
-                    async for chunk in resp.content.iter_chunked(chunk_size):
-                        if not chunk:
-                            continue
-                        downloaded += len(chunk)
-                        if downloaded > max_bytes:
-                            logger.warning(
-                                "QQ download exceeded max_bytes={} url={} -> abort",
-                                max_bytes,
-                                url,
-                            )
-                            return None
-                        await asyncio.to_thread(f.write, chunk)
-                finally:
-                    await asyncio.to_thread(f.close)
+                    ctype = (resp.headers.get("Content-Type") or "").lower()
 
-                # Atomic rename
-                await asyncio.to_thread(os.replace, tmp_path, target)
-                tmp_path = None  # mark as moved
-                logger.info("QQ file saved: {}", str(target))
-                return str(target)
+                    # Infer extension: url -> filename_hint -> content-type -> fallback
+                    ext = Path(urlparse(current_url).path).suffix
+                    if not ext:
+                        ext = Path(filename_hint).suffix
+                    if not ext:
+                        if "png" in ctype:
+                            ext = ".png"
+                        elif "jpeg" in ctype or "jpg" in ctype:
+                            ext = ".jpg"
+                        elif "gif" in ctype:
+                            ext = ".gif"
+                        elif "webp" in ctype:
+                            ext = ".webp"
+                        elif "pdf" in ctype:
+                            ext = ".pdf"
+                        else:
+                            ext = ".bin"
+
+                    if safe:
+                        if not Path(safe).suffix:
+                            safe = safe + ext
+                        filename = safe
+                    else:
+                        filename = f"qq_file_{ts}{ext}"
+
+                    target = self._media_root / filename
+                    if target.exists():
+                        target = self._media_root / f"{target.stem}_{ts}{target.suffix}"
+
+                    tmp_path = target.with_suffix(target.suffix + ".part")
+
+                    # Stream write
+                    downloaded = 0
+                    chunk_size = max(1024, int(self.config.download_chunk_size or 262144))
+                    max_bytes = max(
+                        1024 * 1024, int(self.config.download_max_bytes or (200 * 1024 * 1024))
+                    )
+
+                    def _open_tmp():
+                        tmp_path.parent.mkdir(parents=True, exist_ok=True)
+                        return open(tmp_path, "wb")  # noqa: SIM115
+
+                    f = await asyncio.to_thread(_open_tmp)
+                    try:
+                        async for chunk in resp.content.iter_chunked(chunk_size):
+                            if not chunk:
+                                continue
+                            downloaded += len(chunk)
+                            if downloaded > max_bytes:
+                                logger.warning(
+                                    "QQ download exceeded max_bytes={} url={} -> abort",
+                                    max_bytes,
+                                    url,
+                                )
+                                return None
+                            await asyncio.to_thread(f.write, chunk)
+                    finally:
+                        await asyncio.to_thread(f.close)
+
+                    # Atomic rename
+                    await asyncio.to_thread(os.replace, tmp_path, target)
+                    tmp_path = None  # mark as moved
+                    logger.info("QQ file saved: {}", str(target))
+                    return str(target)
 
         except Exception as e:
             logger.error("QQ download error: {}", e)
