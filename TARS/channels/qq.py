@@ -25,9 +25,10 @@ import os
 import re
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +38,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -79,6 +80,35 @@ _IMAGE_EXTS = {
 
 # Replace unsafe characters with "_", keep Chinese and common safe punctuation.
 _SAFE_NAME_RE = re.compile(r"[^\w.\-()\[\]（）【】\u4e00-\u9fff]+", re.UNICODE)
+
+
+@asynccontextmanager
+async def _safe_get(client: aiohttp.ClientSession, url: str, **kwargs):
+    """Safely fetch a URL following redirects (max 5) while validating targets against SSRF."""
+    kwargs["allow_redirects"] = False
+    current_url = url
+
+    ok, err = validate_url_target(current_url)
+    if not ok:
+        raise ValueError(f"Initial URL validation failed: {err}")
+
+    for _ in range(5):
+        resp = await client.get(current_url, **kwargs)
+        if resp.status in (301, 302, 303, 307, 308) and "Location" in resp.headers:
+            next_url = urljoin(current_url, resp.headers["Location"])
+            resp.release()
+            current_url = next_url
+
+            ok, err = validate_resolved_url(current_url)
+            if not ok:
+                raise ValueError(f"Redirect URL validation failed: {err}")
+            continue
+        try:
+            yield resp
+        finally:
+            resp.release()
+        return
+    raise ValueError("Too many redirects")
 
 
 def _sanitize_filename(name: str) -> str:
@@ -390,15 +420,10 @@ class QQChannel(BaseChannel):
                 return None, None
 
         # Remote URL
-        ok, err = validate_url_target(media_ref)
-        if not ok:
-            logger.warning("QQ outbound media URL validation failed url={} err={}", media_ref, err)
-            return None, None
-
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
+            async with _safe_get(self._http, media_ref) as resp:
                 if resp.status >= 400:
                     logger.warning(
                         "QQ outbound media download failed status={} url={}",
@@ -551,10 +576,10 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
+            async with _safe_get(
+                self._http,
                 url,
                 timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
             ) as resp:
                 if resp.status != 200:
                     logger.warning("QQ download failed: status={} url={}", resp.status, url)

@@ -19,6 +19,7 @@
 
 ## 📢 News
 - **2026-04-16**: ⚡ Bolt optimized prompt token estimation fast path for significant performance gains.
+- **2026-04-22** Fixed SSRF vulnerability in QQ media download by enforcing redirect validation.
 
 > [!IMPORTANT]
 > **Security note:** Due to `litellm` supply chain poisoning, **please check your Python environment ASAP** and refer to this [advisory](https://github.com/HKUDS/TARS/discussions/2445) for details. We have fully removed the `litellm` dependency in [this commit](https://github.com/HKUDS/TARS/commit/3dfdab7).
