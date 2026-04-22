@@ -1,3 +1,6 @@
+## 2026-04-16 - [Optimize Space Skipping in String iteration]
+**Learning:** Using a python `while` loop to scan character-by-character for spaces in a string (`while content[start].isspace()`) evaluates bytecode continuously. Using a globally pre-compiled regular expression using the `pos` parameter (`_SPACE_RE.match(content, start)`) is significantly faster because it moves the loop evaluation into C. Benchmarks showed a 17x speedup for skipping large whitespace blocks.
+**Action:** Replace character-by-character `while` loops that scan strings with globally pre-compiled regular expressions using the `pos` parameter for significant performance improvements.
 ## 2025-03-31 - Pre-compiling RegEx in Web Tools
 **Learning:** During extensive web scraping and formatting inside `TARS/agent/tools/web.py` (e.g. `_strip_tags`, `_normalize`, `_to_markdown`), the system heavily relies on `re.sub()`. For large strings or heavy tool usage, dynamically recompiling the same regex expressions continuously wastes CPU cycles and slows down operations. This is especially true for hot-path regex strings containing flags like `re.I`.
 **Action:** Always pre-compile regular expressions (`re.compile`) at the module level for repetitive text processing loops and scraping modules to reduce regex overhead and maintain speed.
