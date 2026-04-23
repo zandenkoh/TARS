@@ -104,6 +104,7 @@ def current_time_str(timezone: str | None = None) -> str:
 
 
 _UNSAFE_CHARS = re.compile(r'[<>:"/\\|?*]')
+_SPACE_RE = re.compile(r"\s+")
 
 
 def safe_filename(name: str) -> str:
@@ -145,8 +146,9 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
         chunks.append(content[start:pos])
 
         start = pos
-        while start < total_len and content[start].isspace():
-            start += 1
+        # ⚡ Bolt Optimization: Use pre-compiled regex for O(N) space skipping
+        if m := _SPACE_RE.match(content, start):
+            start = m.end()
 
     return chunks
 
