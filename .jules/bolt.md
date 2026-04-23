@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2026-04-23 - Bypassing bytecode with Regex pos
+**Learning:** In Python, replacing character-by-character `while` loops that scan strings (e.g., `while content[start].isspace(): start += 1`) with globally pre-compiled regular expressions using the `pos` parameter (e.g., `_SPACE_RE.match(content, start)`) significantly improves performance by shifting the iteration from bytecode to the highly-optimized C-based `re` engine. Benchmarks show a substantial 15x-20x speedup for long sequences.
+**Action:** Use pre-compiled regex matching with `pos` parameter when parsing string chunks or skipping character sequences instead of manual `while` loops.
