@@ -14,3 +14,8 @@
 ## 2024-05-21 - [UX: Icon-only Button Tooltips]
 **Learning:** Found multiple icon-only buttons (like "New Chat", "Toggle Sidebar", "Notifications") that had correct `aria-label` attributes for screen readers but lacked `title` attributes. Sighted users relying on a mouse need visible tooltips on hover to understand the purpose of ambiguous icons.
 **Action:** Always pair `aria-label` attributes with visible `title` tooltips on icon-only interactive elements to ensure accessibility for all user types.
+
+
+## 2024-05-22 - [Accessibility: Hover-only actions in Modals and Toolbars]
+**Learning:** Contextual actions like "Copy", "Export", "Session Options", and "Delete" that are hidden by default via `opacity-0` and only visible on hover (`group-hover:opacity-100`) are inaccessible to keyboard users because they cannot be focused when invisible, and users won't know they exist.
+**Action:** Always add `focus-within:opacity-100` to the parent container of hover-only actions, and explicit `focus-visible` outline styles (e.g., `focus-visible:opacity-100 focus-visible:ring-2`) to the interactive elements themselves to ensure keyboard navigability. For SVGs that use group-hover, use `group-focus-visible:opacity-100`.
