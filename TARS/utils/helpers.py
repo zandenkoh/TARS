@@ -10,6 +10,8 @@ from typing import Any
 
 import tiktoken
 
+_SPACE_RE = re.compile(r"\s+")
+
 _TIKTOKEN_ENC = None
 
 
@@ -145,8 +147,9 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
         chunks.append(content[start:pos])
 
         start = pos
-        while start < total_len and content[start].isspace():
-            start += 1
+        m = _SPACE_RE.match(content, start)
+        if m:
+            start = m.end()
 
     return chunks
 
