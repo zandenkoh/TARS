@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2026-04-23 - Optimize whitespace skipping with regex match
+**Learning:** Character-by-character `while` loops that scan strings (e.g., `while content[start].isspace(): start += 1`) can be a performance bottleneck when dealing with large contiguous blocks of target characters.
+**Action:** Replace character-by-character `while` loops with pre-compiled regular expressions using the `pos` parameter (e.g., `_SPACE_RE.match(content, start)`) to shift the iteration from Python bytecode to the highly-optimized C-based `re` engine.
