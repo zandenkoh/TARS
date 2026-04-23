@@ -39,3 +39,7 @@
 ## 2026-04-16 - Token Estimation Optimization
 **Learning:** Exact type checking (`type(obj) is str`) is significantly faster than `isinstance(obj, str)`, particularly in hot loops evaluating prompt tokens. Additionally, in loop evaluation paths with strict expected shapes, using early `break` on shape verification failures avoids executing trailing slower-path dictionary accesses for all items in the structure.
 **Action:** Always prefer exact type checking inside performance-critical iteration blocks unless inheritance support is explicitly required, and optimize negative cases with early breaks to prevent executing unneeded logic.
+
+## 2026-04-16 - [Pre-compile regex for case-insensitive substrings]
+**Learning:** For case-insensitive substring search in large files or hot loops (like in `SessionManager.search_sessions`), calling `.lower()` on each iterated string or chunk is memory-inefficient and slow because it repeatedly allocates new strings in Python.
+**Action:** Use a pre-compiled `re.compile(query, re.IGNORECASE)` and its `.search()` method. This delegates the iteration to the C regex engine, avoiding repetitive, heavy python-level string allocations.
