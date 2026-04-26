@@ -10,6 +10,8 @@ from typing import Any
 
 import tiktoken
 
+_SPACE_RE = re.compile(r"\s+")
+
 _TIKTOKEN_ENC = None
 
 
