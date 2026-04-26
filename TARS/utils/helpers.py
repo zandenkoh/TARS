@@ -111,6 +111,9 @@ def safe_filename(name: str) -> str:
     return _UNSAFE_CHARS.sub("_", name).strip()
 
 
+_SPACE_RE = re.compile(r"\s+")
+
+
 def split_message(content: str, max_len: int = 2000) -> list[str]:
     """
     Split content into chunks within max_len, preferring line breaks.
@@ -145,8 +148,9 @@ def split_message(content: str, max_len: int = 2000) -> list[str]:
         chunks.append(content[start:pos])
 
         start = pos
-        while start < total_len and content[start].isspace():
-            start += 1
+        m = _SPACE_RE.match(content, start)
+        if m:
+            start = m.end()
 
     return chunks
 
