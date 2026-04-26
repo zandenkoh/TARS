@@ -27,7 +27,7 @@ import time
 from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import aiohttp
 from loguru import logger
@@ -37,7 +37,7 @@ from TARS.bus.events import OutboundMessage
 from TARS.bus.queue import MessageBus
 from TARS.channels.base import BaseChannel
 from TARS.config.schema import Base
-from TARS.security.network import validate_url_target
+from TARS.security.network import validate_resolved_url, validate_url_target
 
 try:
     from TARS.config.paths import get_media_dir
@@ -398,19 +398,38 @@ class QQChannel(BaseChannel):
         if not self._http:
             self._http = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120))
         try:
-            async with self._http.get(media_ref, allow_redirects=True) as resp:
-                if resp.status >= 400:
-                    logger.warning(
-                        "QQ outbound media download failed status={} url={}",
-                        resp.status,
-                        media_ref,
-                    )
-                    return None, None
-                data = await resp.read()
-                if not data:
-                    return None, None
-                filename = os.path.basename(urlparse(media_ref).path) or "file.bin"
-                return data, filename
+            url_to_fetch = media_ref
+            redirects = 0
+            while redirects < 5:
+                async with self._http.get(url_to_fetch, allow_redirects=False) as resp:
+                    if resp.status in (301, 302, 303, 307, 308):
+                        location = resp.headers.get("Location")
+                        if not location:
+                            break
+                        url_to_fetch = urljoin(url_to_fetch, location)
+                        ok, err = validate_resolved_url(url_to_fetch)
+                        if not ok:
+                            logger.warning(
+                                "QQ outbound media redirect validation failed url={} err={}",
+                                url_to_fetch,
+                                err,
+                            )
+                            return None, None
+                        redirects += 1
+                        continue
+                    if resp.status >= 400:
+                        logger.warning(
+                            "QQ outbound media download failed status={} url={}",
+                            resp.status,
+                            media_ref,
+                        )
+                        return None, None
+                    data = await resp.read()
+                    if not data:
+                        return None, None
+                    filename = os.path.basename(urlparse(url_to_fetch).path) or "file.bin"
+                    return data, filename
+            return None, None
         except Exception as e:
             logger.warning("QQ outbound media download error url={} err={}", media_ref, e)
             return None, None
@@ -551,19 +570,37 @@ class QQChannel(BaseChannel):
         tmp_path: Path | None = None
 
         try:
-            async with self._http.get(
-                url,
-                timeout=aiohttp.ClientTimeout(total=120),
-                allow_redirects=True,
-            ) as resp:
-                if resp.status != 200:
-                    logger.warning("QQ download failed: status={} url={}", resp.status, url)
-                    return None
+            url_to_fetch = url
+            redirects = 0
+            while redirects < 5:
+                async with self._http.get(
+                    url_to_fetch,
+                    timeout=aiohttp.ClientTimeout(total=120),
+                    allow_redirects=False,
+                ) as resp:
+                    if resp.status in (301, 302, 303, 307, 308):
+                        location = resp.headers.get("Location")
+                        if not location:
+                            break
+                        url_to_fetch = urljoin(url_to_fetch, location)
+                        ok, err = validate_resolved_url(url_to_fetch)
+                        if not ok:
+                            logger.warning(
+                                "QQ inbound media redirect validation failed url={} err={}",
+                                url_to_fetch,
+                                err,
+                            )
+                            return None
+                        redirects += 1
+                        continue
+                    if resp.status != 200:
+                        logger.warning("QQ download failed: status={} url={}", resp.status, url)
+                        return None
 
-                ctype = (resp.headers.get("Content-Type") or "").lower()
+                    ctype = (resp.headers.get("Content-Type") or "").lower()
 
-                # Infer extension: url -> filename_hint -> content-type -> fallback
-                ext = Path(urlparse(url).path).suffix
+                    # Infer extension: url -> filename_hint -> content-type -> fallback
+                    ext = Path(urlparse(url_to_fetch).path).suffix
                 if not ext:
                     ext = Path(filename_hint).suffix
                 if not ext:
