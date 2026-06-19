@@ -55,14 +55,22 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="button" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5">
-                SAVE CONFIGURATION
+            <button type="button" id="save-config-btn" onclick="saveConfig()" class="px-8 py-3 bg-white text-black font-bold text-xs rounded-2xl hover:bg-tars-primary hover:text-white transition-all shadow-xl shadow-white/5 min-w-[180px] flex items-center justify-center disabled:opacity-75 disabled:cursor-not-allowed">
+                <span>SAVE CONFIGURATION</span>
             </button>
         </div>
     </form>
 
     <script>
         async function saveConfig() {
+            const btn = document.getElementById('save-config-btn');
+            const btnSpan = btn.querySelector('span');
+            const originalText = btnSpan.innerText;
+
+            // Set loading state
+            btn.disabled = true;
+            btnSpan.innerHTML = '<div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border-2 border-current border-t-transparent animate-spin rounded-full"></div><span>SAVING...</span></div>';
+
             const form = document.getElementById('config-form');
             const data = new FormData(form);
             const obj = {};
@@ -96,13 +104,34 @@
                     body: formData
                 });
                 const result = await resp.json();
+
                 if (result.status === 'success') {
-                    alert('Configuration saved successfully!');
+                    btnSpan.innerText = 'SAVED!';
+                    btn.classList.add('!bg-emerald-500', '!text-white', '!hover:bg-emerald-500');
+                    setTimeout(() => {
+                        btnSpan.innerText = originalText;
+                        btn.classList.remove('!bg-emerald-500', '!text-white', '!hover:bg-emerald-500');
+                        btn.disabled = false;
+                    }, 2000);
                 } else {
+                    btnSpan.innerText = 'ERROR!';
+                    btn.classList.add('!bg-red-500', '!text-white', '!hover:bg-red-500');
                     alert('Error: ' + result.message);
+                    setTimeout(() => {
+                        btnSpan.innerText = originalText;
+                        btn.classList.remove('!bg-red-500', '!text-white', '!hover:bg-red-500');
+                        btn.disabled = false;
+                    }, 2000);
                 }
             } catch (err) {
                 console.error("Save failed", err);
+                btnSpan.innerText = 'ERROR!';
+                btn.classList.add('!bg-red-500', '!text-white', '!hover:bg-red-500');
+                setTimeout(() => {
+                    btnSpan.innerText = originalText;
+                    btn.classList.remove('!bg-red-500', '!text-white', '!hover:bg-red-500');
+                    btn.disabled = false;
+                }, 2000);
             }
         }
     </script>
